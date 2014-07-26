@@ -5,16 +5,20 @@
 
 unsigned char lastID = 255;
 
+static bool testFace(unsigned char face) {
+	return face == 0 || face == 6 || face == 37 || face == 38 || face == 39 || face == 40;
+}
+
 void drawBlock(unsigned char blockID, int xPos, int yPos, int zPos) {
 
 	lastID = blockID;
 
-	int drawBack  = theWorld[yPos][xPos][zPos + 1] == 0;
-	int drawFront = theWorld[yPos][xPos][zPos - 1] == 0;
-	int drawRight = theWorld[yPos][xPos + 1][zPos] == 0;
-	int drawLeft  = theWorld[yPos][xPos - 1][zPos] == 0;
-	int drawTop   = theWorld[yPos + 1][xPos][zPos] == 0;
-	int drawBott  = theWorld[yPos - 1][xPos][zPos] == 0;
+	int drawBack  = testFace(theWorld[yPos][xPos][zPos + 1]);
+	int drawFront = testFace(theWorld[yPos][xPos][zPos - 1]);
+	int drawRight = testFace(theWorld[yPos][xPos + 1][zPos]);
+	int drawLeft  = testFace(theWorld[yPos][xPos - 1][zPos]);
+	int drawTop   = testFace(theWorld[yPos + 1][xPos][zPos]);
+	int drawBott  = testFace(theWorld[yPos - 1][xPos][zPos]);
 
 	int size = 0;
 	if (drawBack)  size += 4;

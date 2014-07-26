@@ -45,17 +45,25 @@ static void generateWorld() {
 	for (y = 0; y < worldY; y++) {
 		for (x = 0; x < worldX; x++) {
 			for (z = 0; z < worldZ; z++) {
-//				if (y == 0)
-//					theWorld[y][x][z] = 7;
-//				else if (y == 1)
-//					theWorld[y][x][z] = 10;
-//				else if (y < 29)
-//					theWorld[y][x][z] = 1;
-//				else if (y < 31)
-//					theWorld[y][x][z] = 3;
-				if (y == 31)
-					theWorld[y][x][z] = 19;
-				else
+				if (y == 0)
+					theWorld[y][x][z] = 7;
+				else if (y == 1)
+					theWorld[y][x][z] = 10;
+				else if (y < 29)
+					theWorld[y][x][z] = 1;
+				else if (y < 31)
+					theWorld[y][x][z] = 3;
+				else if (y == 31)
+					theWorld[y][x][z] = 2;
+				else if (y == 32) {
+					int type = rand() % 100;
+					if (type == 0)
+						theWorld[y][x][z] = 37;
+					else if (type == 1)
+						theWorld[y][x][z] = 38;
+					else
+						theWorld[y][x][z] = 0;
+				} else
 					theWorld[y][x][z] = 0;
 			}
 		}
@@ -67,6 +75,9 @@ static void cleanBlocks();
 static u8 CalculateFrameRate();
 
 int main() {
+
+	time_t t;
+	srand((unsigned) time(&t));
 
 	u32 TEXT_COLOR = 0x000000FF;
 

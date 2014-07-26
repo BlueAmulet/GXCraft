@@ -17,6 +17,7 @@
 #include "controls.h"
 #include "render.h"
 #include "block.h"
+#include "terrain.h"
 
 #include "block/block_includes.h"
 
@@ -41,24 +42,24 @@ inline double to_radians(double degrees) {
 }
 
 static void generateWorld() {
+	generateTerrain();
 	short x,y,z;
-	for (y = 0; y < worldY; y++) {
-		for (x = 0; x < worldX; x++) {
-			for (z = 0; z < worldZ; z++) {
+	for (x = 0; x < worldX; x++) {
+		for (z = 0; z < worldZ; z++) {
+			double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * 8) + 28);
+			for (y = 0; y < worldY; y++) {
 				if (y == 0)
 					theWorld[y][x][z] = 7;
-				else if (y == 1)
-					theWorld[y][x][z] = 10;
-				else if (y < 29)
+				else if (y < terrainPiece - 3)
 					theWorld[y][x][z] = 1;
-				else if (y < 31)
+				else if (y < terrainPiece && y >= terrainPiece - 2)
 					theWorld[y][x][z] = 3;
-				else if (y == 31)
+				else if (y == terrainPiece)
 					theWorld[y][x][z] = 2;
-				else if (y == 32) {
+				else if (y == terrainPiece + 1) {
 					int type = rand() % 100;
 					if (type == 0)
-						theWorld[y][x][z] = 8;
+						theWorld[y][x][z] = 37;
 					else if (type == 1)
 						theWorld[y][x][z] = 38;
 					else
@@ -93,7 +94,6 @@ int main() {
 	int dlrendersize = 0;
 
 	thePlayer.posX = 256;
-	thePlayer.posY = 32;
 	thePlayer.posZ = 256;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
@@ -130,6 +130,13 @@ int main() {
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 		    GRRLIB_Render();
 			generateWorld();
+			int y;
+			for (y = worldY - 1; y >= 0; y--) {
+				if (theWorld[y][(int)thePlayer.posX][(int)thePlayer.posZ] != 0) {
+					thePlayer.posY = y;
+					break;
+				}
+			}
 			status++;
 			GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
 			break;

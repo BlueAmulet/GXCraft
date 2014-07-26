@@ -7,7 +7,8 @@
 
 GRRLIB_texImg *tex_sapling;
 
-static void render(unsigned char blockID, int xPos, int yPos, int zPos) {
+static void render(unsigned char blockID, int xPos, int yPos, int zPos, unsigned char pass) {
+	if (pass == 0) return;
 	if (lastID != blockID)
 		GRRLIB_SetTexture(tex_sapling, 0);
 	drawBlockCrossed(blockID, xPos, yPos, zPos);

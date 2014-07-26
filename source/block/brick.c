@@ -7,7 +7,7 @@
 
 GRRLIB_texImg *tex_brick;
 
-static void render(unsigned char blockID, int xPos, int yPos, int zPos) {
+static void render(unsigned char blockID, int xPos, int yPos, int zPos, unsigned char pass) {
 	if (lastID != blockID)
 		GRRLIB_SetTexture(tex_brick, 0);
 	drawBlock(blockID, xPos, yPos, zPos);

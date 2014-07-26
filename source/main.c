@@ -58,7 +58,7 @@ static void generateWorld() {
 				else if (y == 32) {
 					int type = rand() % 100;
 					if (type == 0)
-						theWorld[y][x][z] = 37;
+						theWorld[y][x][z] = 8;
 					else if (type == 1)
 						theWorld[y][x][z] = 38;
 					else
@@ -195,7 +195,20 @@ int main() {
 							unsigned char blockID = theWorld[y][x][z];
 							if (blockID != 0) {
 								blockEntry entry = blockRegistry[blockID];
-								entry.renderBlock(blockID, x, y, z);
+								entry.renderBlock(blockID, x, y, z, 0);
+							}
+						}
+					}
+				}
+				
+				for (y = worldY - 1; y >= 0; y--) {
+					for (x = max(thePlayer.posX - renderDistance,0); x <= min(worldX-1,thePlayer.posX + renderDistance); x++) {
+						for (z = max(thePlayer.posZ - renderDistance,0); z <= min(worldZ-1,thePlayer.posZ + renderDistance); z++) {
+							
+							unsigned char blockID = theWorld[y][x][z];
+							if (blockID != 0) {
+								blockEntry entry = blockRegistry[blockID];
+								entry.renderBlock(blockID, x, y, z, 1);
 							}
 						}
 					}

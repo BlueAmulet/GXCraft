@@ -11,7 +11,8 @@ GRRLIB_texImg *tex_iron_top;
 GRRLIB_texImg *tex_iron_bott;
 GRRLIB_texImg *tex_iron_side;
 
-static void render(unsigned char blockID, int xPos, int yPos, int zPos) {
+static void render(unsigned char blockID, int xPos, int yPos, int zPos, unsigned char pass) {
+	if (pass == 1) return;
 	if (lastID != blockID)
 		GRRLIB_SetTexture(tex_iron_top, 0);
 	drawBlock(blockID, xPos, yPos, zPos);

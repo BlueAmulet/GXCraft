@@ -10,7 +10,7 @@ GRRLIB_texImg *tex_flower;
 static void render(unsigned char blockID, int xPos, int yPos, int zPos) {
 	if (lastID != blockID)
 		GRRLIB_SetTexture(tex_flower, 0);
-	drawBlock(blockID, xPos, yPos, zPos);
+	drawBlockCrossed(blockID, xPos, yPos, zPos);
 }
 
 void flower_init() {

@@ -10,7 +10,7 @@ GRRLIB_texImg *tex_rose;
 static void render(unsigned char blockID, int xPos, int yPos, int zPos) {
 	if (lastID != blockID)
 		GRRLIB_SetTexture(tex_rose, 0);
-	drawBlock(blockID, xPos, yPos, zPos);
+	drawBlockCrossed(blockID, xPos, yPos, zPos);
 }
 
 void rose_init() {

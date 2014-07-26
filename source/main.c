@@ -23,7 +23,7 @@
 #define chunkX 16
 #define chunkZ 16
 
-#define displayListSize (8*1024*1024)+63
+#define displayListSize ((8*1024*1024)+63)
 
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -45,10 +45,16 @@ static void generateWorld() {
 	for (y = 0; y < worldY; y++) {
 		for (x = 0; x < worldX; x++) {
 			for (z = 0; z < worldZ; z++) {
-				if (y == 15)
-					theWorld[y][x][z] = ((x*z)+y)%2;
-				else if (y < 15)
-					theWorld[y][x][z] = 1;
+//				if (y == 0)
+//					theWorld[y][x][z] = 7;
+//				else if (y == 1)
+//					theWorld[y][x][z] = 10;
+//				else if (y < 29)
+//					theWorld[y][x][z] = 1;
+//				else if (y < 31)
+//					theWorld[y][x][z] = 3;
+				if (y == 31)
+					theWorld[y][x][z] = 19;
 				else
 					theWorld[y][x][z] = 0;
 			}
@@ -76,7 +82,7 @@ int main() {
 	int dlrendersize = 0;
 
 	thePlayer.posX = 256;
-	thePlayer.posY = 16;
+	thePlayer.posY = 32;
 	thePlayer.posZ = 256;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
@@ -101,14 +107,14 @@ int main() {
 
     while (true) {
 		switch(status) {
-		case 0:
+		case 0: // Register blocks
 		    GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
 		    GRRLIB_Render();
 			initializeBlocks();
 			status++;
 			break;
-		case 1:
+		case 1: // Generate the world
 		    GRRLIB_2dMode();
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 		    GRRLIB_Render();
@@ -116,7 +122,7 @@ int main() {
 			status++;
 			GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
 			break;
-		case 2:
+		case 2: // Main loop
 		    GRRLIB_2dMode();
 		    WPAD_ScanPads();
 		    if(WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) exit(0);
@@ -196,7 +202,7 @@ int main() {
 			GRRLIB_Printf(10,  85, tex_font, TEXT_COLOR, 1, "LX:% 7.2f", thePlayer.lookX);
 			GRRLIB_Printf(10, 100, tex_font, TEXT_COLOR, 1, "LY:% 7.2f", thePlayer.lookY);
 			GRRLIB_Printf(10, 115, tex_font, TEXT_COLOR, 1, "LZ:% 7.2f", thePlayer.lookZ);
-			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dlrendersize, displayListSize, dlrendersize*100/(displayListSize));
+			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dlrendersize, displayListSize, dlrendersize*100/displayListSize);
 
 		    GRRLIB_Render();
 			FPS = CalculateFrameRate();

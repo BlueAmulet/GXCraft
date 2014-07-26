@@ -1,0 +1,6 @@
+GXCraft.dol
+GXCraft.elf
+build/
+source/textures/*.c
+source/textures/*.h
+

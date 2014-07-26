@@ -6,7 +6,7 @@
 unsigned char lastID = 255;
 
 static bool testFace(unsigned char face) {
-	return face == 0 || face == 6 || face == 37 || face == 38 || face == 39 || face == 40;
+	return face == 0 || face == 6 || face == 8 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 
 void drawBlock(unsigned char blockID, int xPos, int yPos, int zPos) {

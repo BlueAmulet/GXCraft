@@ -228,6 +228,7 @@ int main() {
 			GRRLIB_ObjectViewRotate(0, thePlayer.lookX, 0);
 			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
 			GRRLIB_ObjectViewEnd();
+
 			if (abs(displistX - thePlayer.posX) + abs(displistZ - thePlayer.posZ) > 8) {
 				netcat_log("rerender display list because player too far from last render point\n");
 				rerenderDisplayList = true;

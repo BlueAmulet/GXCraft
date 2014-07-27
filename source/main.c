@@ -159,15 +159,22 @@ int main() {
 			status = INGAME;
 			break;
 		case INGAME: // Main loop
-		    WPAD_ScanPads();
-		    if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_HOME)
-			{
-				exitloop = true;
-				break;
+			if (thePlayer.flying) { // Reset Motion
+				thePlayer.motionX = 0;
+				thePlayer.motionY = 0;
+				thePlayer.motionZ = 0;
 			}
-			if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
-				thePlayer.posX += sin(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.posZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
+			GRRLIB_2dMode();
+		    WPAD_ScanPads();
+
+			data = WPAD_Data(WPAD_CHAN_0);
+			if (data->exp.type != WPAD_EXP_NUNCHUK)
+				status = NUNCHUK;
+
+		    if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_HOME) exit(0);
+			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
+				thePlayer.motionX += sin(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
 			}
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_DOWN) {
 				thePlayer.motionX -= sin(to_radians(thePlayer.lookX)) * 0.1;
@@ -221,7 +228,7 @@ int main() {
 			GRRLIB_ObjectViewRotate(0, thePlayer.lookX, 0);
 			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
 			GRRLIB_ObjectViewEnd();
-			
+
 			if (abs(displistX - thePlayer.posX) + abs(displistZ - thePlayer.posZ) > 8) {
 				netcat_log("rerender display list because player too far from last render point\n");
 				rerenderDisplayList = true;

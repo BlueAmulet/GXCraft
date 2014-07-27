@@ -254,11 +254,14 @@ int main() {
 			int i;
 			for (i = 0; i < 6; i++) {
 				unsigned char block = theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)];
-				if (block != 0) {
+				if (block != 0 && block != 8 && block != 10) {
 					drawBlock(xLook*i+thePlayer.posX, yLook*i+thePlayer.posY+1.625, zLook*i+thePlayer.posZ, tex_font);
 					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B) {
-						theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)] = 0;
-						chunked_deallocall();
+						int selBlockX = (int)(xLook*i+thePlayer.posX);
+						int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
+						int selBlockZ = (int)(zLook*i+thePlayer.posZ);
+						theWorld[selBlockY][selBlockX][selBlockZ] = 0;
+						chunk_dealloc(floor(selBlockX/16),floor(selBlockZ/16));
 						rerenderDisplayList = true;
 					}
 					break;

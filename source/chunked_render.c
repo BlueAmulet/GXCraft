@@ -39,6 +39,25 @@ void chunked_deallocall()
 	}
 }
 
+void chunk_dealloc(unsigned short x, unsigned short z)
+{
+	int i;
+	for (i=0; i<nRenderChunks; i++)
+	{
+		renderchunk *rc = renderchunks[i];
+		if (rc->x == x && rc->z == z)
+		{
+			if (rc->active) {
+				netcat_log("found active chunk to dealloc\n");
+				renderchunks[i]->active = false;
+			} else
+				netcat_log("tried to dealloc non active chunk\n");
+			return;
+		}
+	}
+	netcat_log("couldn't find chunk to dealloc\n");
+}
+
 int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z)
 {
 	//first try to find an existing renderchunk with the coords

@@ -13,6 +13,7 @@ typedef struct
 
 extern renderchunk *renderchunks[nRenderChunks];
 void chunked_init();
+void chunk_dealloc(unsigned short x, unsigned short z);
 void chunked_refresh(int renderDistance, player thePlayer);
 void chunked_render(player thePlayer);
 int chunked_getfifousage();

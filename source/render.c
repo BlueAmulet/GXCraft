@@ -16,7 +16,7 @@ inline void drawBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 	bool drawRight = testFace(theWorld[yPos][xPos + 1][zPos]);
 	bool drawLeft  = testFace(theWorld[yPos][xPos - 1][zPos]);
 	bool drawTop   = testFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = testFace(theWorld[yPos - 1][xPos][zPos]);
+	bool drawBott  = yPos > 0 ? testFace(theWorld[yPos - 1][xPos][zPos]) : false;
 
 	int size = 0;
 	if (drawBack)  size += 4;

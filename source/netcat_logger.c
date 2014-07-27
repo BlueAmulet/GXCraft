@@ -29,7 +29,7 @@ void netcat_console()
 		memset (&client, 0, sizeof (client));
 
 		server.sin_family = AF_INET;
-		server.sin_port = htons (80);
+		server.sin_port = htons (1337);
 		server.sin_addr.s_addr = INADDR_ANY;
 		net_bind (sock, (struct sockaddr *) &server, sizeof (server));
 		

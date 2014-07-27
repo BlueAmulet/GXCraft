@@ -101,6 +101,7 @@ int main() {
 	thePlayer.lookX = 0;
 	thePlayer.lookY = 0;
 	thePlayer.lookZ = 0;
+	thePlayer.flying = true;
 
 	int displistX = 256;
 	int displistY = 18;
@@ -141,27 +142,50 @@ int main() {
 			GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
 			break;
 		case 2: // Main loop
+			if (thePlayer.flying) { // Reset Motion
+				thePlayer.motionX = 0;
+				thePlayer.motionY = 0;
+				thePlayer.motionZ = 0;
+			}
 		    GRRLIB_2dMode();
 		    WPAD_ScanPads();
-		    if(WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) exit(0);
-			if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
-				thePlayer.posX += sin(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.posZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
+		    if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_HOME) exit(0);
+			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
+				thePlayer.motionX += sin(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
 			}
-			if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_DOWN) {
-				thePlayer.posX -= sin(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.posZ += cos(to_radians(thePlayer.lookX)) * 0.1;
+			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_DOWN) {
+				thePlayer.motionX -= sin(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionZ += cos(to_radians(thePlayer.lookX)) * 0.1;
 			}
-			if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_LEFT) {
-				thePlayer.posX -= cos(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.posZ -= sin(to_radians(thePlayer.lookX)) * 0.1;
+			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_LEFT) {
+				thePlayer.motionX -= cos(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionZ -= sin(to_radians(thePlayer.lookX)) * 0.1;
 			}
-			if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_RIGHT) {
-				thePlayer.posX += cos(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.posZ += sin(to_radians(thePlayer.lookX)) * 0.1;
+			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_RIGHT) {
+				thePlayer.motionX += cos(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionZ += sin(to_radians(thePlayer.lookX)) * 0.1;
 			}
 			thePlayer.lookX += WPAD_StickX(WPAD_CHAN_0, 0) / 128.f;
 			thePlayer.lookY -= WPAD_StickY(WPAD_CHAN_0, 0) / 128.f;
+
+			if (thePlayer.flying) {
+				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_PLUS)
+					thePlayer.motionY += 0.1;
+				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_MINUS)
+					thePlayer.motionY -= 0.1;
+			} else {
+				/*
+				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_PLUS)
+				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_MINUS)
+				TODO: Check for Nunchuk Z (Jumping)
+				*/
+			}
+
+			// Apply motion to player
+			thePlayer.posX += thePlayer.motionX;
+			thePlayer.posY += thePlayer.motionY;
+			thePlayer.posZ += thePlayer.motionZ;
 
 			// Keep values in bound
 			if (thePlayer.lookX > 180)       thePlayer.lookX -= 360;

@@ -11,12 +11,12 @@ bool testFace(unsigned char face) {
 
 inline void drawBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 
-	bool drawBack  = testFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = testFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = testFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = testFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = testFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = yPos > 0 ? testFace(theWorld[yPos - 1][xPos][zPos]) : false;
+	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = xPos <= 0        || testFace(theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testFace(theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = yPos > 0         && testFace(theWorld[yPos - 1][xPos][zPos]);
 
 	int size = 0;
 	if (drawBack)  size += 4;

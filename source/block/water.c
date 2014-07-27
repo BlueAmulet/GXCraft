@@ -32,12 +32,12 @@ bool testWaterFace(unsigned char face) {
 
 inline void drawWaterBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 
-	bool drawBack  = testWaterFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = testWaterFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = testWaterFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = testWaterFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = testWaterFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = testWaterFace(theWorld[yPos - 1][xPos][zPos]);
+	bool drawBack  = zPos >= worldZ-1 || testWaterFace(theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = zPos <= 0        || testWaterFace(theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = xPos >= worldX-1 || testWaterFace(theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = xPos <= 0        || testWaterFace(theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testWaterFace(theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = yPos > 0         && testWaterFace(theWorld[yPos - 1][xPos][zPos]);
 
 	int size = 0;
 	if (drawBack)  size += 4;

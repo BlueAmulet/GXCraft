@@ -221,7 +221,7 @@ int main() {
 		    GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
 			GXColor c = {0x9E, 0xCE, 0xFF};
-			GX_SetFog(GX_FOG_LIN, renderDistance/2, renderDistance, 0.1, 1000, c);
+			GX_SetFog(GX_FOG_LIN, renderDistance/2 - 4, renderDistance - 8, 0.1, 1000, c);
 
 			GRRLIB_ObjectViewBegin();
 			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);

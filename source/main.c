@@ -256,8 +256,8 @@ int main() {
 			double yLook = -sin(to_radians(thePlayer.lookY));
 			double zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
 
-			int i;
-			for (i = 0; i < 7; i++) {
+			float i;
+			for (i = 0; i < 7; i+=0.1) {
 				unsigned char block = theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)];
 				if (block != 0 && block != 8 && block != 10) {
 					drawBlock(xLook*i+thePlayer.posX, yLook*i+thePlayer.posY+1.625, zLook*i+thePlayer.posZ, tex_font);
@@ -267,10 +267,10 @@ int main() {
 						int selBlockZ = (int)(zLook*i+thePlayer.posZ);
 						theWorld[selBlockY][selBlockX][selBlockZ] = 0;
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
-						chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
-						chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);
-						chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
-						chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
+						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
+						if (selBlockX % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);
+						if (selBlockZ % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
+						if (selBlockZ % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
 						thePlayer.timer = 18;
 					}
 					break;

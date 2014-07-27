@@ -17,6 +17,7 @@
 #include "render.h"
 #include "block.h"
 #include "terrain.h"
+#include "netcat_logger.h"
 
 #include "block/block_includes.h"
 
@@ -31,6 +32,8 @@
 unsigned char theWorld[worldY][worldX][worldZ];
 
 player thePlayer;
+
+static vu8	readyForCopy;
 
 inline double to_degrees(double radians) {
     return radians*(180.0f/M_PI);
@@ -85,6 +88,7 @@ static u8 CalculateFrameRate();
 typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK} gamestate;
 
 int main() {
+	netcat_console();
 
 	time_t t;
 	srand((unsigned) time(&t));
@@ -99,7 +103,9 @@ int main() {
 	memset(theWorld, 255, sizeof theWorld);
 	
 	void *displayList = memalign(32, displayListSize);
+	memset(displayList, 0, displayListSize);
 	bool rerenderDisplayList = true;
+	bool exitloop = false;
 	int dlrendersize = 0;
 
 	thePlayer.posX = 331.5;
@@ -126,10 +132,11 @@ int main() {
 
     GRRLIB_SetBackgroundColour(0x00, 0x00, 0x00, 0xFF);
 
-    while (true) {
+    while (!exitloop) {
 		switch(status) {
 		case REGISTER: // Register blocks
 		    GRRLIB_2dMode();
+			netcat_log("registering blocks\n");
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
 		    GRRLIB_Render();
 			initializeBlocks();
@@ -137,6 +144,7 @@ int main() {
 			break;
 		case GENERATE: // Generate the world
 		    GRRLIB_2dMode();
+			netcat_log("generating world\n");
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 		    GRRLIB_Render();
 			generateWorld();
@@ -151,22 +159,15 @@ int main() {
 			status = INGAME;
 			break;
 		case INGAME: // Main loop
-			if (thePlayer.flying) { // Reset Motion
-				thePlayer.motionX = 0;
-				thePlayer.motionY = 0;
-				thePlayer.motionZ = 0;
-			}
-			GRRLIB_2dMode();
 		    WPAD_ScanPads();
-
-			data = WPAD_Data(WPAD_CHAN_0);
-			if (data->exp.type != WPAD_EXP_NUNCHUK)
-				status = NUNCHUK;
-
-		    if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_HOME) exit(0);
-			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
-				thePlayer.motionX += sin(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.motionZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
+		    if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_HOME)
+			{
+				exitloop = true;
+				break;
+			}
+			if(WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
+				thePlayer.posX += sin(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.posZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
 			}
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_DOWN) {
 				thePlayer.motionX -= sin(to_radians(thePlayer.lookX)) * 0.1;
@@ -208,7 +209,8 @@ int main() {
 			else if (thePlayer.lookY < -90)  thePlayer.lookY = -90;
 			if (thePlayer.lookZ > 180)       thePlayer.lookZ -= 360;
 			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
-
+			
+			//netcat_log("switching 3d\n");
 		    GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
 			GXColor c = {0x9E, 0xCE, 0xFF};
@@ -221,9 +223,8 @@ int main() {
 			GRRLIB_ObjectViewEnd();
 			
 			if (abs(displistX - thePlayer.posX) + abs(displistZ - thePlayer.posZ) > 8) {
+				netcat_log("rerender display list because player too far from last render point\n");
 				rerenderDisplayList = true;
-				displistX = thePlayer.posX;
-				displistZ = thePlayer.posZ;
 			}
 			
 			//GRRLIB clears the vertex formats on mode switch
@@ -233,7 +234,10 @@ int main() {
 
 			if (rerenderDisplayList)
 			{
+				netcat_log("rerendering display list\n");
 				rerenderDisplayList = false;
+				displistX = thePlayer.posX;
+				displistZ = thePlayer.posZ;
 				lastTex = NULL;
 				GX_BeginDispList(displayList, displayListSize);
 				int x;
@@ -250,6 +254,7 @@ int main() {
 						}
 					}
 				}
+				netcat_log("rendered pass 0\n");
 				
 				for (y = worldY - 1; y >= 0; y--) {
 					for (x = max(thePlayer.posX - renderDistance,0); x <= min(worldX-1,thePlayer.posX + renderDistance); x++) {
@@ -262,11 +267,16 @@ int main() {
 						}
 					}
 				}
+				netcat_log("rendered pass 1\n");
 				dlrendersize = GX_EndDispList();
+				netcat_log("invalidating range\n");
+				DCFlushRange(displayList,displayListSize); //so real wii doesn't crash and shit
+				netcat_log("invalidated range\n");
 			}
 			GX_CallDispList(displayList, dlrendersize);
 
 		    // Draw 2D elements
+			//netcat_log("switching 2d\n");
 		    GRRLIB_2dMode();
 			GRRLIB_Printf(10,  25, tex_font, TEXT_COLOR, 1, "FPS: %d", FPS);
 			GRRLIB_Printf(10,  40, tex_font, TEXT_COLOR, 1, "PX:% 7.2f", thePlayer.posX);
@@ -276,7 +286,6 @@ int main() {
 			GRRLIB_Printf(10, 100, tex_font, TEXT_COLOR, 1, "LY:% 7.2f", thePlayer.lookY);
 			GRRLIB_Printf(10, 115, tex_font, TEXT_COLOR, 1, "LZ:% 7.2f", thePlayer.lookZ);
 			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dlrendersize, displayListSize, dlrendersize*100/displayListSize);
-
 		    GRRLIB_Render();
 			FPS = CalculateFrameRate();
 			break;
@@ -313,6 +322,8 @@ int main() {
 			break;
 		}
     }
+	netcat_log("ending...\n");
+	netcat_close();
     GRRLIB_FreeTexture(tex_font);
 
 	// Ask blocks to cleanup

@@ -103,6 +103,7 @@ int main() {
 	int dluse = 0;
 	int dlsize = 0;
 
+	// Initialize the palyer
 	thePlayer.posX = 331.5;
 	thePlayer.posZ = 69.5;
 	thePlayer.motionX = 0;
@@ -112,6 +113,7 @@ int main() {
 	thePlayer.lookY = 0;
 	thePlayer.lookZ = 0;
 	thePlayer.flying = true;
+	thePlayer.timer = 0;
 
 	int displistX = 256;
 	int displistZ = 256;
@@ -160,7 +162,10 @@ int main() {
 				thePlayer.motionY = 0;
 				thePlayer.motionZ = 0;
 			}
-			GRRLIB_2dMode();
+
+			if (thePlayer.timer > 0)
+				thePlayer.timer--;
+
 		    WPAD_ScanPads();
 
 			data = WPAD_Data(WPAD_CHAN_0);
@@ -252,17 +257,18 @@ int main() {
 			double zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
 
 			int i;
-			for (i = 0; i < 6; i++) {
+			for (i = 0; i < 7; i++) {
 				unsigned char block = theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)];
 				if (block != 0 && block != 8 && block != 10) {
 					drawBlock(xLook*i+thePlayer.posX, yLook*i+thePlayer.posY+1.625, zLook*i+thePlayer.posZ, tex_font);
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B) {
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0) {
 						int selBlockX = (int)(xLook*i+thePlayer.posX);
 						int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
 						int selBlockZ = (int)(zLook*i+thePlayer.posZ);
 						theWorld[selBlockY][selBlockX][selBlockZ] = 0;
 						chunk_dealloc(floor(selBlockX/16),floor(selBlockZ/16));
 						rerenderDisplayList = true;
+						thePlayer.timer = 18;
 					}
 					break;
 				}
@@ -279,6 +285,10 @@ int main() {
 			GRRLIB_Printf(10, 100, tex_font, TEXT_COLOR, 1, "LY:% 7.2f", thePlayer.lookY);
 			GRRLIB_Printf(10, 115, tex_font, TEXT_COLOR, 1, "LZ:% 7.2f", thePlayer.lookZ);
 			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
+
+			GRRLIB_Rectangle (320 - 12, 240 - 1, 24, 2, 0xFFFFFFFF, true);
+			GRRLIB_Rectangle (320 - 1, 240 - 12, 2, 24, 0xFFFFFFFF, true);
+
 		    GRRLIB_Render();
 			FPS = CalculateFrameRate();
 			break;

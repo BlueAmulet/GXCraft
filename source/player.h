@@ -11,4 +11,5 @@ typedef struct player_s {
 	double lookY;
 	double lookZ;
 	bool flying;
+	unsigned short timer;
 } player;

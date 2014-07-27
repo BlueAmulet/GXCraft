@@ -7,11 +7,9 @@
 
 GRRLIB_texImg *tex_water;
 
-static void render(unsigned char blockID, int xPos, int yPos, int zPos, unsigned char pass) {
+static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 0) return;
-	if (lastID != blockID)
-		GRRLIB_SetTexture(tex_water, 0);
-	drawBlock(blockID, xPos, yPos, zPos);
+	drawBlock(xPos, yPos, zPos, tex_water);
 }
 
 void water_init() {

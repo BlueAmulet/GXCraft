@@ -102,8 +102,8 @@ void chunked_refresh(int renderDistance, player thePlayer)
 	maxcx = worldX/16;
 	maxcz = worldZ/16;
 	
-	for (cx = max(px-rcd,0); cx <= min(maxcx,px + rcd); cx++) {
-		for (cz = max(pz-rcd,0); cz <= min(maxcz,pz + rcd); cz++) {
+	for (cx = max(px-rcd,0); cx < min(maxcx,px + rcd); cx++) {
+		for (cz = max(pz-rcd,0); cz < min(maxcz,pz + rcd); cz++) {
 			renderchunk *rc = renderchunks[chunked_getchunkfromchunkpos(cx,cz)];
 			if (!rc->active)
 			{

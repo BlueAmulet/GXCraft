@@ -16,6 +16,7 @@
 #include "controls.h"
 #include "block.h"
 #include "terrain.h"
+#include "render.h"
 #include "netcat_logger.h"
 #include "chunked_render.h"
 
@@ -245,6 +246,24 @@ int main() {
 				dlsize = chunked_getfifototal();
 			}
 			chunked_render(thePlayer);
+
+			double xLook =  sin(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
+			double yLook = -sin(to_radians(thePlayer.lookY));
+			double zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
+
+			int i;
+			for (i = 0; i < 6; i++) {
+				unsigned char block = theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)];
+				if (block != 0) {
+					drawBlock(xLook*i+thePlayer.posX, yLook*i+thePlayer.posY+1.625, zLook*i+thePlayer.posZ, tex_font);
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B) {
+						theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)] = 0;
+						chunked_deallocall();
+						rerenderDisplayList = true;
+					}
+					break;
+				}
+			}
 
 		    // Draw 2D elements
 			//netcat_log("switching 2d\n");

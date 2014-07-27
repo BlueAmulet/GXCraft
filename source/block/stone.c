@@ -7,9 +7,9 @@
 
 GRRLIB_texImg *tex_stone;
 
-static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 1) return;
-	drawBlock(xPos, yPos, zPos, tex_stone);
+void render(unsigned char blockID, int xPos, int yPos, int zPos) {
+	GRRLIB_SetTexture(tex_stone, 0);
+	drawBlock(blockID, xPos, yPos, zPos);
 }
 
 void stone_init() {

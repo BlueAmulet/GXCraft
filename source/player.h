@@ -8,5 +8,4 @@ typedef struct player_s {
 	double lookX;
 	double lookY;
 	double lookZ;
-	bool flying;
 } player;

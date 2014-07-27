@@ -17,14 +17,14 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/textures source/block
+SOURCES		:=	source source/gfx source/block source/textures
 DATA		:=	data
 INCLUDES	:=
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CFLAGS	 = -g -O3 -mrvl -Wall $(MACHDEP) $(INCLUDE)
+CFLAGS	 = -g -O2 -mrvl -Wall $(MACHDEP) $(INCLUDE)
 CXXFLAGS = $(CFLAGS)
 LDFLAGS	 = -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map
 
@@ -104,18 +104,14 @@ clean:
 
 #---------------------------------------------------------------------------------
 run:
-	wiiload $(TARGET).dol
+	psoload $(TARGET).dol
 
 #---------------------------------------------------------------------------------
-#reload:
-#	wiiload -r $(TARGET).dol
+reload:
+	psoload -r $(TARGET).dol
 
 #---------------------------------------------------------------------------------
 run-dolphin:
-	dolphin-emu -d -b -e $(TARGET).dol
-
-#---------------------------------------------------------------------------------
-run-dolphin-nondebug:
 	dolphin-emu -b -e $(TARGET).dol
 
 #---------------------------------------------------------------------------------

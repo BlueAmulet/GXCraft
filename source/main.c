@@ -93,8 +93,8 @@ int main() {
 	bool rerenderDisplayList = true;
 	int dlrendersize = 0;
 
-	thePlayer.posX = 256;
-	thePlayer.posZ = 256;
+	thePlayer.posX = 256.5;
+	thePlayer.posZ = 256.5;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
 	thePlayer.motionZ = 0;

@@ -39,25 +39,6 @@ void chunked_deallocall()
 	}
 }
 
-void chunk_dealloc(unsigned short x, unsigned short z)
-{
-	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
-		renderchunk *rc = renderchunks[i];
-		if (rc->x == x && rc->z == z)
-		{
-			if (rc->active) {
-				netcat_log("found active chunk to dealloc\n");
-				renderchunks[i]->active = false;
-			} else
-				netcat_log("tried to dealloc non active chunk\n");
-			return;
-		}
-	}
-	netcat_log("couldn't find chunk to dealloc\n");
-}
-
 int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z)
 {
 	//first try to find an existing renderchunk with the coords
@@ -85,6 +66,71 @@ int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z)
 	}
 	netcat_log("no more chunks!\n");
 	return -1;
+}
+
+inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool force)
+{
+	renderchunk *rc = renderchunks[chunked_getchunkfromchunkpos(cx,cz)];
+	if ((!rc->active) || force)
+	{
+		rc->active = true;
+		sprintf(temp,"rendering chunk %d, %d\n",cx,cz);
+		netcat_log(temp);
+		//check for display list
+		if (rc->displayList == NULL)
+		{
+			rc->displayList = memalign(32, rc->displayListSize);
+		}
+		//start rendering blocks
+		int bx, bz;
+		bx = cx*16;
+		bz = cz*16;
+		
+		lastTex = NULL;
+		GX_BeginDispList(rc->displayList, rc->displayListSize);
+		int x;
+		int y;
+		int z;
+		for (y = worldY - 1; y >= 0; y--) {
+			for (x = bx; x < bx+16; x++) {
+				for (z = bz; z < bz+16; z++) {
+					unsigned char blockID = theWorld[y][x][z];
+					if (blockID != 0) {
+						blockEntry entry = blockRegistry[blockID];
+						entry.renderBlock(x, y, z, 0);
+					}
+				}
+			}
+		}
+		netcat_log("rendered pass 0\n");
+		
+		GX_SetTevColorIn(GX_TEVSTAGE0,GX_CC_RASC,GX_CC_ONE,GX_CC_TEXC,GX_CC_ZERO);
+		GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
+		GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
+		GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
+		
+		for (y = 0; y < worldY; y++) {
+			for (x = bx; x < bx+16; x++) {
+				for (z = bz; z < bz+16; z++) {
+					unsigned char blockID = theWorld[y][x][z];
+					if (blockID != 0) {
+						blockEntry entry = blockRegistry[blockID];
+						entry.renderBlock(x, y, z, 1);
+					}
+				}
+			}
+		}
+		netcat_log("rendered pass 1\n");
+		rc->displayListUsage = GX_EndDispList();
+		netcat_log("invalidating range\n");
+		DCFlushRange(rc->displayList,rc->displayListSize); //so real wii doesn't crash and shit... i think
+		netcat_log("invalidated range\n");
+	}
+	else
+	{
+		sprintf(temp,"chunk %d, %d already rendered\n",cx,cz);
+		netcat_log(temp);
+	}
 }
 
 void chunked_refresh(int renderDistance, player thePlayer)
@@ -123,67 +169,7 @@ void chunked_refresh(int renderDistance, player thePlayer)
 	
 	for (cx = max(px-rcd,0); cx < min(maxcx,px + rcd); cx++) {
 		for (cz = max(pz-rcd,0); cz < min(maxcz,pz + rcd); cz++) {
-			renderchunk *rc = renderchunks[chunked_getchunkfromchunkpos(cx,cz)];
-			if (!rc->active)
-			{
-				rc->active = true;
-				sprintf(temp,"rendering chunk %d, %d\n",cx,cz);
-				netcat_log(temp);
-				//check for display list
-				if (rc->displayList == NULL)
-				{
-					rc->displayList = memalign(32, rc->displayListSize);
-				}
-				//start rendering blocks
-				int bx, bz;
-				bx = cx*16;
-				bz = cz*16;
-				
-				lastTex = NULL;
-				GX_BeginDispList(rc->displayList, rc->displayListSize);
-				int x;
-				int y;
-				int z;
-				for (y = worldY - 1; y >= 0; y--) {
-					for (x = bx; x < bx+16; x++) {
-						for (z = bz; z < bz+16; z++) {
-							unsigned char blockID = theWorld[y][x][z];
-							if (blockID != 0) {
-								blockEntry entry = blockRegistry[blockID];
-								entry.renderBlock(x, y, z, 0);
-							}
-						}
-					}
-				}
-				netcat_log("rendered pass 0\n");
-				
-				GX_SetTevColorIn(GX_TEVSTAGE0,GX_CC_RASC,GX_CC_ONE,GX_CC_TEXC,GX_CC_ZERO);
-				GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
-				GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
-				GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
-				
-				for (y = 0; y < worldY; y++) {
-					for (x = bx; x < bx+16; x++) {
-						for (z = bz; z < bz+16; z++) {
-							unsigned char blockID = theWorld[y][x][z];
-							if (blockID != 0) {
-								blockEntry entry = blockRegistry[blockID];
-								entry.renderBlock(x, y, z, 1);
-							}
-						}
-					}
-				}
-				netcat_log("rendered pass 1\n");
-				rc->displayListUsage = GX_EndDispList();
-				netcat_log("invalidating range\n");
-				DCFlushRange(rc->displayList,rc->displayListSize); //so real wii doesn't crash and shit... i think
-				netcat_log("invalidated range\n");
-			}
-			else
-			{
-				sprintf(temp,"chunk %d, %d already rendered\n",cx,cz);
-				netcat_log(temp);
-			}
+			chunked_rerenderChunk(cx,cz,false);
 		}
 	}
 }

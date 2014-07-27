@@ -266,8 +266,11 @@ int main() {
 						int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
 						int selBlockZ = (int)(zLook*i+thePlayer.posZ);
 						theWorld[selBlockY][selBlockX][selBlockZ] = 0;
-						chunk_dealloc(floor(selBlockX/16),floor(selBlockZ/16));
-						rerenderDisplayList = true;
+						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
+						chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
+						chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);
+						chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
+						chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
 						thePlayer.timer = 18;
 					}
 					break;

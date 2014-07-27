@@ -5,18 +5,18 @@
 
 GRRLIB_texImg *lastTex = NULL;
 
-static bool testFace(unsigned char face) {
+bool testFace(unsigned char face) {
 	return face == 0 || face == 6 || face == 8 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 
 inline void drawBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 
-	int drawBack  = testFace(theWorld[yPos][xPos][zPos + 1]);
-	int drawFront = testFace(theWorld[yPos][xPos][zPos - 1]);
-	int drawRight = testFace(theWorld[yPos][xPos + 1][zPos]);
-	int drawLeft  = testFace(theWorld[yPos][xPos - 1][zPos]);
-	int drawTop   = testFace(theWorld[yPos + 1][xPos][zPos]);
-	int drawBott  = testFace(theWorld[yPos - 1][xPos][zPos]);
+	bool drawBack  = testFace(theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = testFace(theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = testFace(theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = testFace(theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = testFace(theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = testFace(theWorld[yPos - 1][xPos][zPos]);
 
 	int size = 0;
 	if (drawBack)  size += 4;

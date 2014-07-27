@@ -1,6 +1,5 @@
 /*===========================================
-    GXCraft by gamax92
-    Based off of the 3D_sample2 demo
+    GXCraft by gamax92 and ds84182
 ============================================*/
 #include <grrlib.h>
 
@@ -46,17 +45,21 @@ static void generateWorld() {
 	short x,y,z;
 	for (x = 0; x < worldX; x++) {
 		for (z = 0; z < worldZ; z++) {
-			double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * 8) + 28);
+			//double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * 16) + 24);
+			double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * (worldY - 2)) + 1);
 			for (y = 0; y < worldY; y++) {
 				if (y == 0)
 					theWorld[y][x][z] = 7;
-				else if (y < terrainPiece - 3)
+				else if (y < terrainPiece - 2)
 					theWorld[y][x][z] = 1;
 				else if (y < terrainPiece && y >= terrainPiece - 2)
 					theWorld[y][x][z] = 3;
-				else if (y == terrainPiece)
-					theWorld[y][x][z] = 2;
-				else if (y == terrainPiece + 1) {
+				else if (y == terrainPiece) {
+					if (terrainPiece < 15)
+						theWorld[y][x][z] = 3;
+					else
+						theWorld[y][x][z] = 2;
+				} else if (y == terrainPiece + 1 && terrainPiece >= 16) {
 					int type = rand() % 100;
 					if (type == 0)
 						theWorld[y][x][z] = 37;
@@ -64,8 +67,12 @@ static void generateWorld() {
 						theWorld[y][x][z] = 38;
 					else
 						theWorld[y][x][z] = 0;
-				} else
-					theWorld[y][x][z] = 0;
+				} else if (theWorld[y][x][z] == 255) {	
+					if (y < 16)
+						theWorld[y][x][z] = 8;
+					else
+						theWorld[y][x][z] = 0;
+				}
 			}
 		}
 	}
@@ -74,6 +81,8 @@ static void generateWorld() {
 static void initializeBlocks();
 static void cleanBlocks();
 static u8 CalculateFrameRate();
+
+typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK} gamestate;
 
 int main() {
 
@@ -84,7 +93,7 @@ int main() {
 
 	int renderDistance = 64;
 
-	u8 status = 0;
+	gamestate status = REGISTER;
 	u8 FPS = 0;
 
 	memset(theWorld, 255, sizeof theWorld);
@@ -93,8 +102,8 @@ int main() {
 	bool rerenderDisplayList = true;
 	int dlrendersize = 0;
 
-	thePlayer.posX = 256.5;
-	thePlayer.posZ = 256.5;
+	thePlayer.posX = 331.5;
+	thePlayer.posZ = 69.5;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
 	thePlayer.motionZ = 0;
@@ -104,11 +113,11 @@ int main() {
 	thePlayer.flying = true;
 
 	int displistX = 256;
-	int displistY = 18;
 	int displistZ = 256;
 
     GRRLIB_Init();
     WPAD_Init();
+	WPADData *data;
 
 	GRRLIB_Settings.antialias = false;
 
@@ -119,14 +128,14 @@ int main() {
 
     while (true) {
 		switch(status) {
-		case 0: // Register blocks
+		case REGISTER: // Register blocks
 		    GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
 		    GRRLIB_Render();
 			initializeBlocks();
-			status++;
+			status = GENERATE;
 			break;
-		case 1: // Generate the world
+		case GENERATE: // Generate the world
 		    GRRLIB_2dMode();
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 		    GRRLIB_Render();
@@ -134,21 +143,26 @@ int main() {
 			int y;
 			for (y = worldY - 1; y >= 0; y--) {
 				if (theWorld[y][(int)thePlayer.posX][(int)thePlayer.posZ] != 0) {
-					thePlayer.posY = y;
+					thePlayer.posY = y + 1;
 					break;
 				}
 			}
-			status++;
 			GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
+			status = INGAME;
 			break;
-		case 2: // Main loop
+		case INGAME: // Main loop
 			if (thePlayer.flying) { // Reset Motion
 				thePlayer.motionX = 0;
 				thePlayer.motionY = 0;
 				thePlayer.motionZ = 0;
 			}
-		    GRRLIB_2dMode();
+			GRRLIB_2dMode();
 		    WPAD_ScanPads();
+
+			data = WPAD_Data(WPAD_CHAN_0);
+			if (data->exp.type != WPAD_EXP_NUNCHUK)
+				status = NUNCHUK;
+
 		    if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_HOME) exit(0);
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
 				thePlayer.motionX += sin(to_radians(thePlayer.lookX)) * 0.1;
@@ -196,7 +210,9 @@ int main() {
 			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
 
 		    GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
-			//GRRLIB_Camera3dSettings(thePlayer.posX, thePlayer.posY, thePlayer.posZ, 0, 1, 0, thePlayer.lookX, thePlayer.lookY, thePlayer.lookZ);
+
+			GXColor c = {0x9E, 0xCE, 0xFF};
+			GX_SetFog(GX_FOG_LIN, renderDistance/2, renderDistance, 0.1, 1000, c);
 
 			GRRLIB_ObjectViewBegin();
 			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);
@@ -204,10 +220,9 @@ int main() {
 			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
 			GRRLIB_ObjectViewEnd();
 			
-			if (abs(displistX - thePlayer.posX) + abs(displistY - thePlayer.posY) + abs(displistZ - thePlayer.posZ) > 8) {
+			if (abs(displistX - thePlayer.posX) + abs(displistZ - thePlayer.posZ) > 8) {
 				rerenderDisplayList = true;
 				displistX = thePlayer.posX;
-				displistY = thePlayer.posY;
 				displistZ = thePlayer.posZ;
 			}
 			
@@ -264,6 +279,37 @@ int main() {
 
 		    GRRLIB_Render();
 			FPS = CalculateFrameRate();
+			break;
+		case NUNCHUK:
+			GRRLIB_2dMode();
+		    WPAD_ScanPads();
+
+			data = WPAD_Data(WPAD_CHAN_0);
+			if (data->exp.type == WPAD_EXP_NUNCHUK)
+				status = INGAME;
+
+		    GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
+
+			GX_SetFog(GX_FOG_LIN, renderDistance/2, renderDistance, 0.1, 1000, c);
+
+			GRRLIB_ObjectViewBegin();
+			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);
+			GRRLIB_ObjectViewRotate(0, thePlayer.lookX, 0);
+			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
+			GRRLIB_ObjectViewEnd();
+			
+			//GRRLIB clears the vertex formats on mode switch
+			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
+			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
+			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
+
+			GX_CallDispList(displayList, dlrendersize);
+
+		    // Complain to user
+		    GRRLIB_2dMode();
+			GRRLIB_Rectangle(0, 0, 640, 480, 0x0000007F, true);
+			GRRLIB_Printf(144, 232, tex_font, TEXT_COLOR, 1, "PLEASE CONNECT NUNCHUK");
+		    GRRLIB_Render();
 			break;
 		}
     }

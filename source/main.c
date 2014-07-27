@@ -263,7 +263,12 @@ int main() {
 				}
 				netcat_log("rendered pass 0\n");
 				
-				for (y = worldY - 1; y >= 0; y--) {
+				GX_SetTevColorIn(GX_TEVSTAGE0,GX_CC_RASC,GX_CC_ONE,GX_CC_TEXC,GX_CC_ZERO);
+				GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
+				GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
+				GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
+				
+				for (y = 0; y < worldY; y++) {
 					for (x = max(thePlayer.posX - renderDistance,0); x <= min(worldX-1,thePlayer.posX + renderDistance); x++) {
 						for (z = max(thePlayer.posZ - renderDistance,0); z <= min(worldZ-1,thePlayer.posZ + renderDistance); z++) {
 							unsigned char blockID = theWorld[y][x][z];
@@ -277,7 +282,7 @@ int main() {
 				netcat_log("rendered pass 1\n");
 				dlrendersize = GX_EndDispList();
 				netcat_log("invalidating range\n");
-				DCFlushRange(displayList,displayListSize); //so real wii doesn't crash and shit
+				DCFlushRange(displayList,displayListSize); //so real wii doesn't crash and shit... i think
 				netcat_log("invalidated range\n");
 			}
 			GX_CallDispList(displayList, dlrendersize);

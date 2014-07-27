@@ -14,20 +14,15 @@
 #include "main.h"
 #include "player.h"
 #include "controls.h"
-#include "render.h"
 #include "block.h"
 #include "terrain.h"
 #include "netcat_logger.h"
+#include "chunked_render.h"
 
 #include "block/block_includes.h"
 
 #define chunkX 16
 #define chunkZ 16
-
-#define displayListSize ((8*1024*1024)+63)
-
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 unsigned char theWorld[worldY][worldX][worldZ];
 
@@ -102,11 +97,10 @@ int main() {
 
 	memset(theWorld, 255, sizeof theWorld);
 	
-	void *displayList = memalign(32, displayListSize);
-	memset(displayList, 0, displayListSize);
 	bool rerenderDisplayList = true;
 	bool exitloop = false;
-	int dlrendersize = 0;
+	int dluse = 0;
+	int dlsize = 0;
 
 	thePlayer.posX = 331.5;
 	thePlayer.posZ = 69.5;
@@ -123,6 +117,7 @@ int main() {
 
     GRRLIB_Init();
     WPAD_Init();
+	chunked_init();
 	WPADData *data;
 
 	GRRLIB_Settings.antialias = false;
@@ -245,47 +240,11 @@ int main() {
 				rerenderDisplayList = false;
 				displistX = thePlayer.posX;
 				displistZ = thePlayer.posZ;
-				lastTex = NULL;
-				GX_BeginDispList(displayList, displayListSize);
-				int x;
-				int y;
-				int z;
-				for (y = worldY - 1; y >= 0; y--) {
-					for (x = max(thePlayer.posX - renderDistance,0); x <= min(worldX-1,thePlayer.posX + renderDistance); x++) {
-						for (z = max(thePlayer.posZ - renderDistance,0); z <= min(worldZ-1,thePlayer.posZ + renderDistance); z++) {
-							unsigned char blockID = theWorld[y][x][z];
-							if (blockID != 0) {
-								blockEntry entry = blockRegistry[blockID];
-								entry.renderBlock(x, y, z, 0);
-							}
-						}
-					}
-				}
-				netcat_log("rendered pass 0\n");
-				
-				GX_SetTevColorIn(GX_TEVSTAGE0,GX_CC_RASC,GX_CC_ONE,GX_CC_TEXC,GX_CC_ZERO);
-				GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
-				GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
-				GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
-				
-				for (y = 0; y < worldY; y++) {
-					for (x = max(thePlayer.posX - renderDistance,0); x <= min(worldX-1,thePlayer.posX + renderDistance); x++) {
-						for (z = max(thePlayer.posZ - renderDistance,0); z <= min(worldZ-1,thePlayer.posZ + renderDistance); z++) {
-							unsigned char blockID = theWorld[y][x][z];
-							if (blockID != 0) {
-								blockEntry entry = blockRegistry[blockID];
-								entry.renderBlock(x, y, z, 1);
-							}
-						}
-					}
-				}
-				netcat_log("rendered pass 1\n");
-				dlrendersize = GX_EndDispList();
-				netcat_log("invalidating range\n");
-				DCFlushRange(displayList,displayListSize); //so real wii doesn't crash and shit... i think
-				netcat_log("invalidated range\n");
+				chunked_refresh(renderDistance, thePlayer);
+				dluse = chunked_getfifousage();
+				dlsize = chunked_getfifototal();
 			}
-			GX_CallDispList(displayList, dlrendersize);
+			chunked_render(thePlayer);
 
 		    // Draw 2D elements
 			//netcat_log("switching 2d\n");
@@ -297,7 +256,7 @@ int main() {
 			GRRLIB_Printf(10,  85, tex_font, TEXT_COLOR, 1, "LX:% 7.2f", thePlayer.lookX);
 			GRRLIB_Printf(10, 100, tex_font, TEXT_COLOR, 1, "LY:% 7.2f", thePlayer.lookY);
 			GRRLIB_Printf(10, 115, tex_font, TEXT_COLOR, 1, "LZ:% 7.2f", thePlayer.lookZ);
-			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dlrendersize, displayListSize, dlrendersize*100/displayListSize);
+			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
 		    GRRLIB_Render();
 			FPS = CalculateFrameRate();
 			break;
@@ -324,7 +283,7 @@ int main() {
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
 
-			GX_CallDispList(displayList, dlrendersize);
+			chunked_render(thePlayer);
 
 		    // Complain to user
 		    GRRLIB_2dMode();

@@ -1,3 +1,5 @@
+#pragma once
+
 typedef struct player_s {
 	double posX;
 	double posY;

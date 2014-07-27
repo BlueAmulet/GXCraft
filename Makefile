@@ -24,7 +24,7 @@ INCLUDES	:=
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CFLAGS	 = -g -O3 -mrvl -Wall $(MACHDEP) $(INCLUDE)
+CFLAGS	 = -g -O2 -mrvl -Wall $(MACHDEP) $(INCLUDE)
 CXXFLAGS = $(CFLAGS)
 LDFLAGS	 = -g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map
 
@@ -112,7 +112,7 @@ run:
 
 #---------------------------------------------------------------------------------
 run-dolphin:
-	dolphin-emu -d -b -e $(TARGET).dol
+	dolphin-emu -d -b -e $(TARGET).elf
 
 #---------------------------------------------------------------------------------
 run-dolphin-nondebug:

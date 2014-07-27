@@ -2,4 +2,7 @@
 #define worldY 64
 #define worldZ 512
 
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+
 extern unsigned char theWorld[worldY][worldX][worldZ];

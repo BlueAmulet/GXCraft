@@ -186,11 +186,16 @@ int main() {
 				displistY = thePlayer.posY;
 				displistZ = thePlayer.posZ;
 			}
+			
+			//GRRLIB clears the vertex formats on mode switch
+			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
+			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
+			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
 
 			if (rerenderDisplayList)
 			{
 				rerenderDisplayList = false;
-				lastID = 255;
+				lastTex = NULL;
 				GX_BeginDispList(displayList, displayListSize);
 				int x;
 				int y;
@@ -198,11 +203,10 @@ int main() {
 				for (y = worldY - 1; y >= 0; y--) {
 					for (x = max(thePlayer.posX - renderDistance,0); x <= min(worldX-1,thePlayer.posX + renderDistance); x++) {
 						for (z = max(thePlayer.posZ - renderDistance,0); z <= min(worldZ-1,thePlayer.posZ + renderDistance); z++) {
-							
 							unsigned char blockID = theWorld[y][x][z];
 							if (blockID != 0) {
 								blockEntry entry = blockRegistry[blockID];
-								entry.renderBlock(blockID, x, y, z, 0);
+								entry.renderBlock(x, y, z, 0);
 							}
 						}
 					}
@@ -211,11 +215,10 @@ int main() {
 				for (y = worldY - 1; y >= 0; y--) {
 					for (x = max(thePlayer.posX - renderDistance,0); x <= min(worldX-1,thePlayer.posX + renderDistance); x++) {
 						for (z = max(thePlayer.posZ - renderDistance,0); z <= min(worldZ-1,thePlayer.posZ + renderDistance); z++) {
-							
 							unsigned char blockID = theWorld[y][x][z];
 							if (blockID != 0) {
 								blockEntry entry = blockRegistry[blockID];
-								entry.renderBlock(blockID, x, y, z, 1);
+								entry.renderBlock(x, y, z, 1);
 							}
 						}
 					}

@@ -7,11 +7,9 @@
 
 GRRLIB_texImg *tex_cloth_pink;
 
-static void render(unsigned char blockID, int xPos, int yPos, int zPos, unsigned char pass) {
+static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
-	if (lastID != blockID)
-		GRRLIB_SetTexture(tex_cloth_pink, 0);
-	drawBlock(blockID, xPos, yPos, zPos);
+	drawBlock(xPos, yPos, zPos, tex_cloth_pink);
 }
 
 void cloth_pink_init() {

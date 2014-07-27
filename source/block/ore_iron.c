@@ -7,11 +7,9 @@
 
 GRRLIB_texImg *tex_ore_iron;
 
-static void render(unsigned char blockID, int xPos, int yPos, int zPos, unsigned char pass) {
+static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
-	if (lastID != blockID)
-		GRRLIB_SetTexture(tex_ore_iron, 0);
-	drawBlock(blockID, xPos, yPos, zPos);
+	drawBlock(xPos, yPos, zPos, tex_ore_iron);
 }
 
 void ore_iron_init() {

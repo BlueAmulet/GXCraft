@@ -11,11 +11,9 @@ GRRLIB_texImg *tex_grass_side;
 GRRLIB_texImg *tex_grass_top;
 GRRLIB_texImg *tex_dirt;
 
-static void render(unsigned char blockID, int xPos, int yPos, int zPos, unsigned char pass) {
+static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
-	if (lastID != blockID)
-		GRRLIB_SetTexture(tex_grass_top, 0);
-	drawBlock(blockID, xPos, yPos, zPos);
+	drawBlock(xPos, yPos, zPos, tex_grass_top);
 }
 
 void grass_init() {

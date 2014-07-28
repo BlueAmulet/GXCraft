@@ -176,6 +176,7 @@ int main() {
 	GRRLIB_Settings.antialias = false;
 
     GRRLIB_texImg *tex_font = GRRLIB_LoadTexture(font);
+
     GRRLIB_InitTileSet(tex_font, 16, 16, 32);
 
     GRRLIB_SetBackgroundColour(0x00, 0x00, 0x00, 0xFF);
@@ -204,6 +205,7 @@ int main() {
 				}
 			}
 			GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
+			GX_SetLineWidth(15,GX_TO_ONE);
 			status = INGAME;
 			break;
 		case INGAME: // Main loop
@@ -313,7 +315,7 @@ int main() {
 					int selBlockX = (int)(xLook*i+thePlayer.posX);
 					int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
 					int selBlockZ = (int)(zLook*i+thePlayer.posZ);
-					//drawBlock(selBlockX, selBlockY, selBlockZ, tex_font);
+					drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && theWorld[selBlockY][selBlockX][selBlockZ] != 7) {
 						setBlock(selBlockX,selBlockY,selBlockZ,0);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);

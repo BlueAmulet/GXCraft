@@ -134,7 +134,7 @@ static u8 CalculateFrameRate();
 typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK} gamestate;
 
 int main() {
-	//netcat_console();
+	netcat_console();
 
 	time_t t;
 	srand((unsigned) time(&t));
@@ -317,12 +317,38 @@ int main() {
 					int selBlockZ = (int)(zLook*i+thePlayer.posZ);
 					drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 
-					//static char temp[1024];
-					//sprintf(temp,"Face %f, %f, %f\n",fmod(xLook*i+thePlayer.posX,1)-0.5f,fmod(yLook*i+thePlayer.posY+1.625,1)-0.5f,fmod(zLook*i+thePlayer.posZ,1)-0.5f);
-					//netcat_log(temp);
+					double blockSelOffX = fmod(xLook*i+thePlayer.posX,1)-0.5f;
+					double blockSelOffY = fmod(yLook*i+thePlayer.posY+1.625,1)-0.5f;
+					double blockSelOffZ = fmod(zLook*i+thePlayer.posZ,1)-0.5f;
+
+					double aBlockSelOffX = fabs(blockSelOffX);
+					double aBlockSelOffY = fabs(blockSelOffY);
+					double aBlockSelOffZ = fabs(blockSelOffZ);
+
+					char faceBlockX = 0;
+					char faceBlockY = 0;
+					char faceBlockZ = 0;
+					if (aBlockSelOffX > aBlockSelOffY && aBlockSelOffX > aBlockSelOffZ)
+						faceBlockX = aBlockSelOffX/blockSelOffX;
+					if (aBlockSelOffY > aBlockSelOffX && aBlockSelOffY > aBlockSelOffZ)
+						faceBlockY = aBlockSelOffY/blockSelOffY;
+					if (aBlockSelOffZ > aBlockSelOffX && aBlockSelOffZ > aBlockSelOffY)
+						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
 
 					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && theWorld[selBlockY][selBlockX][selBlockZ] != 7) {
 						setBlock(selBlockX,selBlockY,selBlockZ,0);
+						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
+						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
+						if (selBlockX % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);
+						if (selBlockZ % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
+						if (selBlockZ % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
+						thePlayer.timer = 18;
+					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && thePlayer.timer == 0) {
+						selBlockX+=faceBlockX;
+						selBlockY+=faceBlockY;
+						selBlockZ+=faceBlockZ;
+
+						setBlock(selBlockX,selBlockY,selBlockZ,1);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
 						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
 						if (selBlockX % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);

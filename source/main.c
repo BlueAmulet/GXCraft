@@ -10,6 +10,8 @@
 #include <ogc/lwp_watchdog.h>
 
 #include "textures/font.h"
+#include "textures/inventory.h"
+#include "textures/inv_select.h"
 
 #include "main.h"
 #include "player.h"
@@ -117,7 +119,7 @@ static void generateWorld() {
 						placeTree(x,y,z);
 					else
 						theWorld[y][x][z] = 0;
-				} else if (theWorld[y][x][z] == 255) {	
+				} else if (theWorld[y][x][z] == 255) {
 					if (y < 16)
 						theWorld[y][x][z] = 8;
 					else
@@ -133,7 +135,7 @@ static void initializeBlocks();
 static void cleanBlocks();
 static u8 CalculateFrameRate();
 
-typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK} gamestate;
+typedef enum {REGISTER, GENERATE, INGAME, INVENTORY, NUNCHUK} gamestate;
 
 int main() {
 	netcat_console();
@@ -164,6 +166,7 @@ int main() {
 	thePlayer.lookX = 0;
 	thePlayer.lookY = 0;
 	thePlayer.lookZ = 0;
+	memset(thePlayer.inventory, 0, sizeof thePlayer.inventory);
 	thePlayer.flying = true;
 	thePlayer.timer = 0;
 
@@ -178,6 +181,8 @@ int main() {
 	GRRLIB_Settings.antialias = false;
 
     GRRLIB_texImg *tex_font = GRRLIB_LoadTexture(font);
+    GRRLIB_texImg *tex_inventory = GRRLIB_LoadTexture(inventory);
+    GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
 
     GRRLIB_InitTileSet(tex_font, 16, 16, 32);
 
@@ -210,6 +215,7 @@ int main() {
 			GX_SetLineWidth(15,GX_TO_ONE);
 			status = INGAME;
 			break;
+		case INVENTORY:
 		case INGAME: // Main loop
 			if (thePlayer.flying) { // Reset Motion
 				thePlayer.motionX = 0;
@@ -242,6 +248,9 @@ int main() {
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_RIGHT) {
 				thePlayer.motionX += cos(to_radians(thePlayer.lookX)) * 0.1;
 				thePlayer.motionZ += sin(to_radians(thePlayer.lookX)) * 0.1;
+			}
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_NUNCHUK_BUTTON_C) {
+				status = status == INVENTORY ? INGAME : INVENTORY;
 			}
 			thePlayer.lookX += WPAD_StickX(WPAD_CHAN_0, 0) / 128.f;
 			thePlayer.lookY -= WPAD_StickY(WPAD_CHAN_0, 0) / 128.f;
@@ -293,18 +302,6 @@ int main() {
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
-
-			if (rerenderDisplayList)
-			{
-				netcat_log("rerendering display list\n");
-				rerenderDisplayList = false;
-				displistX = thePlayer.posX;
-				displistZ = thePlayer.posZ;
-				chunked_refresh(renderDistance, thePlayer);
-				dluse = chunked_getfifousage();
-				dlsize = chunked_getfifototal();
-			}
-			chunked_render(thePlayer);
 
 			double xLook =  sin(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
 			double yLook = -sin(to_radians(thePlayer.lookY));
@@ -362,9 +359,21 @@ int main() {
 				}
 			}
 
-		    // Draw 2D elements
+			if (rerenderDisplayList)
+			{
+				netcat_log("rerendering display list\n");
+				rerenderDisplayList = false;
+				displistX = thePlayer.posX;
+				displistZ = thePlayer.posZ;
+				chunked_refresh(renderDistance, thePlayer);
+				dluse = chunked_getfifousage();
+				dlsize = chunked_getfifototal();
+			}
+			chunked_render(thePlayer);
+
+			// Draw 2D elements
 			//netcat_log("switching 2d\n");
-		    GRRLIB_2dMode();
+			GRRLIB_2dMode();
 			GRRLIB_Printf(10,  25, tex_font, TEXT_COLOR, 1, "FPS: %d", FPS);
 			GRRLIB_Printf(10,  40, tex_font, TEXT_COLOR, 1, "PX:% 7.2f", thePlayer.posX);
 			GRRLIB_Printf(10,  55, tex_font, TEXT_COLOR, 1, "PY:% 7.2f", thePlayer.posY);
@@ -380,18 +389,18 @@ int main() {
 			GRRLIB_Rectangle(319, 241, 2, 11, 0xFFFFFFFF, true);
 			GRRLIB_SetBlend(GRRLIB_BLEND_ALPHA);
 
-		    GRRLIB_Render();
+			GRRLIB_Render();
 			FPS = CalculateFrameRate();
 			break;
 		case NUNCHUK:
 			GRRLIB_2dMode();
-		    WPAD_ScanPads();
+			WPAD_ScanPads();
 
 			data = WPAD_Data(WPAD_CHAN_0);
 			if (data->exp.type == WPAD_EXP_NUNCHUK)
 				status = INGAME;
 
-		    GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
+			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
 			GX_SetFog(GX_FOG_LIN, renderDistance/2, renderDistance, 0.1, 1000, c);
 
@@ -408,23 +417,25 @@ int main() {
 
 			chunked_render(thePlayer);
 
-		    // Complain to user
-		    GRRLIB_2dMode();
+			//Complain to user
+			GRRLIB_2dMode();
 			GRRLIB_Rectangle(0, 0, 640, 480, 0x0000007F, true);
 			GRRLIB_Printf(144, 232, tex_font, TEXT_COLOR, 1, "PLEASE CONNECT NUNCHUK");
-		    GRRLIB_Render();
+			GRRLIB_Render();
 			break;
 		}
-    }
+	}
 	netcat_log("ending...\n");
 	netcat_close();
-    GRRLIB_FreeTexture(tex_font);
+	GRRLIB_FreeTexture(tex_font);
+	GRRLIB_FreeTexture(tex_inventory);
+	GRRLIB_FreeTexture(tex_inv_select);
 
 	// Ask blocks to cleanup
 	cleanBlocks();
 
-    GRRLIB_Exit();
-    exit(0);
+	GRRLIB_Exit();
+	exit(0);
 }
 
 static void initializeBlocks() {
@@ -526,16 +537,16 @@ static void cleanBlocks() {
 }
 
 static u8 CalculateFrameRate() {
-    static u8 frameCount = 0;
-    static u32 lastTime;
-    static u8 FPS = 0;
-    u32 currentTime = ticks_to_millisecs(gettime());
+	static u8 frameCount = 0;
+	static u32 lastTime;
+	static u8 FPS = 0;
+	u32 currentTime = ticks_to_millisecs(gettime());
 
-    frameCount++;
-    if(currentTime - lastTime > 1000) {
-        lastTime = currentTime;
-        FPS = frameCount;
-        frameCount = 0;
-    }
-    return FPS;
+	frameCount++;
+	if(currentTime - lastTime > 1000) {
+		lastTime = currentTime;
+		FPS = frameCount;
+		frameCount = 0;
+	}
+	return FPS;
 }

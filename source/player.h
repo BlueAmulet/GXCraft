@@ -10,6 +10,7 @@ typedef struct player_s {
 	double lookX;
 	double lookY;
 	double lookZ;
+	unsigned char inventory[10];
 	bool flying;
 	unsigned short timer;
 } player;

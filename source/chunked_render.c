@@ -12,7 +12,6 @@
 
 renderchunk *renderchunks[nRenderChunks];
 int renderorder[nRenderChunks];
-static char temp[1024];
 
 void chunked_init()
 {
@@ -74,8 +73,7 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 	if ((!rc->active) || force)
 	{
 		rc->active = true;
-		sprintf(temp,"rendering chunk %d, %d\n",cx,cz);
-		netcat_log(temp);
+		netcat_logf("rendering chunk %d, %d\n",cx,cz);
 		//check for display list
 		if (rc->displayList == NULL)
 		{
@@ -128,8 +126,7 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 	}
 	else
 	{
-		sprintf(temp,"chunk %d, %d already rendered\n",cx,cz);
-		netcat_log(temp);
+		netcat_logf("chunk %d, %d already rendered\n",cx,cz);
 	}
 }
 

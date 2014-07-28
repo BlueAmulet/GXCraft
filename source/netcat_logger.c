@@ -1,8 +1,12 @@
-#include "netcat_logger.h"
 #include <network.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+#include "netcat_logger.h"
 
 s32 csock;
+static char dest[1024];
 
 void netcat_console()
 {
@@ -55,4 +59,13 @@ void netcat_close()
 void netcat_log(const char* data)
 {
 	net_send(csock, data, strlen(data), 0);
+}
+
+void netcat_logf(const char* format, ...)
+{
+    va_list argptr;
+    va_start(argptr, format);
+    vsnprintf(dest, 1024, format, argptr);
+    va_end(argptr);
+    netcat_log(dest);
 }

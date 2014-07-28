@@ -39,13 +39,15 @@ inline double to_radians(double degrees) {
 static void setBlock(int x, int y, int z, unsigned char blockID) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ) {
 		theWorld[y][x][z] = blockID;
-		if (blockID != 0 && blockID != 18) {
+		if (blockID == 18)
+			return;
+		if (blockID != 0) {
 			if (lighting[x][z] < y)
 				lighting[x][z] = y;
 		} else {
 			if (y >= lighting[x][z]) {
 				int sy;
-				for (sy = y - 1; y >= 0; y--) {
+				for (sy = y - 1; y >= 0; sy--) {
 					if (theWorld[sy][x][z] != 0 && theWorld[sy][x][z] != 18) {
 						lighting[x][z] = sy;
 						break;
@@ -153,7 +155,7 @@ int main() {
 	int dluse = 0;
 	int dlsize = 0;
 
-	// Initialize the palyer
+	// Initialize the player
 	thePlayer.posX = 331.5;
 	thePlayer.posZ = 69.5;
 	thePlayer.motionX = 0;
@@ -309,7 +311,7 @@ int main() {
 			double zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
 
 			float i;
-			for (i = 0; i < 7; i+=0.1) {
+			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
 				unsigned char block = theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)];
 				if (block != 0 && block != 8 && block != 10) {
 					int selBlockX = (int)(xLook*i+thePlayer.posX);
@@ -325,9 +327,9 @@ int main() {
 					double aBlockSelOffY = fabs(blockSelOffY);
 					double aBlockSelOffZ = fabs(blockSelOffZ);
 
-					char faceBlockX = 0;
-					char faceBlockY = 0;
-					char faceBlockZ = 0;
+					signed char faceBlockX = 0;
+					signed char faceBlockY = 0;
+					signed char faceBlockZ = 0;
 					if (aBlockSelOffX > aBlockSelOffY && aBlockSelOffX > aBlockSelOffZ)
 						faceBlockX = aBlockSelOffX/blockSelOffX;
 					if (aBlockSelOffY > aBlockSelOffX && aBlockSelOffY > aBlockSelOffZ)

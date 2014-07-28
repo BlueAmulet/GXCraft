@@ -151,7 +151,7 @@ int main() {
 	u8 FPS = 0;
 
 	memset(theWorld, 255, sizeof theWorld);
-	
+
 	bool rerenderDisplayList = true;
 	bool exitloop = false;
 	int dluse = 0;
@@ -280,7 +280,7 @@ int main() {
 			else if (thePlayer.lookY < -90)  thePlayer.lookY = -90;
 			if (thePlayer.lookZ > 180)       thePlayer.lookZ -= 360;
 			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
-			
+
 			//netcat_log("switching 3d\n");
 		    GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
@@ -297,7 +297,7 @@ int main() {
 				netcat_log("rerender display list because player too far from last render point\n");
 				rerenderDisplayList = true;
 			}
-			
+
 			//GRRLIB clears the vertex formats on mode switch
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
@@ -374,6 +374,20 @@ int main() {
 			// Draw 2D elements
 			//netcat_log("switching 2d\n");
 			GRRLIB_2dMode();
+
+			GRRLIB_SetBlend(GRRLIB_BLEND_INV);
+			GRRLIB_Rectangle(308, 239, 24, 2, 0xFFFFFFFF, true);
+			GRRLIB_Rectangle(319, 228, 2, 11, 0xFFFFFFFF, true);
+			GRRLIB_Rectangle(319, 241, 2, 11, 0xFFFFFFFF, true);
+			GRRLIB_SetBlend(GRRLIB_BLEND_ALPHA);
+
+			GRRLIB_DrawImg(138, 436, tex_inventory, 0, 2, 2, 0xFFFFFFFF);
+
+			// Draw Inventory here
+
+			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
+
+			// Draw debugging elements
 			GRRLIB_Printf(10,  25, tex_font, TEXT_COLOR, 1, "FPS: %d", FPS);
 			GRRLIB_Printf(10,  40, tex_font, TEXT_COLOR, 1, "PX:% 7.2f", thePlayer.posX);
 			GRRLIB_Printf(10,  55, tex_font, TEXT_COLOR, 1, "PY:% 7.2f", thePlayer.posY);
@@ -382,12 +396,6 @@ int main() {
 			GRRLIB_Printf(10, 100, tex_font, TEXT_COLOR, 1, "LY:% 7.2f", thePlayer.lookY);
 			GRRLIB_Printf(10, 115, tex_font, TEXT_COLOR, 1, "LZ:% 7.2f", thePlayer.lookZ);
 			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
-
-			GRRLIB_SetBlend(GRRLIB_BLEND_INV);
-			GRRLIB_Rectangle(308, 239, 24, 2, 0xFFFFFFFF, true);
-			GRRLIB_Rectangle(319, 228, 2, 11, 0xFFFFFFFF, true);
-			GRRLIB_Rectangle(319, 241, 2, 11, 0xFFFFFFFF, true);
-			GRRLIB_SetBlend(GRRLIB_BLEND_ALPHA);
 
 			GRRLIB_Render();
 			FPS = CalculateFrameRate();
@@ -409,7 +417,7 @@ int main() {
 			GRRLIB_ObjectViewRotate(0, thePlayer.lookX, 0);
 			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
 			GRRLIB_ObjectViewEnd();
-			
+
 			//GRRLIB clears the vertex formats on mode switch
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
@@ -547,6 +555,8 @@ static u8 CalculateFrameRate() {
 		lastTime = currentTime;
 		FPS = frameCount;
 		frameCount = 0;
+		thePlayer.inventory[9] += 1;
+		thePlayer.inventory[9] = thePlayer.inventory[9] % 9;
 	}
 	return FPS;
 }

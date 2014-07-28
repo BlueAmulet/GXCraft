@@ -22,15 +22,10 @@
 
 #include "block/block_includes.h"
 
-#define chunkX 16
-#define chunkZ 16
-
 unsigned char theWorld[worldY][worldX][worldZ];
 unsigned char lighting[worldX][worldZ];
 
 player thePlayer;
-
-static vu8	readyForCopy;
 
 inline double to_degrees(double radians) {
     return radians*(180.0f/M_PI);
@@ -139,7 +134,7 @@ static u8 CalculateFrameRate();
 typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK} gamestate;
 
 int main() {
-	netcat_console();
+	//netcat_console();
 
 	time_t t;
 	srand((unsigned) time(&t));

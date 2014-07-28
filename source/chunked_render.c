@@ -83,8 +83,8 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		}
 		//start rendering blocks
 		int bx, bz;
-		bx = cx*16;
-		bz = cz*16;
+		bx = cx*chunkX;
+		bz = cz*chunkZ;
 		
 		lastTex = NULL;
 		GX_BeginDispList(rc->displayList, rc->displayListSize);
@@ -92,8 +92,8 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		int y;
 		int z;
 		for (y = worldY - 1; y >= 0; y--) {
-			for (x = bx; x < bx+16; x++) {
-				for (z = bz; z < bz+16; z++) {
+			for (x = bx; x < bx+chunkX; x++) {
+				for (z = bz; z < bz+chunkZ; z++) {
 					unsigned char blockID = theWorld[y][x][z];
 					if (blockID != 0) {
 						blockEntry entry = blockRegistry[blockID];
@@ -110,8 +110,8 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
 		
 		for (y = 0; y < worldY; y++) {
-			for (x = bx; x < bx+16; x++) {
-				for (z = bz; z < bz+16; z++) {
+			for (x = bx; x < bx+chunkX; x++) {
+				for (z = bz; z < bz+chunkZ; z++) {
 					unsigned char blockID = theWorld[y][x][z];
 					if (blockID != 0) {
 						blockEntry entry = blockRegistry[blockID];
@@ -137,9 +137,9 @@ void chunked_refresh(int renderDistance, player thePlayer)
 {
 	//convert the player's position to chunk position
 	unsigned short px, pz;
-	px = floor(thePlayer.posX/16.0f);
-	pz = floor(thePlayer.posZ/16.0f);
-	int rcd = floor(renderDistance/16.0f);
+	px = thePlayer.posX/chunkX;
+	pz = thePlayer.posZ/chunkZ;
+	int rcd = renderDistance/chunkX;
 	//remove the old chunks that are now out of range
 	int nactive = 0;
 	int nremoved = 0;
@@ -164,8 +164,8 @@ void chunked_refresh(int renderDistance, player thePlayer)
 	//start rendering chunks
 	unsigned short cx, cz;
 	unsigned short maxcx, maxcz;
-	maxcx = worldX/16;
-	maxcz = worldZ/16;
+	maxcx = worldX/chunkX;
+	maxcz = worldZ/chunkZ;
 	
 	for (cx = max(px-rcd,0); cx < min(maxcx,px + rcd); cx++) {
 		for (cz = max(pz-rcd,0); cz < min(maxcz,pz + rcd); cz++) {
@@ -179,8 +179,8 @@ int chunk_cmp(const void *a, const void *b)
 {
 	renderchunk *ca = renderchunks[*((const int *)a)];
 	renderchunk *cb = renderchunks[*((const int *)b)];
-	int adst = abs(ca->x*16 - cmp_player.posX) + abs(ca->z*16 - cmp_player.posZ);
-	int bdst = abs(cb->x*16 - cmp_player.posX) + abs(cb->z*16 - cmp_player.posZ);
+	int adst = abs(ca->x*chunkX - cmp_player.posX) + abs(ca->z*chunkZ - cmp_player.posZ);
+	int bdst = abs(cb->x*chunkX - cmp_player.posX) + abs(cb->z*chunkZ - cmp_player.posZ);
 	if (adst > bdst)
 		return -1;
 	else if (adst < bdst)

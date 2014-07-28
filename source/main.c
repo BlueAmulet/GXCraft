@@ -26,6 +26,7 @@
 #define chunkZ 16
 
 unsigned char theWorld[worldY][worldX][worldZ];
+unsigned char lighting[worldX][worldZ];
 
 player thePlayer;
 
@@ -39,12 +40,48 @@ inline double to_radians(double degrees) {
     return (degrees*M_PI)/180.0f;
 }
 
+// Safe block placement;
+static void setBlock(int x, int y, int z, unsigned char blockID) {
+	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
+		theWorld[y][x][z] = blockID;
+}
+
+// Safe block retrieval;
+static unsigned char getBlock(int x, int y, int z) {
+	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
+		return theWorld[y][x][z];
+	return 0;
+}
+
+static void placeTree(int x, int y, int z) {
+	if (getBlock(x,y-1,z) == 2)
+		setBlock(x,y-1,z,3);
+	int lx,ly,lz;
+	for (ly = y + 3; ly <= y + 4; ly++) {
+		for (lx = x - 2; lx <= x + 2; lx++) {
+			for (lz = z - 2; lz <= z + 2; lz++) {
+				setBlock(lx,ly,lz,18);
+			}
+		}
+	}
+	for (lx = x - 1; lx <= x + 1; lx++) {
+		for (lz = z - 1; lz <= z + 1; lz++) {
+			setBlock(lx,y+5,lz,18);
+		}
+	}
+	setBlock(x-1,y+6,z,18);
+	setBlock(x+1,y+6,z,18);
+	setBlock(x,y+6,z-1,18);
+	setBlock(x,y+6,z+1,18);
+	for (ly = y; ly < y + 6; ly++)
+		setBlock(x,ly,z,17);
+}
+
 static void generateWorld() {
 	generateTerrain();
 	short x,y,z;
 	for (x = 0; x < worldX; x++) {
 		for (z = 0; z < worldZ; z++) {
-			//double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * 16) + 24);
 			double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * (worldY - 2)) + 1);
 			for (y = 0; y < worldY; y++) {
 				if (y == 0)
@@ -59,11 +96,9 @@ static void generateWorld() {
 					else
 						theWorld[y][x][z] = 2;
 				} else if (y == terrainPiece + 1 && terrainPiece >= 16) {
-					int type = rand() % 100;
-					if (type == 0)
-						theWorld[y][x][z] = 37;
-					else if (type == 1)
-						theWorld[y][x][z] = 38;
+					int type = rand() % 1000;
+					if (type == 1)
+						placeTree(x,y,z);
 					else
 						theWorld[y][x][z] = 0;
 				} else if (theWorld[y][x][z] == 255) {	
@@ -75,6 +110,7 @@ static void generateWorld() {
 			}
 		}
 	}
+	// TODO: Add Flower pockets
 }
 
 static void initializeBlocks();
@@ -260,11 +296,11 @@ int main() {
 			for (i = 0; i < 7; i+=0.1) {
 				unsigned char block = theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)];
 				if (block != 0 && block != 8 && block != 10) {
-					drawBlock(xLook*i+thePlayer.posX, yLook*i+thePlayer.posY+1.625, zLook*i+thePlayer.posZ, tex_font);
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0) {
-						int selBlockX = (int)(xLook*i+thePlayer.posX);
-						int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
-						int selBlockZ = (int)(zLook*i+thePlayer.posZ);
+					int selBlockX = (int)(xLook*i+thePlayer.posX);
+					int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
+					int selBlockZ = (int)(zLook*i+thePlayer.posZ);
+					drawBlock(selBlockX, selBlockY, selBlockZ, tex_font);
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && theWorld[selBlockY][selBlockX][selBlockZ] != 7) {
 						theWorld[selBlockY][selBlockX][selBlockZ] = 0;
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
 						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);

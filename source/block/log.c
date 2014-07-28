@@ -11,7 +11,7 @@ GRRLIB_texImg *tex_log_side;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
-	drawBlock(xPos, yPos, zPos, tex_log_top);
+	drawMultiTexBlock(xPos, yPos, zPos, tex_log_top, tex_log_side, tex_log_top);
 }
 
 void log_init() {

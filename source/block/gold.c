@@ -13,7 +13,7 @@ GRRLIB_texImg *tex_gold_side;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
-	drawBlock(xPos, yPos, zPos, tex_gold_top);
+	drawMultiTexBlock(xPos, yPos, zPos, tex_gold_top, tex_gold_side, tex_gold_bott);
 }
 
 void gold_init() {

@@ -13,7 +13,7 @@ GRRLIB_texImg *tex_iron_side;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
-	drawBlock(xPos, yPos, zPos, tex_iron_top);
+	drawMultiTexBlock(xPos, yPos, zPos, tex_iron_top, tex_iron_side, tex_iron_bott);
 }
 
 void iron_init() {

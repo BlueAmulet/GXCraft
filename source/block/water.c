@@ -27,7 +27,7 @@ void water_clean() {
 }
 
 bool testWaterFace(unsigned char face) {
-	return face == 0 || face == 6 || face == 37 || face == 38 || face == 39 || face == 40;
+	return face == 0 || face == 6 || face == 18 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 
 inline void drawWaterBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
@@ -116,17 +116,19 @@ inline void drawWaterBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 	}
 
 	if (drawTop) {
+		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+
 		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(0,0);
 		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(1,0);
 		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(1,1);
 		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(0,1);
 	}
 

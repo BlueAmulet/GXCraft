@@ -95,17 +95,18 @@ inline void drawBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 	}
 
 	if (drawTop) {
+		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(0,0);
 		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(1,0);
 		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(1,1);
 		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(0,1);
 	}
 
@@ -135,30 +136,32 @@ inline void drawBlockCrossed(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 
 	GX_Begin(GX_QUADS, GX_VTXFMT1, 8);
 
+	unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+
 	GX_Position3s16(xPos, 1+yPos, zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(0,0);
 	GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(1,0);
 	GX_Position3s16( 1+xPos,yPos, 1+zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(1,1);
 	GX_Position3s16(xPos,yPos,zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(0,1);
 
 	GX_Position3s16(xPos, 1+yPos, 1+zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(0,0);
 	GX_Position3s16( 1+xPos, 1+yPos,zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(1,0);
 	GX_Position3s16( 1+xPos,yPos,zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(1,1);
 	GX_Position3s16(xPos,yPos, 1+zPos);
-	GX_Color1u16(0xFFFF);
+	GX_Color1u16(c);
 	GX_TexCoord2u8(0,1);
 
 	GX_End();
@@ -256,19 +259,21 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *texTo
 			lastTex = texTop;
 		}
 
+		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+
 		GX_Begin(GX_QUADS, GX_VTXFMT1, 4);
 
 		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(0,0);
 		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(1,0);
 		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(1,1);
 		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xFFFF);
+		GX_Color1u16(c);
 		GX_TexCoord2u8(0,1);
 
 		GX_End();

@@ -6,3 +6,4 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 
 extern unsigned char theWorld[worldY][worldX][worldZ];
+extern unsigned char lighting[worldX][worldZ];

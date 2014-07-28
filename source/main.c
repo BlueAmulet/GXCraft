@@ -42,8 +42,23 @@ inline double to_radians(double degrees) {
 
 // Safe block placement;
 static void setBlock(int x, int y, int z, unsigned char blockID) {
-	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
+	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ) {
 		theWorld[y][x][z] = blockID;
+		if (blockID != 0 && blockID != 18) {
+			if (lighting[x][z] < y)
+				lighting[x][z] = y;
+		} else {
+			if (y >= lighting[x][z]) {
+				int sy;
+				for (sy = y - 1; y >= 0; y--) {
+					if (theWorld[sy][x][z] != 0 && theWorld[sy][x][z] != 18) {
+						lighting[x][z] = sy;
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 
 // Safe block retrieval;
@@ -83,6 +98,10 @@ static void generateWorld() {
 	for (x = 0; x < worldX; x++) {
 		for (z = 0; z < worldZ; z++) {
 			double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * (worldY - 2)) + 1);
+			if (terrainPiece < 15)
+				lighting[x][z] = 15;
+			else
+				lighting[x][z] = terrainPiece;
 			for (y = 0; y < worldY; y++) {
 				if (y == 0)
 					theWorld[y][x][z] = 7;
@@ -299,9 +318,9 @@ int main() {
 					int selBlockX = (int)(xLook*i+thePlayer.posX);
 					int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
 					int selBlockZ = (int)(zLook*i+thePlayer.posZ);
-					drawBlock(selBlockX, selBlockY, selBlockZ, tex_font);
+					//drawBlock(selBlockX, selBlockY, selBlockZ, tex_font);
 					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && theWorld[selBlockY][selBlockX][selBlockZ] != 7) {
-						theWorld[selBlockY][selBlockX][selBlockZ] = 0;
+						setBlock(selBlockX,selBlockY,selBlockZ,0);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
 						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
 						if (selBlockX % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);

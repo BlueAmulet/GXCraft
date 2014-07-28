@@ -316,6 +316,11 @@ int main() {
 					int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
 					int selBlockZ = (int)(zLook*i+thePlayer.posZ);
 					drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
+
+					//static char temp[1024];
+					//sprintf(temp,"Face %f, %f, %f\n",fmod(xLook*i+thePlayer.posX,1)-0.5f,fmod(yLook*i+thePlayer.posY+1.625,1)-0.5f,fmod(zLook*i+thePlayer.posZ,1)-0.5f);
+					//netcat_log(temp);
+
 					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && theWorld[selBlockY][selBlockX][selBlockZ] != 7) {
 						setBlock(selBlockX,selBlockY,selBlockZ,0);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);

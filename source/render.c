@@ -306,83 +306,83 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *texTo
 
 inline void drawSelectionBlock(int xPos, int yPos, int zPos) {
 
-	GX_Begin(GX_LINES,GX_VTXFMT0,24);
+	GX_Begin(GX_LINES, GX_VTXFMT0, 24);
 
-	GX_Position3f32(xPos-0.1,yPos+1.1,zPos+1.1);
+	GX_Position3f32(xPos-0.01,yPos+1.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos+1.1,zPos+1.1);
+	GX_Position3f32(xPos+1.01,yPos+1.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos-0.1,zPos+1.1);
+	GX_Position3f32(xPos+1.01,yPos+1.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos-0.1,zPos+1.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-
-	GX_Position3f32(xPos+1.1,yPos+1.1,zPos-0.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos+1.1,zPos-0.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos-0.1,zPos-0.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos-0.1,zPos-0.1);
+	GX_Position3f32(xPos+1.01,yPos-0.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
 
-	GX_Position3f32(xPos+1.1,yPos+1.1,zPos+1.1);
+	GX_Position3f32(xPos+1.01,yPos-0.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos+1.1,zPos-0.1);
+	GX_Position3f32(xPos-0.01,yPos-0.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos-0.1,zPos-0.1);
+	GX_Position3f32(xPos-0.01,yPos-0.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos-0.1,zPos+1.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-
-	GX_Position3f32(xPos-0.1,yPos+1.1,zPos-0.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos+1.1,zPos+1.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos-0.1,zPos+1.1);
-	GX_Color1u32(0x000000CC);
-	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos-0.1,zPos-0.1);
+	GX_Position3f32(xPos-0.01,yPos+1.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
 
-	GX_Position3f32(xPos-0.1,yPos+1.1,zPos-0.1);
+	GX_Position3f32(xPos-0.01,yPos+1.01,zPos-0.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos+1.1,zPos-0.1);
+	GX_Position3f32(xPos+1.01,yPos+1.01,zPos-0.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos+1.1,zPos+1.1);
+	GX_Position3f32(xPos+1.01,yPos+1.01,zPos-0.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos+1.1,zPos+1.1);
+	GX_Position3f32(xPos+1.01,yPos-0.01,zPos-0.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
 
-	GX_Position3f32(xPos+1.1,yPos-0.1,zPos-0.1);
+	GX_Position3f32(xPos+1.01,yPos-0.01,zPos-0.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos-0.1,zPos-0.1);
+	GX_Position3f32(xPos-0.01,yPos-0.01,zPos-0.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos-0.1,yPos-0.1,zPos+1.1);
+	GX_Position3f32(xPos-0.01,yPos-0.01,zPos-0.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
-	GX_Position3f32(xPos+1.1,yPos-0.1,zPos+1.1);
+	GX_Position3f32(xPos-0.01,yPos+1.01,zPos-0.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+
+	GX_Position3f32(xPos-0.01,yPos+1.01,zPos-0.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+	GX_Position3f32(xPos-0.01,yPos+1.01,zPos+1.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+	GX_Position3f32(xPos+1.01,yPos+1.01,zPos-0.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+	GX_Position3f32(xPos+1.01,yPos+1.01,zPos+1.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+
+	GX_Position3f32(xPos-0.01,yPos-0.01,zPos-0.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+	GX_Position3f32(xPos-0.01,yPos-0.01,zPos+1.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+	GX_Position3f32(xPos+1.01,yPos-0.01,zPos-0.01);
+	GX_Color1u32(0x000000CC);
+	GX_TexCoord2f32(0,0);
+	GX_Position3f32(xPos+1.01,yPos-0.01,zPos+1.01);
 	GX_Color1u32(0x000000CC);
 	GX_TexCoord2f32(0,0);
 

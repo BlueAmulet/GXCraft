@@ -341,8 +341,11 @@ int main() {
 			GRRLIB_Printf(10, 115, tex_font, TEXT_COLOR, 1, "LZ:% 7.2f", thePlayer.lookZ);
 			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
 
-			GRRLIB_Rectangle (320 - 12, 240 - 1, 24, 2, 0xFFFFFFFF, true);
-			GRRLIB_Rectangle (320 - 1, 240 - 12, 2, 24, 0xFFFFFFFF, true);
+			GRRLIB_SetBlend(GRRLIB_BLEND_INV);
+			GRRLIB_Rectangle(308, 239, 24, 2, 0xFFFFFFFF, true);
+			GRRLIB_Rectangle(319, 228, 2, 11, 0xFFFFFFFF, true);
+			GRRLIB_Rectangle(319, 241, 2, 11, 0xFFFFFFFF, true);
+			GRRLIB_SetBlend(GRRLIB_BLEND_ALPHA);
 
 		    GRRLIB_Render();
 			FPS = CalculateFrameRate();

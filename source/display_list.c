@@ -1,3 +1,5 @@
+#include <malloc.h>
+
 #include "display_list.h"
 
 displayList *dlist;
@@ -7,9 +9,10 @@ displayList *displist_create(u16 size)
 	displayList * list = malloc(sizeof(displayList));
 	list->size = size;
 	list->index = 0;
-	list->vertex = malloc(sizeof(s16)*size*3);
-	list->color = malloc(sizeof(u16)*size);
+	list->vertex   = malloc(sizeof(s16)*size*3);
+	list->color    = malloc(sizeof(u16)*size  );
 	list->texcoord = malloc(sizeof(f32)*size*2);
+
 	return list;
 }
 

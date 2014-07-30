@@ -29,7 +29,7 @@
 #include "log.h"
 #include "mossy.h"
 #include "mushroom.h"
-#include "obsidna.h"
+#include "obsidian.h"
 #include "ore_coal.h"
 #include "ore_gold.h"
 #include "ore_iron.h"

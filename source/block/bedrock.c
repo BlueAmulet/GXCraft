@@ -17,5 +17,4 @@ void bedrock_init() {
 	entry.renderBlock = render;
 	registerBlock(7, entry);
 	tex_bedrock = getTexture(1, 1);
-	netcat_logf("bedrock texture %f, %f",tex_bedrock->u0,tex_bedrock->v0);
 }

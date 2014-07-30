@@ -5,7 +5,6 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include <malloc.h>
 #include <wiiuse/wpad.h>
 #include <ogc/lwp_watchdog.h>
 
@@ -480,7 +479,7 @@ static void initializeBlocks() {
 	log_init();
 	mossy_init();
 	mushroom_init();
-	obsidna_init();
+	obsidian_init();
 	ore_coal_init();
 	ore_gold_init();
 	ore_iron_init();

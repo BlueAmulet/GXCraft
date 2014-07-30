@@ -32,7 +32,7 @@ bool testLeavesFace(unsigned char face) {
 
 inline void drawLeavesBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 
-	bool drawBack  = zPos >= worldZ-1 || testLeavesFace(theWorld[yPos][xPos][zPos + 1]);
+	/*bool drawBack  = zPos >= worldZ-1 || testLeavesFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testLeavesFace(theWorld[yPos][xPos][zPos - 1]);
 	bool drawRight = xPos >= worldX-1 || testLeavesFace(theWorld[yPos][xPos + 1][zPos]);
 	bool drawLeft  = xPos <= 0        || testLeavesFace(theWorld[yPos][xPos - 1][zPos]);
@@ -147,5 +147,5 @@ inline void drawLeavesBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 		GX_TexCoord2u8(0,1);
 	}
 
-	GX_End();
+	GX_End();*/
 }

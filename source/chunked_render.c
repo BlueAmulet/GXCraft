@@ -21,9 +21,7 @@ void chunked_init()
 	{
 		renderchunk *rc = malloc(sizeof(renderchunk));
 		rc->active = false;
-		rc->displayList = NULL;
-		rc->displayListSize = 128*1024+63;
-		rc->displayListUsage = 0;
+		rc->list = NULL;
 		renderchunks[i] = rc;
 	}
 }
@@ -75,9 +73,9 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		rc->active = true;
 		netcat_logf("rendering chunk %d, %d\n",cx,cz);
 		//check for display list
-		if (rc->displayList == NULL)
+		if (rc->list == NULL)
 		{
-			rc->displayList = memalign(32, rc->displayListSize);
+			rc->list = displist_create(24*1024);
 		}
 		//start rendering blocks
 		int bx, bz;
@@ -85,7 +83,8 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		bz = cz*chunkZ;
 		
 		lastTex = NULL;
-		GX_BeginDispList(rc->displayList, rc->displayListSize);
+		displist_clear(rc->list);
+		displist_bind(rc->list);
 		int x;
 		int y;
 		int z;
@@ -102,11 +101,6 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		}
 		netcat_log("rendered pass 0\n");
 		
-		GX_SetTevColorIn(GX_TEVSTAGE0,GX_CC_RASC,GX_CC_ONE,GX_CC_TEXC,GX_CC_ZERO);
-		GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
-		GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
-		GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
-		
 		for (y = 0; y < worldY; y++) {
 			for (x = bx; x < bx+chunkX; x++) {
 				for (z = bz; z < bz+chunkZ; z++) {
@@ -119,10 +113,7 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 			}
 		}
 		netcat_log("rendered pass 1\n");
-		rc->displayListUsage = GX_EndDispList();
-		netcat_log("invalidating range\n");
-		DCFlushRange(rc->displayList,rc->displayListSize); //so real wii doesn't crash and shit... i think
-		netcat_log("invalidated range\n");
+		netcat_logf("%d/%d\n",rc->list->index,rc->list->size);
 	}
 	else
 	{
@@ -188,6 +179,7 @@ int chunk_cmp(const void *a, const void *b)
 
 void chunked_render(player thePlayer)
 {
+	displist_start();
 	int i;
 	int nrendered = 0;
 	for (i=0; i<nRenderChunks; i++)
@@ -205,7 +197,7 @@ void chunked_render(player thePlayer)
 	for (i=0; i<nrendered; i++)
 	{
 		renderchunk *rc = renderchunks[renderorder[i]];
-		GX_CallDispList(rc->displayList, rc->displayListUsage);
+		displist_render(rc->list);
 	}
 }
 
@@ -218,7 +210,7 @@ int chunked_getfifousage()
 		renderchunk *rc = renderchunks[i];
 		if (rc->active)
 		{
-			usage += rc->displayListUsage;
+			usage += rc->list->index-1;
 		}
 	}
 	return usage;
@@ -233,7 +225,7 @@ int chunked_getfifototal()
 		renderchunk *rc = renderchunks[i];
 		if (rc->active)
 		{
-			usage += rc->displayListSize;
+			usage += rc->list->size;
 		}
 	}
 	return usage;

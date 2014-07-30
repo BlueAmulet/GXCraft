@@ -1,4 +1,5 @@
 #pragma once
+#include "display_list.h"
 #include "player.h"
 #define nRenderChunks 128
 
@@ -6,9 +7,7 @@ typedef struct
 {
 	bool active;
 	unsigned short x, z;
-	void *displayList;
-	unsigned int displayListSize;
-	unsigned int displayListUsage;
+	displayList *list;
 } renderchunk;
 
 extern renderchunk *renderchunks[nRenderChunks];

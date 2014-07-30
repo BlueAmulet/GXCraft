@@ -298,11 +298,6 @@ int main() {
 				rerenderDisplayList = true;
 			}
 
-			//GRRLIB clears the vertex formats on mode switch
-			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
-			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
-			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
-
 			double xLook =  sin(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
 			double yLook = -sin(to_radians(thePlayer.lookY));
 			double zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));

@@ -2,6 +2,7 @@
 
 #include "render.h"
 #include "main.h"
+#include "display_list.h"
 
 GRRLIB_texImg *lastTex = NULL;
 
@@ -28,143 +29,136 @@ inline void drawBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 	
 	if (size == 0) return;
 	
-	if (lastTex != tex)
-		GRRLIB_SetTexture(tex, 0);
-	lastTex = tex;
-
-	GX_Begin(GX_QUADS, GX_VTXFMT1, size);
+	//if (lastTex != tex)
+	//	GRRLIB_SetTexture(tex, 0);
+	//lastTex = tex;
 
 	if (drawBack) {
-		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16( 1+xPos,yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16(xPos,yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,1);
+		displist_add(xPos, 1+yPos, 1+zPos,
+		0xCCCF,
+		0,0);
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		0xCCCF,
+		1,0);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0xCCCF,
+		1,1);
+		displist_add(xPos,yPos, 1+zPos,
+		0xCCCF,
+		0,1);
 	}
 
 	if (drawFront) {
-		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16(xPos,yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16( 1+xPos,yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,1);
+		displist_add( 1+xPos, 1+yPos,zPos,
+		0xCCCF,
+		0,0);
+		displist_add(xPos, 1+yPos,zPos,
+		0xCCCF,
+		1,0);
+		displist_add(xPos,yPos,zPos,
+		0xCCCF,
+		1,1);
+		displist_add( 1+xPos,yPos,zPos,
+		0xCCCF,
+		0,1);
 	}
 
 	if (drawRight) {
-		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16( 1+xPos,yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16( 1+xPos,yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,1);
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		0x999F,
+		0,0);
+		displist_add( 1+xPos, 1+yPos,zPos,
+		0x999F,
+		1,0);
+		displist_add( 1+xPos,yPos,zPos,
+		0x999F,
+		1,1);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0x999F,
+		0,1);
 	}
 
 	if (drawLeft) {
-		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16(xPos,yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16(xPos,yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,1);
+		displist_add(xPos, 1+yPos,zPos,
+		0x999F,
+		0,0);
+		displist_add(xPos, 1+yPos, 1+zPos,
+		0x999F,
+		1,0);
+		displist_add(xPos,yPos, 1+zPos,
+		0x999F,
+		1,1);
+		displist_add(xPos,yPos,zPos,
+		0x999F,
+		0,1);
 	}
 
 	if (drawTop) {
 		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
-		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(0,1);
+		displist_add(xPos, 1+yPos,zPos,
+		c,
+		0,0);
+		displist_add( 1+xPos, 1+yPos,zPos,
+		c,
+		1,0);
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		c,
+		1,1);
+		displist_add(xPos, 1+yPos, 1+zPos,
+		c,
+		0,1);
 	}
 
 	if (drawBott) {
-		GX_Position3s16( 1+xPos,yPos,zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16(xPos,yPos,zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16(xPos,yPos, 1+zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16( 1+xPos,yPos, 1+zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(0,1);
+		displist_add( 1+xPos,yPos,zPos,
+		0x555F,
+		0,0);
+		displist_add(xPos,yPos,zPos,
+		0x555F,
+		1,0);
+		displist_add(xPos,yPos, 1+zPos,
+		0x555F,
+		1,1);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0x555F,
+		0,1);
 	}
 
-	GX_End();
 }
 
 inline void drawBlockCrossed(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 
-	if (lastTex != tex)
-		GRRLIB_SetTexture(tex, 0);
+	//if (lastTex != tex)
+		//GRRLIB_SetTexture(tex, 0);
 	lastTex = tex;
-
-	GX_Begin(GX_QUADS, GX_VTXFMT1, 8);
 
 	unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 
-	GX_Position3s16(xPos, 1+yPos, zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(0,0);
-	GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(1,0);
-	GX_Position3s16( 1+xPos,yPos, 1+zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(1,1);
-	GX_Position3s16(xPos,yPos,zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(0,1);
+	displist_add(xPos, 1+yPos, zPos,
+	c,
+	0,0);
+	displist_add( 1+xPos, 1+yPos, 1+zPos,
+	c,
+	1,0);
+	displist_add( 1+xPos,yPos, 1+zPos,
+	c,
+	1,1);
+	displist_add(xPos,yPos,zPos,
+	c,
+	0,1);
 
-	GX_Position3s16(xPos, 1+yPos, 1+zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(0,0);
-	GX_Position3s16( 1+xPos, 1+yPos,zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(1,0);
-	GX_Position3s16( 1+xPos,yPos,zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(1,1);
-	GX_Position3s16(xPos,yPos, 1+zPos);
-	GX_Color1u16(c);
-	GX_TexCoord2u8(0,1);
-
-	GX_End();
+	displist_add(xPos, 1+yPos, 1+zPos,
+	c,
+	0,0);
+	displist_add( 1+xPos, 1+yPos,zPos,
+	c,
+	1,0);
+	displist_add( 1+xPos,yPos,zPos,
+	c,
+	1,1);
+	displist_add(xPos,yPos, 1+zPos,
+	c,
+	0,1);
 }
 
 inline void drawMultiTexBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *texTop, GRRLIB_texImg *texSide, GRRLIB_texImg *texBott) {
@@ -185,122 +179,109 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *texTo
 	if (size == 0 && !drawTop && !drawBott) return;
 	
 	if ((drawBack || drawFront || drawLeft || drawRight) && lastTex != texSide) {
-		GRRLIB_SetTexture(texSide, 0);
-		lastTex = texSide;
+		//GRRLIB_SetTexture(texSide, 0);
+		//lastTex = texSide;
 	}
 
-	GX_Begin(GX_QUADS, GX_VTXFMT1, size);
-
 	if (drawBack) {
-		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16( 1+xPos,yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16(xPos,yPos, 1+zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,1);
+		displist_add(xPos, 1+yPos, 1+zPos,
+		0xCCCF,
+		0,0);
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		0xCCCF,
+		1,0);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0xCCCF,
+		1,1);
+		displist_add(xPos,yPos, 1+zPos,
+		0xCCCF,
+		0,1);
 	}
 
 	if (drawFront) {
-		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16(xPos,yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16( 1+xPos,yPos,zPos);
-		GX_Color1u16(0xCCCF);
-		GX_TexCoord2u8(0,1);
+		displist_add( 1+xPos, 1+yPos,zPos,
+		0xCCCF,
+		0,0);
+		displist_add(xPos, 1+yPos,zPos,
+		0xCCCF,
+		1,0);
+		displist_add(xPos,yPos,zPos,
+		0xCCCF,
+		1,1);
+		displist_add( 1+xPos,yPos,zPos,
+		0xCCCF,
+		0,1);
 	}
 
 	if (drawRight) {
-		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16( 1+xPos,yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16( 1+xPos,yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,1);
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		0x999F,
+		0,0);
+		displist_add( 1+xPos, 1+yPos,zPos,
+		0x999F,
+		1,0);
+		displist_add( 1+xPos,yPos,zPos,
+		0x999F,
+		1,1);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0x999F,
+		0,1);
 	}
 
 	if (drawLeft) {
-		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16(xPos,yPos, 1+zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16(xPos,yPos,zPos);
-		GX_Color1u16(0x999F);
-		GX_TexCoord2u8(0,1);
+		displist_add(xPos, 1+yPos,zPos,
+		0x999F,
+		0,0);
+		displist_add(xPos, 1+yPos, 1+zPos,
+		0x999F,
+		1,0);
+		displist_add(xPos,yPos, 1+zPos,
+		0x999F,
+		1,1);
+		displist_add(xPos,yPos,zPos,
+		0x999F,
+		0,1);
 	}
-
-	GX_End();
 
 	if (drawTop) {
 		if (lastTex != texTop) {
-			GRRLIB_SetTexture(texTop, 0);
-			lastTex = texTop;
+			//GRRLIB_SetTexture(texTop, 0);
+			//lastTex = texTop;
 		}
 
 		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 
-		GX_Begin(GX_QUADS, GX_VTXFMT1, 4);
-
-		GX_Position3s16(xPos, 1+yPos,zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16( 1+xPos, 1+yPos,zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16( 1+xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16(xPos, 1+yPos, 1+zPos);
-		GX_Color1u16(c);
-		GX_TexCoord2u8(0,1);
-
-		GX_End();
+		displist_add(xPos, 1+yPos,zPos,
+		c,
+		0,0);
+		displist_add( 1+xPos, 1+yPos,zPos,
+		c,
+		1,0);
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		c,
+		1,1);
+		displist_add(xPos, 1+yPos, 1+zPos,
+		c,
+		0,1);
 	}
 
 	if (drawBott) {
 		if (lastTex != texBott) {
-			GRRLIB_SetTexture(texBott, 0);
-			lastTex = texBott;
+			//GRRLIB_SetTexture(texBott, 0);
+			//lastTex = texBott;
 		}
-
-		GX_Begin(GX_QUADS, GX_VTXFMT1, 4);
-
-		GX_Position3s16( 1+xPos,yPos,zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(0,0);
-		GX_Position3s16(xPos,yPos,zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(1,0);
-		GX_Position3s16(xPos,yPos, 1+zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(1,1);
-		GX_Position3s16( 1+xPos,yPos, 1+zPos);
-		GX_Color1u16(0x555F);
-		GX_TexCoord2u8(0,1);
-
-		GX_End();
+		displist_add( 1+xPos,yPos,zPos,
+		0x555F,
+		0,0);
+		displist_add(xPos,yPos,zPos,
+		0x555F,
+		1,0);
+		displist_add(xPos,yPos, 1+zPos,
+		0x555F,
+		1,1);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0x555F,
+		0,1);
 	}
 }
 

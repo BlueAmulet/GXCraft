@@ -65,8 +65,10 @@ int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z)
 	return -1;
 }
 
-inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool force)
+inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 {
+	if (cx < 0 || cz < 0 || cx >= worldX/chunkX || cz >= worldZ/chunkZ)
+		return;
 	renderchunk *rc = renderchunks[chunked_getchunkfromchunkpos(cx,cz)];
 	if ((!rc->active) || force)
 	{

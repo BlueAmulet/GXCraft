@@ -336,7 +336,7 @@ int main() {
 					if (aBlockSelOffZ > aBlockSelOffX && aBlockSelOffZ > aBlockSelOffY)
 						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
 
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && theWorld[selBlockY][selBlockX][selBlockZ] != 7) {
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
 						setBlock(selBlockX,selBlockY,selBlockZ,0);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
 						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);

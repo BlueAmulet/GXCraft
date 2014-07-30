@@ -1,17 +1,17 @@
 Add better world generation (caves, flower pockets)
 Find Cursor pointer texture
 Add inventory
-Add block names
+Add block names?
 Get/Create new textures
 Add non flying mode
 Fix flowers
-Add block placement abilities (Needs inventory)
 Make being underwater have water effect
 Have Water and lava react to blocks being removed around them
 Have dirt turn to grass and vice versa
 Have saplings turn into trees
 Have water slow the player
 Better Lighting?
-Block selection randomly changes colors
+Block selection is always color of background
 Clouds
+Block selection derps out at negative X/Y/Z
 

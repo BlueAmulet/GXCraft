@@ -137,7 +137,7 @@ static void generateWorld() {
 static void initializeBlocks();
 static u8 CalculateFrameRate();
 
-typedef enum {REGISTER, GENERATE, INGAME, INVENTORY, NUNCHUK} gamestate;
+typedef enum {REGISTER, GENERATE, INGAME, INVENTORY, NUNCHUK, SCREENSHOT} gamestate;
 
 int main() {
 	netcat_console();
@@ -154,6 +154,7 @@ int main() {
 
 	bool rerenderDisplayList = true;
 	bool exitloop = false;
+	short scr_scanY = 0;	
 	int dluse = 0;
 	int dlsize = 0;
 
@@ -451,35 +452,8 @@ int main() {
 				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false);
 				netcat_log("-- START SCREENSHOT --\n");
 				netcat_logf("W: %d, H: %d\n", tex_tmpscreen->w, tex_tmpscreen->h);
-				int x,y;
-				for (y = 0; y < tex_tmpscreen->h; y++) {
-					netcat_logf("%03d: ", y);
-					u32 lastcol = 0x00000000;
-					int times = 1;
-					for (x = 0; x < tex_tmpscreen->w; x++) {
-						u32 pixel = GRRLIB_GetPixelFromtexImg(x, y, tex_tmpscreen);
-						if (lastcol == 0x00000000) {
-							lastcol = pixel;
-							times = 1;
-						} else if (pixel != lastcol) {
-							netcat_logf("%06x", lastcol >> 8);
-							if (times > 1) {
-								netcat_logf("*%03d",times);
-							}
-							lastcol = pixel;
-							times = 1;
-						} else {
-							times++;
-						}
-					}
-					// Dump whats left
-					netcat_logf("%06x", lastcol >> 8);
-					if (times > 1) {
-						netcat_logf("*%03d",times);
-					}
-					netcat_log("\n");
-				}
-				netcat_log("-- END SCREENSHOT --\n");
+				scr_scanY = 0;
+				status = SCREENSHOT;
 			}
 
 			GRRLIB_Render();
@@ -515,6 +489,45 @@ int main() {
 			GRRLIB_2dMode();
 			GRRLIB_Rectangle(0, 0, 640, 480, 0x0000007F, true);
 			GXCraft_DrawText(144, 232, tex_font, "PLEASE CONNECT NUNCHUK");
+			GRRLIB_Render();
+			break;
+		case SCREENSHOT:
+			netcat_logf("%03d: ", scr_scanY);
+			u32 lastcol = 0x00000000;
+			int times = 1;
+			int x;
+			for (x = 0; x < tex_tmpscreen->w; x++) {
+				u32 pixel = GRRLIB_GetPixelFromtexImg(x, scr_scanY, tex_tmpscreen);
+				if (lastcol == 0x00000000) {
+					lastcol = pixel;
+					times = 1;
+				} else if (pixel != lastcol) {
+					netcat_logf("%06x", lastcol >> 8);
+					if (times > 1) {
+						netcat_logf("*%03d",times);
+					}
+					lastcol = pixel;
+					times = 1;
+				} else {
+					times++;
+				}
+			}
+			// Dump whats left
+			netcat_logf("%06x", lastcol >> 8);
+			if (times > 1) {
+				netcat_logf("*%03d",times);
+			}
+			netcat_log("\n");
+			scr_scanY++;
+			if (scr_scanY >= tex_tmpscreen->h) {
+				status = INGAME;
+				netcat_log("-- END SCREENSHOT --\n");
+			}
+
+			// Draw fake scanner
+			GRRLIB_2dMode();
+			GRRLIB_DrawImg(0, 0, tex_tmpscreen, 0, 1, 1, 0xFFFFFFFF);
+			GRRLIB_Line(0, scr_scanY, tex_tmpscreen->w, scr_scanY, 0xFF0000FF);
 			GRRLIB_Render();
 			break;
 		}

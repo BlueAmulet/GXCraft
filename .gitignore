@@ -1,5 +1,7 @@
 GXCraft.dol
 GXCraft.elf
+rawdata.rgb
+wii_screenshot.png
 build/
 source/textures/*.c
 source/textures/*.h

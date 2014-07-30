@@ -12,6 +12,7 @@
 #include "textures/inventory.h"
 #include "textures/inv_select.h"
 #include "textures/terrain_blocks.h"
+#include "textures/cursor.h"
 
 #include "main.h"
 #include "player.h"
@@ -182,16 +183,26 @@ int main() {
 
 	GRRLIB_Settings.antialias = false;
 
-	GRRLIB_texImg *tex_font = GRRLIB_LoadTexture(font);
-	GRRLIB_texImg *tex_inventory = GRRLIB_LoadTexture(inventory);
+	GRRLIB_texImg *tex_font       = GRRLIB_LoadTexture(font);
+	GRRLIB_texImg *tex_inventory  = GRRLIB_LoadTexture(inventory);
 	GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
-	GRRLIB_texImg *tex_terrain = GRRLIB_LoadTexture(terrain_blocks);
+	GRRLIB_texImg *tex_terrain    = GRRLIB_LoadTexture(terrain_blocks);
+	GRRLIB_texImg *tex_cursor     = GRRLIB_LoadTexture(cursor);
+
+	GRRLIB_SetMidHandle(tex_cursor, true);
 
 	GRRLIB_InitTileSet(tex_font, 16, 16, 32);
 
 	GRRLIB_SetBackgroundColour(0x00, 0x00, 0x00, 0xFF);
 
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
+
+	unsigned char inv_blocks[42] = {
+	 1,  4, 45, 03, 05, 17, 18, 20, 43,
+	48,  6, 37, 38, 39, 40, 12, 13, 19,
+	21, 22, 23, 24, 25, 26, 27, 28, 29,
+	30, 31, 32, 33, 34, 35, 36, 16, 15,
+	14, 42, 41, 47, 46, 49 };
 
 	while (!exitloop) {
 		switch(status) {
@@ -409,14 +420,19 @@ int main() {
 
 			if (status == INVENTORY) {
 				GRRLIB_Rectangle(80, 60, 480, 300, 0x0000007F, true);
-				
-				// TODO: Actual cursor
-				int vsize, hsize;
-				for (vsize = 1; vsize <= 12; vsize++) {
-					for (hsize = 1; hsize <= vsize; hsize++) {
-						GRRLIB_Plot(IR_0.sx + hsize, IR_0.sy + vsize, 0xFF0000FF);
-					}
+
+				GXCraft_DrawText(224, 80, tex_font, "SELECT BLOCK");
+
+				// TODO: Draw selection box (52x52)
+
+				// TODO: Draw blocks on this.
+				int x, y;
+				for (b = 0; b < 42; b++) {
+					x = b % 9;
+					y = floor(b/9);
+					GXCraft_DrawText(x * 48 + 110, y * 48 + 114, tex_font, "%02d", inv_blocks[b]);
 				}
+				GRRLIB_DrawImg(IR_0.sx, IR_0.sy, tex_cursor, IR_0.angle, 1, 1, 0xFFFFFFFF);
 			}
 
 			// Draw debugging elements
@@ -468,10 +484,12 @@ int main() {
 	}
 	netcat_log("ending...\n");
 	netcat_close();
+
 	GRRLIB_FreeTexture(tex_font);
 	GRRLIB_FreeTexture(tex_inventory);
 	GRRLIB_FreeTexture(tex_inv_select);
 	GRRLIB_FreeTexture(tex_terrain);
+	GRRLIB_FreeTexture(tex_cursor);
 
 	GRRLIB_Exit();
 	exit(0);

@@ -315,6 +315,7 @@ int main() {
 					int selBlockX = (int)(xLook*i+thePlayer.posX);
 					int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
 					int selBlockZ = (int)(zLook*i+thePlayer.posZ);
+					GRRLIB_SetTexture(tex_inventory, 0);
 					drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 
 					double blockSelOffX = fmod(xLook*i+thePlayer.posX,1)-0.5f;

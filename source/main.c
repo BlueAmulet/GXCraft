@@ -188,6 +188,7 @@ int main() {
 	GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
 	GRRLIB_texImg *tex_terrain    = GRRLIB_LoadTexture(terrain_blocks);
 	GRRLIB_texImg *tex_cursor     = GRRLIB_LoadTexture(cursor);
+	GRRLIB_texImg *tex_tmpscreen  = GRRLIB_CreateEmptyTexture(rmode->fbWidth, rmode->efbHeight);
 
 	GRRLIB_SetMidHandle(tex_cursor, true);
 
@@ -445,6 +446,42 @@ int main() {
 			GXCraft_DrawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
 			GXCraft_DrawText(10, 130, tex_font, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
 
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
+				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false); // This is giving me the last content?
+				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false);
+				netcat_log("-- START SCREENSHOT --\n");
+				netcat_logf("W: %d, H: %d\n", tex_tmpscreen->w, tex_tmpscreen->h);
+				int x,y;
+				for (y = 0; y < tex_tmpscreen->h; y++) {
+					netcat_logf("%03d: ", y);
+					u32 lastcol = 0x00000000;
+					int times = 1;
+					for (x = 0; x < tex_tmpscreen->w; x++) {
+						u32 pixel = GRRLIB_GetPixelFromtexImg(x, y, tex_tmpscreen);
+						if (lastcol == 0x00000000) {
+							lastcol = pixel;
+							times = 1;
+						} else if (pixel != lastcol) {
+							netcat_logf("%06x", lastcol >> 8);
+							if (times > 1) {
+								netcat_logf("*%03d",times);
+							}
+							lastcol = pixel;
+							times = 1;
+						} else {
+							times++;
+						}
+					}
+					// Dump whats left
+					netcat_logf("%06x", lastcol >> 8);
+					if (times > 1) {
+						netcat_logf("*%03d",times);
+					}
+					netcat_log("\n");
+				}
+				netcat_log("-- END SCREENSHOT --\n");
+			}
+
 			GRRLIB_Render();
 			FPS = CalculateFrameRate();
 			break;
@@ -490,6 +527,7 @@ int main() {
 	GRRLIB_FreeTexture(tex_inv_select);
 	GRRLIB_FreeTexture(tex_terrain);
 	GRRLIB_FreeTexture(tex_cursor);
+	GRRLIB_FreeTexture(tex_tmpscreen);
 
 	GRRLIB_Exit();
 	exit(0);

@@ -349,7 +349,7 @@ int main() {
 					if (aBlockSelOffZ > aBlockSelOffX && aBlockSelOffZ > aBlockSelOffY)
 						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
 
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && status != INVENTORY && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
 						setBlock(selBlockX,selBlockY,selBlockZ,0);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
 						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
@@ -357,7 +357,7 @@ int main() {
 						if (selBlockZ % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
 						if (selBlockZ % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
 						thePlayer.timer = 18;
-					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && thePlayer.timer == 0) {
+					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && status != INVENTORY && thePlayer.timer == 0) {
 						selBlockX+=faceBlockX;
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
@@ -400,6 +400,10 @@ int main() {
 			GRRLIB_DrawImg(138, 436, tex_inventory, 0, 2, 2, 0xFFFFFFFF);
 
 			// TODO: Draw Actual blocks
+			int b;
+			for (b = 0; b < 9; b++) {
+				GXCraft_DrawText(b * 40 + 144, 440, tex_font, "%02d", thePlayer.inventory[b]);
+			}
 
 			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
 

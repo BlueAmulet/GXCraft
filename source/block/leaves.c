@@ -3,12 +3,12 @@
 #include "../main.h"
 #include "../block.h"
 #include "../render.h"
-#include "../textures/block_leaves.h"
+
 #include "leaves.h"
 
-GRRLIB_texImg *tex_leaves;
+blockTexture *tex_leaves;
 
-inline void drawLeavesBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex);
+inline void drawLeavesBlock(int xPos, int yPos, int zPos, blockTexture *tex);
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 0) return;
@@ -19,18 +19,14 @@ void leaves_init() {
 	blockEntry entry;
 	entry.renderBlock = render;
 	registerBlock(18, entry);
-	tex_leaves = GRRLIB_LoadTexture(block_leaves);
-}
-
-void leaves_clean() {
-	GRRLIB_FreeTexture(tex_leaves);
+	tex_leaves = getTexture(6, 1);
 }
 
 bool testLeavesFace(unsigned char face) {
 	return face == 0 || face == 6 || face == 8 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 
-inline void drawLeavesBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
+inline void drawLeavesBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 
 	/*bool drawBack  = zPos >= worldZ-1 || testLeavesFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testLeavesFace(theWorld[yPos][xPos][zPos - 1]);

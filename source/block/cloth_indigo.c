@@ -2,10 +2,10 @@
 
 #include "../block.h"
 #include "../render.h"
-#include "../textures/block_cloth_indigo.h"
+
 #include "cloth_indigo.h"
 
-GRRLIB_texImg *tex_cloth_indigo;
+blockTexture *tex_cloth_indigo;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
@@ -16,9 +16,5 @@ void cloth_indigo_init() {
 	blockEntry entry;
 	entry.renderBlock = render;
 	registerBlock(30, entry);
-	tex_cloth_indigo = GRRLIB_LoadTexture(block_cloth_indigo);
-}
-
-void cloth_indigo_clean() {
-	GRRLIB_FreeTexture(tex_cloth_indigo);
+	tex_cloth_indigo = getTexture(8, 4);
 }

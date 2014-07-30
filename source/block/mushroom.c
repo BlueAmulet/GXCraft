@@ -2,10 +2,10 @@
 
 #include "../block.h"
 #include "../render.h"
-#include "../textures/block_mushroom.h"
+
 #include "mushroom.h"
 
-GRRLIB_texImg *tex_mushroom;
+blockTexture *tex_mushroom;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 0) return;
@@ -16,9 +16,5 @@ void mushroom_init() {
 	blockEntry entry;
 	entry.renderBlock = render;
 	registerBlock(39, entry);
-	tex_mushroom = GRRLIB_LoadTexture(block_mushroom);
-}
-
-void mushroom_clean() {
-	GRRLIB_FreeTexture(tex_mushroom);
+	tex_mushroom = getTexture(13, 1);
 }

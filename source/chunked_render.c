@@ -75,14 +75,14 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		//check for display list
 		if (rc->list == NULL)
 		{
-			rc->list = displist_create(24*1024);
+			rc->list = displist_create(16*1024);
+			rc->blendlist = displist_create(16*1024);
 		}
 		//start rendering blocks
 		int bx, bz;
 		bx = cx*chunkX;
 		bz = cz*chunkZ;
 		
-		lastTex = NULL;
 		displist_clear(rc->list);
 		displist_bind(rc->list);
 		int x;
@@ -101,6 +101,8 @@ inline void chunked_rerenderChunk(unsigned short cx, unsigned short cz, bool for
 		}
 		netcat_log("rendered pass 0\n");
 		
+		displist_clear(rc->blendlist);
+		displist_bind(rc->blendlist);
 		for (y = 0; y < worldY; y++) {
 			for (x = bx; x < bx+chunkX; x++) {
 				for (z = bz; z < bz+chunkZ; z++) {
@@ -199,6 +201,15 @@ void chunked_render(player thePlayer)
 		renderchunk *rc = renderchunks[renderorder[i]];
 		displist_render(rc->list);
 	}
+	/*GX_SetTevColorIn(GX_TEVSTAGE0,GX_CC_RASC,GX_CC_ONE,GX_CC_TEXC,GX_CC_ZERO);
+	GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
+	GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
+	GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);*/
+	for (i=0; i<nrendered; i++)
+	{
+		renderchunk *rc = renderchunks[renderorder[i]];
+		displist_render(rc->blendlist);
+	}
 }
 
 int chunked_getfifousage()
@@ -211,6 +222,7 @@ int chunked_getfifousage()
 		if (rc->active)
 		{
 			usage += rc->list->index-1;
+			usage += rc->blendlist->index-1;
 		}
 	}
 	return usage;
@@ -226,6 +238,7 @@ int chunked_getfifototal()
 		if (rc->active)
 		{
 			usage += rc->list->size;
+			usage += rc->blendlist->size;
 		}
 	}
 	return usage;

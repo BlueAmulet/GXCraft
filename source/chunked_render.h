@@ -8,6 +8,7 @@ typedef struct
 	bool active;
 	unsigned short x, z;
 	displayList *list;
+	displayList *blendlist;
 } renderchunk;
 
 extern renderchunk *renderchunks[nRenderChunks];

@@ -4,13 +4,11 @@
 #include "main.h"
 #include "display_list.h"
 
-GRRLIB_texImg *lastTex = NULL;
-
 bool testFace(unsigned char face) {
 	return face == 0 || face == 6 || face == 8 || face == 18 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 
-inline void drawBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
+inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 
 	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
@@ -29,139 +27,136 @@ inline void drawBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
 	
 	if (size == 0) return;
 	
-	//if (lastTex != tex)
-	//	GRRLIB_SetTexture(tex, 0);
-	//lastTex = tex;
+	f32 u0 = tex->u0, v0 = tex->v0;
+	f32 u1 = tex->u1, v1 = tex->v1;
 
 	if (drawBack) {
 		displist_add(xPos, 1+yPos, 1+zPos,
 		0xCCCF,
-		0,0);
+		u0,v0);
 		displist_add( 1+xPos, 1+yPos, 1+zPos,
 		0xCCCF,
-		1,0);
+		u1,v0);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0xCCCF,
-		1,1);
+		u1,v1);
 		displist_add(xPos,yPos, 1+zPos,
 		0xCCCF,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawFront) {
 		displist_add( 1+xPos, 1+yPos,zPos,
 		0xCCCF,
-		0,0);
+		u0,v0);
 		displist_add(xPos, 1+yPos,zPos,
 		0xCCCF,
-		1,0);
+		u1,v0);
 		displist_add(xPos,yPos,zPos,
 		0xCCCF,
-		1,1);
+		u1,v1);
 		displist_add( 1+xPos,yPos,zPos,
 		0xCCCF,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawRight) {
 		displist_add( 1+xPos, 1+yPos, 1+zPos,
 		0x999F,
-		0,0);
+		u0,v0);
 		displist_add( 1+xPos, 1+yPos,zPos,
 		0x999F,
-		1,0);
+		u1,v0);
 		displist_add( 1+xPos,yPos,zPos,
 		0x999F,
-		1,1);
+		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0x999F,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawLeft) {
 		displist_add(xPos, 1+yPos,zPos,
 		0x999F,
-		0,0);
+		u0,v0);
 		displist_add(xPos, 1+yPos, 1+zPos,
 		0x999F,
-		1,0);
+		u1,v0);
 		displist_add(xPos,yPos, 1+zPos,
 		0x999F,
-		1,1);
+		u1,v1);
 		displist_add(xPos,yPos,zPos,
 		0x999F,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawTop) {
 		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 		displist_add(xPos, 1+yPos,zPos,
 		c,
-		0,0);
+		u0,v0);
 		displist_add( 1+xPos, 1+yPos,zPos,
 		c,
-		1,0);
+		u1,v0);
 		displist_add( 1+xPos, 1+yPos, 1+zPos,
 		c,
-		1,1);
+		u1,v1);
 		displist_add(xPos, 1+yPos, 1+zPos,
 		c,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawBott) {
 		displist_add( 1+xPos,yPos,zPos,
 		0x555F,
-		0,0);
+		u0,v0);
 		displist_add(xPos,yPos,zPos,
 		0x555F,
-		1,0);
+		u1,v0);
 		displist_add(xPos,yPos, 1+zPos,
 		0x555F,
-		1,1);
+		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0x555F,
-		0,1);
+		u0,v1);
 	}
 
 }
 
-inline void drawBlockCrossed(int xPos, int yPos, int zPos, GRRLIB_texImg *tex) {
-
-	//if (lastTex != tex)
-		//GRRLIB_SetTexture(tex, 0);
-	lastTex = tex;
-
+inline void drawBlockCrossed(int xPos, int yPos, int zPos, blockTexture *tex) {
 	unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+	
+	f32 u0 = tex->u0, v0 = tex->v0;
+	f32 u1 = tex->u1, v1 = tex->v1;
 
 	displist_add(xPos, 1+yPos, zPos,
 	c,
-	0,0);
+	u0,v0);
 	displist_add( 1+xPos, 1+yPos, 1+zPos,
 	c,
-	1,0);
+	u1,v0);
 	displist_add( 1+xPos,yPos, 1+zPos,
 	c,
-	1,1);
+	u1,v1);
 	displist_add(xPos,yPos,zPos,
 	c,
-	0,1);
+	u0,v1);
 
 	displist_add(xPos, 1+yPos, 1+zPos,
 	c,
-	0,0);
+	u0,v0);
 	displist_add( 1+xPos, 1+yPos,zPos,
 	c,
-	1,0);
+	u1,v0);
 	displist_add( 1+xPos,yPos,zPos,
 	c,
-	1,1);
+	u1,v1);
 	displist_add(xPos,yPos, 1+zPos,
 	c,
-	0,1);
+	u0,v1);
 }
 
-inline void drawMultiTexBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *texTop, GRRLIB_texImg *texSide, GRRLIB_texImg *texBott) {
+inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop, blockTexture *texSide, blockTexture *texBott) {
 
 	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
@@ -178,110 +173,105 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, GRRLIB_texImg *texTo
 	
 	if (size == 0 && !drawTop && !drawBott) return;
 	
-	if ((drawBack || drawFront || drawLeft || drawRight) && lastTex != texSide) {
-		//GRRLIB_SetTexture(texSide, 0);
-		//lastTex = texSide;
-	}
+	f32 u0 = texSide->u0, v0 = texSide->v0;
+	f32 u1 = texSide->u1, v1 = texSide->v1;
 
 	if (drawBack) {
 		displist_add(xPos, 1+yPos, 1+zPos,
 		0xCCCF,
-		0,0);
+		u0,v0);
 		displist_add( 1+xPos, 1+yPos, 1+zPos,
 		0xCCCF,
-		1,0);
+		u1,v0);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0xCCCF,
-		1,1);
+		u1,v1);
 		displist_add(xPos,yPos, 1+zPos,
 		0xCCCF,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawFront) {
 		displist_add( 1+xPos, 1+yPos,zPos,
 		0xCCCF,
-		0,0);
+		u0,v0);
 		displist_add(xPos, 1+yPos,zPos,
 		0xCCCF,
-		1,0);
+		u1,v0);
 		displist_add(xPos,yPos,zPos,
 		0xCCCF,
-		1,1);
+		u1,v1);
 		displist_add( 1+xPos,yPos,zPos,
 		0xCCCF,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawRight) {
 		displist_add( 1+xPos, 1+yPos, 1+zPos,
 		0x999F,
-		0,0);
+		u0,v0);
 		displist_add( 1+xPos, 1+yPos,zPos,
 		0x999F,
-		1,0);
+		u1,v0);
 		displist_add( 1+xPos,yPos,zPos,
 		0x999F,
-		1,1);
+		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0x999F,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawLeft) {
 		displist_add(xPos, 1+yPos,zPos,
 		0x999F,
-		0,0);
+		u0,v0);
 		displist_add(xPos, 1+yPos, 1+zPos,
 		0x999F,
-		1,0);
+		u1,v0);
 		displist_add(xPos,yPos, 1+zPos,
 		0x999F,
-		1,1);
+		u1,v1);
 		displist_add(xPos,yPos,zPos,
 		0x999F,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawTop) {
-		if (lastTex != texTop) {
-			//GRRLIB_SetTexture(texTop, 0);
-			//lastTex = texTop;
-		}
-
+		u0 = texTop->u0, v0 = texTop->v0;
+		u1 = texTop->u1, v1 = texTop->v1;
+		
 		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 
 		displist_add(xPos, 1+yPos,zPos,
 		c,
-		0,0);
+		u0,v0);
 		displist_add( 1+xPos, 1+yPos,zPos,
 		c,
-		1,0);
+		u1,v0);
 		displist_add( 1+xPos, 1+yPos, 1+zPos,
 		c,
-		1,1);
+		u1,v1);
 		displist_add(xPos, 1+yPos, 1+zPos,
 		c,
-		0,1);
+		u0,v1);
 	}
 
 	if (drawBott) {
-		if (lastTex != texBott) {
-			//GRRLIB_SetTexture(texBott, 0);
-			//lastTex = texBott;
-		}
+		u0 = texTop->u0, v0 = texTop->v0;
+		u1 = texTop->u1, v1 = texTop->v1;
+	
 		displist_add( 1+xPos,yPos,zPos,
 		0x555F,
-		0,0);
+		u0,v0);
 		displist_add(xPos,yPos,zPos,
 		0x555F,
-		1,0);
+		u1,v0);
 		displist_add(xPos,yPos, 1+zPos,
 		0x555F,
-		1,1);
+		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0x555F,
-		0,1);
+		u0,v1);
 	}
 }
 

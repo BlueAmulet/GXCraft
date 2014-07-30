@@ -12,6 +12,7 @@
 #include "textures/font.h"
 #include "textures/inventory.h"
 #include "textures/inv_select.h"
+#include "textures/terrain_blocks.h"
 
 #include "main.h"
 #include "player.h"
@@ -21,6 +22,7 @@
 #include "render.h"
 #include "netcat_logger.h"
 #include "chunked_render.h"
+#include "block_textures.h"
 
 #include "block/block_includes.h"
 
@@ -176,6 +178,7 @@ int main() {
     GRRLIB_Init();
     WPAD_Init();
 	chunked_init();
+	initTextures();
 	WPADData *data;
 
 	GRRLIB_Settings.antialias = false;
@@ -183,6 +186,7 @@ int main() {
     GRRLIB_texImg *tex_font = GRRLIB_LoadTexture(font);
     GRRLIB_texImg *tex_inventory = GRRLIB_LoadTexture(inventory);
     GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
+	GRRLIB_texImg *tex_terrain = GRRLIB_LoadTexture(terrain_blocks);
 
     GRRLIB_InitTileSet(tex_font, 16, 16, 32);
 
@@ -364,6 +368,7 @@ int main() {
 				dluse = chunked_getfifousage();
 				dlsize = chunked_getfifototal();
 			}
+			GRRLIB_SetTexture(tex_terrain, 0);
 			chunked_render(thePlayer);
 
 			// Draw 2D elements
@@ -433,9 +438,7 @@ int main() {
 	GRRLIB_FreeTexture(tex_font);
 	GRRLIB_FreeTexture(tex_inventory);
 	GRRLIB_FreeTexture(tex_inv_select);
-
-	// Ask blocks to cleanup
-	cleanBlocks();
+	GRRLIB_FreeTexture(tex_terrain);
 
 	GRRLIB_Exit();
 	exit(0);
@@ -488,55 +491,6 @@ static void initializeBlocks() {
 	tnt_init();
 	water_init();
 	wood_init();
-}
-
-static void cleanBlocks() {
-	bedrock_clean();
-	brick_clean();
-	cloth_aqua_clean();
-	cloth_black_clean();
-	cloth_blue_clean();
-	cloth_cyan_clean();
-	cloth_gray_clean();
-	cloth_green_clean();
-	cloth_indigo_clean();
-	cloth_lime_clean();
-	cloth_magenta_clean();
-	cloth_orange_clean();
-	cloth_pink_clean();
-	cloth_purple_clean();
-	cloth_red_clean();
-	cloth_violet_clean();
-	cloth_white_clean();
-	cloth_yellow_clean();
-	cobble_clean();
-	dirt_clean();
-	flower_clean();
-	glass_clean();
-	gold_clean();
-	grass_clean();
-	gravel_clean();
-	iron_clean();
-	lava_clean();
-	leaves_clean();
-	log_clean();
-	mossy_clean();
-	mushroom_clean();
-	obsidna_clean();
-	ore_coal_clean();
-	ore_gold_clean();
-	ore_iron_clean();
-	redshroom_clean();
-	rose_clean();
-	sand_clean();
-	sapling_clean();
-	shelf_clean();
-	slab_clean();
-	sponge_clean();
-	stone_clean();
-	tnt_clean();
-	water_clean();
-	wood_clean();
 }
 
 static u8 CalculateFrameRate() {

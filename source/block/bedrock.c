@@ -2,10 +2,10 @@
 
 #include "../block.h"
 #include "../render.h"
-#include "../textures/block_bedrock.h"
+
 #include "bedrock.h"
 
-GRRLIB_texImg *tex_bedrock;
+blockTexture *tex_bedrock;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
@@ -16,9 +16,6 @@ void bedrock_init() {
 	blockEntry entry;
 	entry.renderBlock = render;
 	registerBlock(7, entry);
-	tex_bedrock = GRRLIB_LoadTexture(block_bedrock);
-}
-
-void bedrock_clean() {
-	GRRLIB_FreeTexture(tex_bedrock);
+	tex_bedrock = getTexture(1, 1);
+	netcat_logf("bedrock texture %f, %f",tex_bedrock->u0,tex_bedrock->v0);
 }

@@ -2,10 +2,10 @@
 
 #include "../block.h"
 #include "../render.h"
-#include "../textures/block_rose.h"
+
 #include "rose.h"
 
-GRRLIB_texImg *tex_rose;
+blockTexture *tex_rose;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 0) return;
@@ -16,9 +16,5 @@ void rose_init() {
 	blockEntry entry;
 	entry.renderBlock = render;
 	registerBlock(38, entry);
-	tex_rose = GRRLIB_LoadTexture(block_rose);
-}
-
-void rose_clean() {
-	GRRLIB_FreeTexture(tex_rose);
+	tex_rose = getTexture(12, 0);
 }

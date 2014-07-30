@@ -144,8 +144,6 @@ int main() {
 	time_t t;
 	srand((unsigned) time(&t));
 
-	u32 TEXT_COLOR = 0x000000FF;
-
 	int renderDistance = 64;
 
 	gamestate status = REGISTER;
@@ -178,7 +176,9 @@ int main() {
 	WPAD_Init();
 	chunked_init();
 	initTextures();
+
 	WPADData *data;
+	ir_t IR_0;
 
 	GRRLIB_Settings.antialias = false;
 
@@ -190,6 +190,8 @@ int main() {
 	GRRLIB_InitTileSet(tex_font, 16, 16, 32);
 
 	GRRLIB_SetBackgroundColour(0x00, 0x00, 0x00, 0xFF);
+
+	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
 	while (!exitloop) {
 		switch(status) {
@@ -215,21 +217,25 @@ int main() {
 				}
 			}
 			GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
-			GX_SetLineWidth(15,GX_TO_ONE);
+			GX_SetLineWidth(15, GX_TO_ONE);
 			status = INGAME;
 			break;
 		case INVENTORY:
 		case INGAME: // Main loop
-			if (thePlayer.flying) { // Reset Motion
-				thePlayer.motionX = 0;
+			// Reset Motion
+			thePlayer.motionX = 0;
+			thePlayer.motionZ = 0;
+			if (thePlayer.flying) {
 				thePlayer.motionY = 0;
-				thePlayer.motionZ = 0;
+			} else {
+				thePlayer.motionY = 0;
 			}
 
 			if (thePlayer.timer > 0)
 				thePlayer.timer--;
 
 			WPAD_ScanPads();
+			WPAD_IR(WPAD_CHAN_0, &IR_0);
 
 			data = WPAD_Data(WPAD_CHAN_0);
 			if (data->exp.type != WPAD_EXP_NUNCHUK)
@@ -255,6 +261,9 @@ int main() {
 				thePlayer.motionX += cos(to_radians(thePlayer.lookX)) * 0.1;
 				thePlayer.motionZ += sin(to_radians(thePlayer.lookX)) * 0.1;
 			}
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_1) {
+				thePlayer.flying = !thePlayer.flying;
+			}
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_NUNCHUK_BUTTON_C) {
 				status = status == INVENTORY ? INGAME : INVENTORY;
 			}
@@ -267,11 +276,15 @@ int main() {
 				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_MINUS)
 					thePlayer.motionY -= 0.1;
 			} else {
-				/*
-				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_PLUS)
-				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_MINUS)
-				TODO: Check for Nunchuk Z (Jumping)
-				*/
+				if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_PLUS) {
+					thePlayer.inventory[9] += 1;
+					thePlayer.inventory[9] %= 9;
+				}
+				if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_MINUS) {
+					if (thePlayer.inventory[9] == 0) thePlayer.inventory[9] = 9;
+					thePlayer.inventory[9] -= 1;
+				}
+				//TODO: Check for Nunchuk Z (Jumping)
 			}
 
 			// Apply motion to player
@@ -386,19 +399,31 @@ int main() {
 
 			GRRLIB_DrawImg(138, 436, tex_inventory, 0, 2, 2, 0xFFFFFFFF);
 
-			// Draw Inventory here
+			// TODO: Draw Actual blocks
 
 			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
 
+			if (status == INVENTORY) {
+				GRRLIB_Rectangle(80, 60, 480, 300, 0x0000007F, true);
+				
+				// TODO: Actual cursor
+				int vsize, hsize;
+				for (vsize = 1; vsize <= 12; vsize++) {
+					for (hsize = 1; hsize <= vsize; hsize++) {
+						GRRLIB_Plot(IR_0.sx + hsize, IR_0.sy + vsize, 0xFF0000FF);
+					}
+				}
+			}
+
 			// Draw debugging elements
-			GRRLIB_Printf(10,  25, tex_font, TEXT_COLOR, 1, "FPS: %d", FPS);
-			GRRLIB_Printf(10,  40, tex_font, TEXT_COLOR, 1, "PX:% 7.2f", thePlayer.posX);
-			GRRLIB_Printf(10,  55, tex_font, TEXT_COLOR, 1, "PY:% 7.2f", thePlayer.posY);
-			GRRLIB_Printf(10,  70, tex_font, TEXT_COLOR, 1, "PZ:% 7.2f", thePlayer.posZ);
-			GRRLIB_Printf(10,  85, tex_font, TEXT_COLOR, 1, "LX:% 7.2f", thePlayer.lookX);
-			GRRLIB_Printf(10, 100, tex_font, TEXT_COLOR, 1, "LY:% 7.2f", thePlayer.lookY);
-			GRRLIB_Printf(10, 115, tex_font, TEXT_COLOR, 1, "LZ:% 7.2f", thePlayer.lookZ);
-			GRRLIB_Printf(10, 130, tex_font, TEXT_COLOR, 1, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
+			GXCraft_DrawText(10,  25, tex_font, "FPS: %d", FPS);
+			GXCraft_DrawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
+			GXCraft_DrawText(10,  55, tex_font, "PY:% 7.2f", thePlayer.posY);
+			GXCraft_DrawText(10,  70, tex_font, "PZ:% 7.2f", thePlayer.posZ);
+			GXCraft_DrawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
+			GXCraft_DrawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
+			GXCraft_DrawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
+			GXCraft_DrawText(10, 130, tex_font, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
 
 			GRRLIB_Render();
 			FPS = CalculateFrameRate();
@@ -432,7 +457,7 @@ int main() {
 			//Complain to user
 			GRRLIB_2dMode();
 			GRRLIB_Rectangle(0, 0, 640, 480, 0x0000007F, true);
-			GRRLIB_Printf(144, 232, tex_font, TEXT_COLOR, 1, "PLEASE CONNECT NUNCHUK");
+			GXCraft_DrawText(144, 232, tex_font, "PLEASE CONNECT NUNCHUK");
 			GRRLIB_Render();
 			break;
 		}
@@ -508,8 +533,6 @@ static u8 CalculateFrameRate() {
 		lastTime = currentTime;
 		FPS = frameCount;
 		frameCount = 0;
-		thePlayer.inventory[9] += 1;
-		thePlayer.inventory[9] = thePlayer.inventory[9] % 9;
 	}
 	return FPS;
 }

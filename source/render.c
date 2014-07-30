@@ -1,8 +1,20 @@
 #include <grrlib.h>
+#include <stdarg.h>
 
 #include "render.h"
 #include "main.h"
 #include "display_list.h"
+
+static char dest[41];
+
+void GXCraft_DrawText(f32 xPos, f32 yPos, GRRLIB_texImg* font, const char* format, ...) {
+    va_list argptr;
+    va_start(argptr, format);
+    vsnprintf(dest, 40, format, argptr);
+    va_end(argptr);
+	GRRLIB_Printf(xPos+2, yPos+2, font, 0x0000007F, 1, "%s", dest);
+	GRRLIB_Printf(xPos  , yPos  , font, 0xFFFFFFFF, 1, "%s", dest);
+}
 
 bool testFace(unsigned char face) {
 	return face == 0 || face == 6 || face == 8 || face == 18 || face == 37 || face == 38 || face == 39 || face == 40;

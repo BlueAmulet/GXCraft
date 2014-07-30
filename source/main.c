@@ -32,11 +32,11 @@ unsigned char lighting[worldX][worldZ];
 player thePlayer;
 
 inline double to_degrees(double radians) {
-    return radians*(180.0f/M_PI);
+	return radians*(180.0f/M_PI);
 }
 
 inline double to_radians(double degrees) {
-    return (degrees*M_PI)/180.0f;
+	return (degrees*M_PI)/180.0f;
 }
 
 // Safe block placement;
@@ -85,6 +85,7 @@ static void placeTree(int x, int y, int z) {
 			setBlock(lx,y+5,lz,18);
 		}
 	}
+	setBlock(x,y+6,z,18);
 	setBlock(x-1,y+6,z,18);
 	setBlock(x+1,y+6,z,18);
 	setBlock(x,y+6,z-1,18);
@@ -134,7 +135,6 @@ static void generateWorld() {
 }
 
 static void initializeBlocks();
-static void cleanBlocks();
 static u8 CalculateFrameRate();
 
 typedef enum {REGISTER, GENERATE, INGAME, INVENTORY, NUNCHUK} gamestate;
@@ -175,38 +175,38 @@ int main() {
 	int displistX = 256;
 	int displistZ = 256;
 
-    GRRLIB_Init();
-    WPAD_Init();
+	GRRLIB_Init();
+	WPAD_Init();
 	chunked_init();
 	initTextures();
 	WPADData *data;
 
 	GRRLIB_Settings.antialias = false;
 
-    GRRLIB_texImg *tex_font = GRRLIB_LoadTexture(font);
-    GRRLIB_texImg *tex_inventory = GRRLIB_LoadTexture(inventory);
-    GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
+	GRRLIB_texImg *tex_font = GRRLIB_LoadTexture(font);
+	GRRLIB_texImg *tex_inventory = GRRLIB_LoadTexture(inventory);
+	GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
 	GRRLIB_texImg *tex_terrain = GRRLIB_LoadTexture(terrain_blocks);
 
-    GRRLIB_InitTileSet(tex_font, 16, 16, 32);
+	GRRLIB_InitTileSet(tex_font, 16, 16, 32);
 
-    GRRLIB_SetBackgroundColour(0x00, 0x00, 0x00, 0xFF);
+	GRRLIB_SetBackgroundColour(0x00, 0x00, 0x00, 0xFF);
 
-    while (!exitloop) {
+	while (!exitloop) {
 		switch(status) {
 		case REGISTER: // Register blocks
-		    GRRLIB_2dMode();
+			GRRLIB_2dMode();
 			netcat_log("registering blocks\n");
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
-		    GRRLIB_Render();
+			GRRLIB_Render();
 			initializeBlocks();
 			status = GENERATE;
 			break;
 		case GENERATE: // Generate the world
-		    GRRLIB_2dMode();
+			GRRLIB_2dMode();
 			netcat_log("generating world\n");
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
-		    GRRLIB_Render();
+			GRRLIB_Render();
 			generateWorld();
 			int y;
 			for (y = worldY - 1; y >= 0; y--) {
@@ -230,13 +230,16 @@ int main() {
 			if (thePlayer.timer > 0)
 				thePlayer.timer--;
 
-		    WPAD_ScanPads();
+			WPAD_ScanPads();
 
 			data = WPAD_Data(WPAD_CHAN_0);
 			if (data->exp.type != WPAD_EXP_NUNCHUK)
 				status = NUNCHUK;
 
-		    if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_HOME) exit(0);
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_HOME) {
+				exitloop = true;
+				break;
+			}
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
 				thePlayer.motionX += sin(to_radians(thePlayer.lookX)) * 0.1;
 				thePlayer.motionZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
@@ -286,7 +289,7 @@ int main() {
 			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
 
 			//netcat_log("switching 3d\n");
-		    GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
+			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
 			GXColor c = {0x9E, 0xCE, 0xFF};
 			GX_SetFog(GX_FOG_LIN, renderDistance/2 - 4, renderDistance - 8, 0.1, 1000, c);
@@ -308,7 +311,7 @@ int main() {
 
 			float i;
 			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
-				unsigned char block = theWorld[(int)(yLook*i+thePlayer.posY+1.625)][(int)(xLook*i+thePlayer.posX)][(int)(zLook*i+thePlayer.posZ)];
+				unsigned char block = getBlock(xLook*i+thePlayer.posX,yLook*i+thePlayer.posY+1.625,zLook*i+thePlayer.posZ);
 				if (block != 0 && block != 8 && block != 10) {
 					int selBlockX = (int)(xLook*i+thePlayer.posX);
 					int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
@@ -423,6 +426,7 @@ int main() {
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
 
+			GRRLIB_SetTexture(tex_terrain, 0);
 			chunked_render(thePlayer);
 
 			//Complain to user

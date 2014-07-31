@@ -12,5 +12,6 @@ typedef struct player_s {
 	double lookZ;
 	unsigned char inventory[10];
 	bool flying;
+	bool select;
 	unsigned short timer;
 } player;

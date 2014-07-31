@@ -1,7 +1,7 @@
 #pragma once
 #include "display_list.h"
 #include "player.h"
-#define nRenderChunks 128
+#define nRenderChunks 256
 
 typedef struct
 {

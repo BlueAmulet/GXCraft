@@ -5,6 +5,7 @@
 
 #include "netcat_logger.h"
 
+bool netcat_init = false;
 s32 csock;
 static char dest[1024];
 
@@ -46,6 +47,8 @@ void netcat_console()
 			while(1);
 		}
 
+		netcat_init = true;
+
 		printf("Connecting port %d from %s\n", client.sin_port, inet_ntoa(client.sin_addr));
 		netcat_log("Hi there.\n");
 	}
@@ -53,16 +56,19 @@ void netcat_console()
 
 void netcat_close()
 {
+	if (!netcat_init) return;
 	net_close(csock);
 }
 
 void netcat_log(const char* data)
 {
+	if (!netcat_init) return;
 	net_send(csock, data, strlen(data), 0);
 }
 
 void netcat_logf(const char* format, ...)
 {
+	if (!netcat_init) return;
     va_list argptr;
     va_start(argptr, format);
     vsnprintf(dest, 1024, format, argptr);

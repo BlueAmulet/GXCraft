@@ -26,6 +26,8 @@
 
 #include "block/block_includes.h"
 
+#define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
+
 unsigned char theWorld[worldY][worldX][worldZ];
 unsigned char lighting[worldX][worldZ];
 
@@ -137,15 +139,15 @@ static void generateWorld() {
 static void initializeBlocks();
 static u8 CalculateFrameRate();
 
-typedef enum {REGISTER, GENERATE, INGAME, INVENTORY, NUNCHUK, SCREENSHOT} gamestate;
+typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
 int main() {
-	netcat_console();
+	//netcat_console();
 
 	time_t t;
 	srand((unsigned) time(&t));
 
-	int renderDistance = 64;
+	int renderDistance = 96;
 
 	gamestate status = REGISTER;
 	u8 FPS = 0;
@@ -159,8 +161,8 @@ int main() {
 	int dlsize = 0;
 
 	// Initialize the player
-	thePlayer.posX = 331.5;
-	thePlayer.posZ = 69.5;
+	thePlayer.posX = 256.5;
+	thePlayer.posZ = 256.5;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
 	thePlayer.motionZ = 0;
@@ -169,6 +171,7 @@ int main() {
 	thePlayer.lookZ = 0;
 	memset(thePlayer.inventory, 0, sizeof thePlayer.inventory);
 	thePlayer.flying = true;
+	thePlayer.select = false;
 	thePlayer.timer = 0;
 
 	int displistX = 256;
@@ -182,7 +185,7 @@ int main() {
 	WPADData *data;
 	ir_t IR_0;
 
-	GRRLIB_Settings.antialias = false;
+	GRRLIB_SetAntiAliasing(false);
 
 	GRRLIB_texImg *tex_font       = GRRLIB_LoadTexture(font);
 	GRRLIB_texImg *tex_inventory  = GRRLIB_LoadTexture(inventory);
@@ -206,7 +209,11 @@ int main() {
 	30, 31, 32, 33, 34, 35, 36, 16, 15,
 	14, 42, 41, 47, 46, 49 };
 
+	f64 lastTime = ticks_to_secsf(gettime());
+
 	while (!exitloop) {
+		f64 thisTime = ticks_to_secsf(gettime());
+		f64 deltaTime = (thisTime - lastTime);
 		switch(status) {
 		case REGISTER: // Register blocks
 			GRRLIB_2dMode();
@@ -233,7 +240,6 @@ int main() {
 			GX_SetLineWidth(15, GX_TO_ONE);
 			status = INGAME;
 			break;
-		case INVENTORY:
 		case INGAME: // Main loop
 			// Reset Motion
 			thePlayer.motionX = 0;
@@ -259,35 +265,35 @@ int main() {
 				break;
 			}
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_UP) {
-				thePlayer.motionX += sin(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.motionZ -= cos(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionX += sin(to_radians(thePlayer.lookX)) * 6;
+				thePlayer.motionZ -= cos(to_radians(thePlayer.lookX)) * 6;
 			}
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_DOWN) {
-				thePlayer.motionX -= sin(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.motionZ += cos(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionX -= sin(to_radians(thePlayer.lookX)) * 6;
+				thePlayer.motionZ += cos(to_radians(thePlayer.lookX)) * 6;
 			}
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_LEFT) {
-				thePlayer.motionX -= cos(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.motionZ -= sin(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionX -= cos(to_radians(thePlayer.lookX)) * 6;
+				thePlayer.motionZ -= sin(to_radians(thePlayer.lookX)) * 6;
 			}
 			if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_RIGHT) {
-				thePlayer.motionX += cos(to_radians(thePlayer.lookX)) * 0.1;
-				thePlayer.motionZ += sin(to_radians(thePlayer.lookX)) * 0.1;
+				thePlayer.motionX += cos(to_radians(thePlayer.lookX)) * 6;
+				thePlayer.motionZ += sin(to_radians(thePlayer.lookX)) * 6;
 			}
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_1) {
 				thePlayer.flying = !thePlayer.flying;
 			}
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_NUNCHUK_BUTTON_C) {
-				status = status == INVENTORY ? INGAME : INVENTORY;
+				thePlayer.select = !thePlayer.select;
 			}
-			thePlayer.lookX += WPAD_StickX(WPAD_CHAN_0, 0) / 128.f;
-			thePlayer.lookY -= WPAD_StickY(WPAD_CHAN_0, 0) / 128.f;
+			thePlayer.lookX += WPAD_StickX(WPAD_CHAN_0, 0) * deltaTime / 2.f;
+			thePlayer.lookY -= WPAD_StickY(WPAD_CHAN_0, 0) * deltaTime / 2.f;
 
 			if (thePlayer.flying) {
 				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_PLUS)
-					thePlayer.motionY += 0.1;
+					thePlayer.motionY += 6;
 				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_MINUS)
-					thePlayer.motionY -= 0.1;
+					thePlayer.motionY -= 6;
 			} else {
 				if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_PLUS) {
 					thePlayer.inventory[9] += 1;
@@ -301,9 +307,9 @@ int main() {
 			}
 
 			// Apply motion to player
-			thePlayer.posX += thePlayer.motionX;
-			thePlayer.posY += thePlayer.motionY;
-			thePlayer.posZ += thePlayer.motionZ;
+			thePlayer.posX += thePlayer.motionX * deltaTime;
+			thePlayer.posY += thePlayer.motionY * deltaTime;
+			thePlayer.posZ += thePlayer.motionZ * deltaTime;
 
 			// Keep values in bound
 			if (thePlayer.lookX > 180)       thePlayer.lookX -= 360;
@@ -317,7 +323,7 @@ int main() {
 			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
 			GXColor c = {0x9E, 0xCE, 0xFF};
-			GX_SetFog(GX_FOG_LIN, renderDistance/2 - 4, renderDistance - 8, 0.1, 1000, c);
+			GX_SetFog(GX_FOG_LIN, renderDistance - 32, renderDistance - chunkSize, 0.1, 1000, c);
 
 			GRRLIB_ObjectViewBegin();
 			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);
@@ -362,7 +368,7 @@ int main() {
 					if (aBlockSelOffZ > aBlockSelOffX && aBlockSelOffZ > aBlockSelOffY)
 						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
 
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && status != INVENTORY && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
 						setBlock(selBlockX,selBlockY,selBlockZ,0);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
 						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
@@ -370,7 +376,7 @@ int main() {
 						if (selBlockZ % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
 						if (selBlockZ % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
 						thePlayer.timer = 18;
-					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && status != INVENTORY && thePlayer.timer == 0) {
+					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer == 0) {
 						selBlockX+=faceBlockX;
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
@@ -420,7 +426,7 @@ int main() {
 
 			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
 
-			if (status == INVENTORY) {
+			if (thePlayer.select) {
 				GRRLIB_Rectangle(80, 60, 480, 300, 0x0000007F, true);
 
 				GXCraft_DrawText(224, 80, tex_font, "SELECT BLOCK");
@@ -434,7 +440,9 @@ int main() {
 					y = floor(b/9);
 					GXCraft_DrawText(x * 48 + 110, y * 48 + 114, tex_font, "%02d", inv_blocks[b]);
 				}
+				GRRLIB_SetAntiAliasing(true);
 				GRRLIB_DrawImg(IR_0.sx, IR_0.sy, tex_cursor, IR_0.angle, 1, 1, 0xFFFFFFFF);
+				GRRLIB_SetAntiAliasing(false);
 			}
 
 			// Draw debugging elements
@@ -447,7 +455,7 @@ int main() {
 			GXCraft_DrawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
 			GXCraft_DrawText(10, 130, tex_font, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
 
-			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2 && netcat_init) {
 				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false); // This is giving me the last content?
 				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false);
 				netcat_log("-- START SCREENSHOT --\n");
@@ -531,6 +539,7 @@ int main() {
 			GRRLIB_Render();
 			break;
 		}
+		lastTime = thisTime;
 	}
 	netcat_log("ending...\n");
 	netcat_close();

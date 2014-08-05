@@ -2,6 +2,15 @@
 local socket = require("socket")
 local tcp = assert(socket.connect(os.getenv("WIILOAD"):match("tcp:(.*)"), 1337))
 
+function decode_85(data)
+	local a = { data:byte(1,-1) }
+	local b = 0
+	for i = 1,#a do
+		b = (b * 85) + (a[i]-33)
+	end
+	return math.floor(b/65536)%256,math.floor(b/256)%256,b%256
+end
+
 local scr_mode = false
 local scr_header = false
 local scr_start = 0
@@ -33,14 +42,17 @@ while true do
 		elseif scr_header == false then
 			scr_header = true
 			w, h = msg:match("W: (%d+), H: (%d+)")
-			w, h = tonumber(w), tonumber(h)
+			w, h = w + 0, h + 0
 			scr_start = os.time()
 		else
-			local rdata = msg:match(": (.*)"):gsub("(......)%*(...)",function(thing,amount)
-				return string.rep(thing,tonumber(amount))
+			local rdata = msg:match(": (.*)"):gsub("(....)~(...)",function(thing,amount)
+				return string.rep(thing,amount+0)
 			end)
-			for hex in rdata:gmatch("..") do
-				data[#data + 1] = tonumber(hex,16)
+			for pixel in rdata:gmatch("....") do
+				local a,b,c = decode_85(pixel)
+				data[#data + 1] = a
+				data[#data + 1] = b
+				data[#data + 1] = c
 			end
 			local y = tonumber(msg:match("(%d-): ")) + 1
 			print("Y = " .. y .. " (" .. math.floor(y/h*100) .. "%)")

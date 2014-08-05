@@ -138,6 +138,7 @@ static void generateWorld() {
 
 static void initializeBlocks();
 static u8 CalculateFrameRate();
+static void color85(char *buf, u32 color);
 
 typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
@@ -210,6 +211,8 @@ int main() {
 	14, 42, 41, 47, 46, 49 };
 
 	f64 lastTime = ticks_to_secsf(gettime());
+
+	struct mallinfo meminfo;
 
 	while (!exitloop) {
 		f64 thisTime = ticks_to_secsf(gettime());
@@ -445,6 +448,11 @@ int main() {
 				GRRLIB_SetAntiAliasing(false);
 			}
 
+			meminfo = mallinfo();
+			int memusage = meminfo.uordblks;
+			if (memusage > 0xE800000) // Correct gap between MEM2 and MEM2
+				memusage -= 0xE800000;
+
 			// Draw debugging elements
 			GXCraft_DrawText(10,  25, tex_font, "FPS: %d", FPS);
 			GXCraft_DrawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
@@ -454,6 +462,7 @@ int main() {
 			GXCraft_DrawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
 			GXCraft_DrawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
 			GXCraft_DrawText(10, 130, tex_font, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
+			GXCraft_DrawText(10, 145, tex_font, "MEMUSAGE: %d (%dMB)", memusage, memusage/1048576);
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2 && netcat_init) {
 				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false); // This is giving me the last content?
@@ -501,6 +510,8 @@ int main() {
 			break;
 		case SCREENSHOT:
 			netcat_logf("%03d: ", scr_scanY);
+			char c85[5];
+			memset(c85, 0, sizeof c85);
 			u32 lastcol = 0x00000000;
 			int times = 1;
 			int x;
@@ -510,9 +521,10 @@ int main() {
 					lastcol = pixel;
 					times = 1;
 				} else if (pixel != lastcol) {
-					netcat_logf("%06x", lastcol >> 8);
+					color85(c85,lastcol);
+					netcat_log(c85);
 					if (times > 1) {
-						netcat_logf("*%03d",times);
+						netcat_logf("~%03d",times);
 					}
 					lastcol = pixel;
 					times = 1;
@@ -521,9 +533,10 @@ int main() {
 				}
 			}
 			// Dump whats left
-			netcat_logf("%06x", lastcol >> 8);
+			color85(c85,lastcol);
+			netcat_log(c85);
 			if (times > 1) {
-				netcat_logf("*%03d",times);
+				netcat_logf("~%03d",times);
 			}
 			netcat_log("\n");
 			scr_scanY++;
@@ -553,6 +566,16 @@ int main() {
 
 	GRRLIB_Exit();
 	exit(0);
+}
+
+static void color85(char *buf, u32 color) {
+	color >>= 8;
+	int cnt;
+	for (cnt = 3; cnt >= 0; cnt--) {
+		unsigned char val = color % 85;
+		color /= 85;
+		buf[cnt] = val + 33;
+	}
 }
 
 static void initializeBlocks() {

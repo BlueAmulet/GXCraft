@@ -128,7 +128,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 void chunked_refresh(int renderDistance, player thePlayer)
 {
 	//convert the player's position to chunk position
-	unsigned short px, pz;
+	signed short px, pz;
 	px = thePlayer.posX/chunkSize;
 	pz = thePlayer.posZ/chunkSize;
 	int rcd = renderDistance/chunkSize;

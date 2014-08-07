@@ -417,8 +417,12 @@ int main() {
 				signed int ry = randnum(0, worldY - 1);
 				signed int rz = randnum(thePlayer.posZ - renderDistance, thePlayer.posZ + renderDistance);
 				unsigned char blockID = getBlock(rx,ry,rz);
-				if (blockID == 3 && getBlock(rx,ry+1,rz) == 0) {
+				if (blockID == 3 && lighting[rx][rz] <= ry) {
 					setBlock(rx,ry,rz,2);
+					chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
+					updateNeighbors(rx, rz);
+				} else if (blockID == 2 && lighting[rx][rz] > ry) {
+					setBlock(rx,ry,rz,3);
 					chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
 					updateNeighbors(rx, rz);
 				}

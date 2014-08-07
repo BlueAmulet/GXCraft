@@ -45,7 +45,7 @@ inline double to_radians(double degrees) {
 static void setBlock(int x, int y, int z, unsigned char blockID) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ) {
 		theWorld[y][x][z] = blockID;
-		if (blockID == 18)
+		if (blockID == 18 || blockID == 20 || blockID == 37 || blockID == 38 || blockID == 39 || blockID == 40)
 			return;
 		if (blockID != 0) {
 			if (lighting[x][z] < y)
@@ -140,17 +140,22 @@ static void initializeBlocks();
 static u8 CalculateFrameRate();
 static void color85(char *buf, u32 color);
 
-typedef enum {REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
+typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
 int main() {
-	//netcat_console();
+	netcat_console();
 
 	time_t t;
 	srand((unsigned) time(&t));
 
 	int renderDistance = 96;
 
-	gamestate status = REGISTER;
+	gamestate status;
+	if (netcat_init)
+		status = NETCAT;
+	else
+		status = REGISTER;
+
 	u8 FPS = 0;
 
 	memset(theWorld, 255, sizeof theWorld);
@@ -162,8 +167,8 @@ int main() {
 	int dlsize = 0;
 
 	// Initialize the player
-	thePlayer.posX = 256.5;
-	thePlayer.posZ = 256.5;
+	thePlayer.posX = 315.5;
+	thePlayer.posZ = 64.5;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
 	thePlayer.motionZ = 0;
@@ -218,19 +223,26 @@ int main() {
 		f64 thisTime = ticks_to_secsf(gettime());
 		f64 deltaTime = (thisTime - lastTime);
 		switch(status) {
-		case REGISTER: // Register blocks
+		case NETCAT: // Listen for clients
 			GRRLIB_2dMode();
-			netcat_log("registering blocks\n");
+			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "WAITING FOR CLIENT...");
+			GRRLIB_Render();
+			netcat_accept();	
+			status = REGISTER;
+		case REGISTER: // Register blocks
+			// TODO: Why does this not display?
+			GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
 			GRRLIB_Render();
+			netcat_log("registering blocks\n");
 			initializeBlocks();
 			status = GENERATE;
 			break;
 		case GENERATE: // Generate the world
 			GRRLIB_2dMode();
-			netcat_log("generating world\n");
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 			GRRLIB_Render();
+			netcat_log("generating world\n");
 			generateWorld();
 			int y;
 			for (y = worldY - 1; y >= 0; y--) {
@@ -384,7 +396,7 @@ int main() {
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
 
-						setBlock(selBlockX,selBlockY,selBlockZ,1);
+						setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
 						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
 						if (selBlockX % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);
@@ -434,7 +446,13 @@ int main() {
 
 				GXCraft_DrawText(224, 80, tex_font, "SELECT BLOCK");
 
-				// TODO: Draw selection box (52x52)
+				// Draw selection box (52x52)
+				signed short sx, sy, sb;
+				sx = (IR_0.sx - 50) / 48 - 1;
+				sy = (IR_0.sy - 56) / 48 - 1;
+				sb = sy * 9 + sx;
+				if (sx >= 0 && sx < 9 && sy >= 0 && sb < 42)
+					GRRLIB_Rectangle(sx * 48 + 98, sy * 48 + 104, 52, 52, 0xFFFFFF7F, true);
 
 				// TODO: Draw blocks on this.
 				int x, y;
@@ -446,6 +464,13 @@ int main() {
 				GRRLIB_SetAntiAliasing(true);
 				GRRLIB_DrawImg(IR_0.sx, IR_0.sy, tex_cursor, IR_0.angle, 1, 1, 0xFFFFFFFF);
 				GRRLIB_SetAntiAliasing(false);
+
+				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A) {
+					if (sx >= 0 && sx < 9 && sy >= 0 && sb < 42)
+						thePlayer.inventory[thePlayer.inventory[9]] = inv_blocks[sb];
+					thePlayer.select = false;
+					thePlayer.timer = 18;
+				}
 			}
 
 			meminfo = mallinfo();
@@ -477,7 +502,6 @@ int main() {
 			FPS = CalculateFrameRate();
 			break;
 		case NUNCHUK:
-			GRRLIB_2dMode();
 			WPAD_ScanPads();
 
 			data = WPAD_Data(WPAD_CHAN_0);
@@ -509,6 +533,14 @@ int main() {
 			GRRLIB_Render();
 			break;
 		case SCREENSHOT:
+			WPAD_ScanPads();
+
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) { // Cancel screenshot
+				netcat_log("-- ABORT SCREENSHOT --\n");
+				status = INGAME;
+				break;
+			}
+
 			netcat_logf("%03d: ", scr_scanY);
 			char c85[5];
 			memset(c85, 0, sizeof c85);

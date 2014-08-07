@@ -6,10 +6,11 @@
 #include "shelf.h"
 
 blockTexture *tex_shelf;
+blockTexture *tex_wood;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
 	if (pass == 1) return;
-	drawBlock(xPos, yPos, zPos, tex_shelf);
+	drawMultiTexBlock(xPos, yPos, zPos, tex_wood, tex_shelf, tex_wood);
 }
 
 void shelf_init() {
@@ -17,4 +18,5 @@ void shelf_init() {
 	entry.renderBlock = render;
 	registerBlock(47, entry);
 	tex_shelf = getTexture(3, 2);
+	tex_wood = getTexture(4, 0);
 }

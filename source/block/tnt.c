@@ -20,7 +20,7 @@ void tnt_init() {
 	blockEntry entry;
 	entry.renderBlock = render;
 	registerBlock(46, entry);
-	tex_tnt_top = getTexture(8, 0);
-	tex_tnt_bott = getTexture(9, 0);
-	tex_tnt_side = getTexture(7, 0);
+	tex_tnt_top = getTexture(9, 0);
+	tex_tnt_bott = getTexture(10, 0);
+	tex_tnt_side = getTexture(8, 0);
 }

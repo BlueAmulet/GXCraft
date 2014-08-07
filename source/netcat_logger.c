@@ -8,6 +8,10 @@
 bool netcat_init = false;
 s32 csock;
 static char dest[1024];
+static s32 sock;
+static struct sockaddr_in client;
+static struct sockaddr_in server;
+static u32 clientlen;
 
 void netcat_console()
 {
@@ -20,10 +24,6 @@ void netcat_console()
 	ret = if_config (localip, netmask, gateway, TRUE);
 	if (ret >= 0)
 	{
-		s32 sock;
-		u32	clientlen;
-		struct sockaddr_in client;
-		struct sockaddr_in server;
 		//char temp[1026];
 	
 		clientlen = sizeof(client);
@@ -40,18 +40,22 @@ void netcat_console()
 		
 		net_listen( sock, 5);
 		
-		csock = net_accept (sock, (struct sockaddr *) &client, &clientlen);
-		
-		if ( csock < 0 ) {
-			printf("Error connecting socket %d!\n", csock);
-			while(1);
-		}
-
 		netcat_init = true;
-
-		printf("Connecting port %d from %s\n", client.sin_port, inet_ntoa(client.sin_addr));
-		netcat_log("Hi there.\n");
 	}
+}
+
+void netcat_accept()
+{
+	if (!netcat_init) return;
+	csock = net_accept (sock, (struct sockaddr *) &client, &clientlen);
+		
+	if ( csock < 0 ) {
+		printf("Error connecting socket %d!\n", csock);
+		while(1);
+	}
+
+	printf("Connecting port %d from %s\n", client.sin_port, inet_ntoa(client.sin_addr));
+	netcat_log("Hi there.\n");
 }
 
 void netcat_close()

@@ -17,7 +17,7 @@ void GXCraft_DrawText(f32 xPos, f32 yPos, GRRLIB_texImg* font, const char* forma
 }
 
 bool testFace(unsigned char face) {
-	return face == 0 || face == 6 || face == 8 || face == 18 || face == 37 || face == 38 || face == 39 || face == 40;
+	return face == 0 || face == 6 || face == 8 || face == 18 || face == 20 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 
 inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {

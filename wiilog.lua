@@ -39,6 +39,10 @@ while true do
 			file:close()
 			os.execute("convert -size " .. w .. "x" .. h .. " -depth 8 rawdata.rgb wii_screenshot.png")
 			print("Screenshot saved.")
+		elseif msg:find("-- ABORT SCREENSHOT --",nil,true) then
+			print("Aborting screenshot ...")
+			scr_mode = false
+			scr_header = false
 		elseif scr_header == false then
 			scr_header = true
 			w, h = msg:match("W: (%d+), H: (%d+)")

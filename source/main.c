@@ -229,6 +229,7 @@ int main() {
 			GRRLIB_Render();
 			netcat_accept();	
 			status = REGISTER;
+			break;
 		case REGISTER: // Register blocks
 			// TODO: Why does this not display?
 			GRRLIB_2dMode();

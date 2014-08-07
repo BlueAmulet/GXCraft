@@ -529,7 +529,10 @@ int main() {
 			//Complain to user
 			GRRLIB_2dMode();
 			GRRLIB_Rectangle(0, 0, 640, 480, 0x0000007F, true);
-			GXCraft_DrawText(144, 232, tex_font, "PLEASE CONNECT NUNCHUK");
+			if (data->data_present == 0)
+				GXCraft_DrawText(144, 232, tex_font, "PLEASE CONNECT WIIMOTE");
+			else
+				GXCraft_DrawText(144, 232, tex_font, "PLEASE CONNECT NUNCHUK");
 			GRRLIB_Render();
 			break;
 		case SCREENSHOT:

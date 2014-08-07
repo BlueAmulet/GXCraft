@@ -54,7 +54,7 @@ static void setBlock(int x, int y, int z, unsigned char blockID) {
 			if (y >= lighting[x][z]) {
 				int sy;
 				for (sy = y - 1; y >= 0; sy--) {
-					if (theWorld[sy][x][z] != 0 && theWorld[sy][x][z] != 18) {
+					if (theWorld[sy][x][z] != 0 && theWorld[sy][x][z] != 18 && theWorld[sy][x][z] != 20 && theWorld[sy][x][z] != 37 && theWorld[sy][x][z] != 38 && theWorld[sy][x][z] != 39 && theWorld[sy][x][z] != 40) {
 						lighting[x][z] = sy;
 						break;
 					}
@@ -69,6 +69,13 @@ static unsigned char getBlock(int x, int y, int z) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
 		return theWorld[y][x][z];
 	return 0;
+}
+
+static void updateNeighbors(int x, int z) {
+	if (x % 16 == 15) chunked_rerenderChunk(floor(x/16)+1,floor(z/16),true);
+	if (x % 16 ==  0) chunked_rerenderChunk(floor(x/16)-1,floor(z/16),true);
+	if (z % 16 == 15) chunked_rerenderChunk(floor(x/16),floor(z/16)+1,true);
+	if (z % 16 ==  0) chunked_rerenderChunk(floor(x/16),floor(z/16)-1,true);
 }
 
 static void placeTree(int x, int y, int z) {
@@ -139,6 +146,7 @@ static void generateWorld() {
 static void initializeBlocks();
 static u8 CalculateFrameRate();
 static void color85(char *buf, u32 color);
+static int randnum(int x, int y);
 
 typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
@@ -387,25 +395,32 @@ int main() {
 					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
 						setBlock(selBlockX,selBlockY,selBlockZ,0);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
-						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
-						if (selBlockX % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);
-						if (selBlockZ % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
-						if (selBlockZ % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
+						updateNeighbors(selBlockX, selBlockZ);
 						thePlayer.timer = 18;
-					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer == 0) {
+					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer == 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
 						selBlockX+=faceBlockX;
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
 
 						setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
 						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
-						if (selBlockX % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16)+1,floor(selBlockZ/16),true);
-						if (selBlockX % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16)-1,floor(selBlockZ/16),true);
-						if (selBlockZ % 16 == 15) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)+1,true);
-						if (selBlockZ % 16 ==  0) chunked_rerenderChunk(floor(selBlockX/16),floor(selBlockZ/16)-1,true);
+						updateNeighbors(selBlockX, selBlockZ);
 						thePlayer.timer = 18;
 					}
 					break;
+				}
+			}
+			
+			// Random Block Update!
+			for (i = 0; i < pow(renderDistance/16,2)*48; i++) {
+				signed int rx = randnum(thePlayer.posX - renderDistance, thePlayer.posX + renderDistance);
+				signed int ry = randnum(0, worldY - 1);
+				signed int rz = randnum(thePlayer.posZ - renderDistance, thePlayer.posZ + renderDistance);
+				unsigned char blockID = getBlock(rx,ry,rz);
+				if (blockID == 3 && getBlock(rx,ry+1,rz) == 0) {
+					setBlock(rx,ry,rz,2);
+					chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
+					updateNeighbors(rx, rz);
 				}
 			}
 
@@ -676,4 +691,9 @@ static u8 CalculateFrameRate() {
 		frameCount = 0;
 	}
 	return FPS;
+}
+
+static int randnum(int x, int y) {
+	double uni = ((double)rand())/((double)RAND_MAX);
+	return floor(uni * (y - x + 1)) + x;
 }

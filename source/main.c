@@ -45,7 +45,7 @@ inline double to_radians(double degrees) {
 static void setBlock(int x, int y, int z, unsigned char blockID) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ) {
 		theWorld[y][x][z] = blockID;
-		if (blockID == 18 || blockID == 20 || blockID == 37 || blockID == 38 || blockID == 39 || blockID == 40)
+		if (blockID == 6 || blockID == 18 || blockID == 20 || blockID == 37 || blockID == 38 || blockID == 39 || blockID == 40)
 			return;
 		if (blockID != 0) {
 			if (lighting[x][z] < y)
@@ -54,7 +54,7 @@ static void setBlock(int x, int y, int z, unsigned char blockID) {
 			if (y >= lighting[x][z]) {
 				int sy;
 				for (sy = y - 1; y >= 0; sy--) {
-					if (theWorld[sy][x][z] != 0 && theWorld[sy][x][z] != 18 && theWorld[sy][x][z] != 20 && theWorld[sy][x][z] != 37 && theWorld[sy][x][z] != 38 && theWorld[sy][x][z] != 39 && theWorld[sy][x][z] != 40) {
+					if (theWorld[sy][x][z] != 0 && theWorld[sy][x][z] != 6 && theWorld[sy][x][z] != 18 && theWorld[sy][x][z] != 20 && theWorld[sy][x][z] != 37 && theWorld[sy][x][z] != 38 && theWorld[sy][x][z] != 39 && theWorld[sy][x][z] != 40) {
 						lighting[x][z] = sy;
 						break;
 					}
@@ -151,7 +151,7 @@ static int randnum(int x, int y);
 typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
 int main() {
-	netcat_console();
+	netcat_console(); // Comment this to disable netcat logger
 
 	time_t t;
 	srand((unsigned) time(&t));
@@ -183,7 +183,8 @@ int main() {
 	thePlayer.lookX = 0;
 	thePlayer.lookY = 0;
 	thePlayer.lookZ = 0;
-	memset(thePlayer.inventory, 0, sizeof thePlayer.inventory);
+	unsigned char startinv[10] = {01,04,45,03,05,17,18,20,43,0};
+	memcpy(thePlayer.inventory, startinv, sizeof(thePlayer.inventory));
 	thePlayer.flying = true;
 	thePlayer.select = false;
 	thePlayer.timer = 0;

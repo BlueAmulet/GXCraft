@@ -151,7 +151,7 @@ static int randnum(int x, int y);
 typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
 int main() {
-	netcat_console(); // Comment this to disable netcat logger
+	//netcat_console(); // Comment this to disable netcat logger
 
 	time_t t;
 	srand((unsigned) time(&t));
@@ -441,10 +441,12 @@ int main() {
 			}
 			GRRLIB_SetTexture(tex_terrain, 0);
 			chunked_render(thePlayer);
+			displist_unbind();
 
 			// Draw 2D elements
 			//netcat_log("switching 2d\n");
 			GRRLIB_2dMode();
+			renderAllFaces = true;
 
 			GRRLIB_SetBlend(GRRLIB_BLEND_INV);
 			GRRLIB_Rectangle(308, 239, 24, 2, 0xFFFFFFFF, true);
@@ -454,10 +456,26 @@ int main() {
 
 			GRRLIB_DrawImg(138, 436, tex_inventory, 0, 2, 2, 0xFFFFFFFF);
 
-			// TODO: Draw Actual blocks
+			//blockEntry entry;
+
+			//GRRLIB_SetTexture(tex_terrain, 0);
+
 			int b;
 			for (b = 0; b < 9; b++) {
 				GXCraft_DrawText(b * 40 + 144, 440, tex_font, "%02d", thePlayer.inventory[b]);
+				/* //This is slow.
+				GRRLIB_ObjectViewBegin();
+				GRRLIB_ObjectViewTrans(0, -worldY, 0);
+				GRRLIB_ObjectViewScale(20,20,20);
+				GRRLIB_ObjectViewRotate(0, 45, 0);
+				GRRLIB_ObjectViewRotate(208, 0, 0);
+				GRRLIB_ObjectViewTrans(b * 40 + 146, 467, -100);
+				GRRLIB_ObjectViewEnd();
+
+				entry = blockRegistry[thePlayer.inventory[b]];
+				entry.renderBlock(0, worldY, 0, 0);
+				entry.renderBlock(0, worldY, 0, 1);
+				*/
 			}
 
 			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
@@ -518,6 +536,8 @@ int main() {
 				scr_scanY = 0;
 				status = SCREENSHOT;
 			}
+
+			renderAllFaces = false;
 
 			GRRLIB_Render();
 			FPS = CalculateFrameRate();

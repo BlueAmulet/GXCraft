@@ -29,12 +29,12 @@ bool testWaterFace(unsigned char face) {
 
 inline void drawWaterBlock(int xPos, int yPos, int zPos) {
 
-	bool drawBack  = zPos >= worldZ-1 || testWaterFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = zPos <= 0        || testWaterFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = xPos >= worldX-1 || testWaterFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = xPos <= 0        || testWaterFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = yPos >= worldY-1 || testWaterFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = yPos > 0         && testWaterFace(theWorld[yPos - 1][xPos][zPos]);
+	bool drawBack  = renderAllFaces || zPos >= worldZ-1 || testWaterFace(theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = renderAllFaces || zPos <= 0        || testWaterFace(theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = renderAllFaces || xPos >= worldX-1 || testWaterFace(theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = renderAllFaces || xPos <= 0        || testWaterFace(theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = renderAllFaces || yPos >= worldY-1 || testWaterFace(theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = renderAllFaces || (yPos > 0        && testWaterFace(theWorld[yPos - 1][xPos][zPos]));
 
 	int size = 0;
 	if (drawBack)  size += 4;
@@ -45,22 +45,24 @@ inline void drawWaterBlock(int xPos, int yPos, int zPos) {
 	if (drawBott)  size += 4;
 	
 	if (size == 0) return;
+
+	displist_begin(size);
 	
 	f32 u0 = tex_water->u0, v0 = tex_water->v0;
 	f32 u1 = tex_water->u1, v1 = tex_water->v1;
 
-	if (drawBack) {
-		displist_add(xPos, 1+yPos, 1+zPos,
-		0xCCCF,
+	if (drawBott) {
+		displist_add( 1+xPos,yPos,zPos,
+		0x555F,
 		u0,v0);
-		displist_add( 1+xPos, 1+yPos, 1+zPos,
-		0xCCCF,
+		displist_add(xPos,yPos,zPos,
+		0x555F,
 		u1,v0);
-		displist_add( 1+xPos,yPos, 1+zPos,
-		0xCCCF,
-		u1,v1);
 		displist_add(xPos,yPos, 1+zPos,
-		0xCCCF,
+		0x555F,
+		u1,v1);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0x555F,
 		u0,v1);
 	}
 
@@ -91,6 +93,21 @@ inline void drawWaterBlock(int xPos, int yPos, int zPos) {
 		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0x999F,
+		u0,v1);
+	}
+
+	if (drawBack) {
+		displist_add(xPos, 1+yPos, 1+zPos,
+		0xCCCF,
+		u0,v0);
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		0xCCCF,
+		u1,v0);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0xCCCF,
+		u1,v1);
+		displist_add(xPos,yPos, 1+zPos,
+		0xCCCF,
 		u0,v1);
 	}
 
@@ -125,18 +142,5 @@ inline void drawWaterBlock(int xPos, int yPos, int zPos) {
 		u0,v1);
 	}
 
-	if (drawBott) {
-		displist_add( 1+xPos,yPos,zPos,
-		0x555F,
-		u0,v0);
-		displist_add(xPos,yPos,zPos,
-		0x555F,
-		u1,v0);
-		displist_add(xPos,yPos, 1+zPos,
-		0x555F,
-		u1,v1);
-		displist_add( 1+xPos,yPos, 1+zPos,
-		0x555F,
-		u0,v1);
-	}
+	displist_end();
 }

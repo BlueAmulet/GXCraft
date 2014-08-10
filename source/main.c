@@ -456,14 +456,15 @@ int main() {
 
 			GRRLIB_DrawImg(138, 436, tex_inventory, 0, 2, 2, 0xFFFFFFFF);
 
-			//blockEntry entry;
+			blockEntry entry;
 
-			//GRRLIB_SetTexture(tex_terrain, 0);
+			GRRLIB_SetTexture(tex_terrain, 0);
+
+			displist_start(true);
 
 			int b;
 			for (b = 0; b < 9; b++) {
-				GXCraft_DrawText(b * 40 + 144, 440, tex_font, "%02d", thePlayer.inventory[b]);
-				/* //This is slow.
+				//This is slow.
 				GRRLIB_ObjectViewBegin();
 				GRRLIB_ObjectViewTrans(0, -worldY, 0);
 				GRRLIB_ObjectViewScale(20,20,20);
@@ -475,8 +476,10 @@ int main() {
 				entry = blockRegistry[thePlayer.inventory[b]];
 				entry.renderBlock(0, worldY, 0, 0);
 				entry.renderBlock(0, worldY, 0, 1);
-				*/
+				
 			}
+
+			GRRLIB_2dMode();
 
 			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
 

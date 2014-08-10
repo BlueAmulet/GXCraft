@@ -10,7 +10,7 @@ typedef struct {
 } displayList;
 
 displayList *displist_create(u16 size);
-void displist_start();
+void displist_start(bool direct);
 void displist_clear(displayList *list);
 void displist_bind(displayList *list);
 void displist_unbind();

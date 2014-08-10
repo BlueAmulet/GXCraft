@@ -17,12 +17,18 @@ displayList *displist_create(u16 size)
 	return list;
 }
 
-void displist_start()
+void displist_start(bool direct)
 {
 	GX_ClearVtxDesc();
-	GX_SetVtxDesc(GX_VA_POS, GX_INDEX16);
-	GX_SetVtxDesc(GX_VA_CLR0, GX_INDEX16);
-	GX_SetVtxDesc(GX_VA_TEX0, GX_INDEX16);
+	if (direct) {
+		GX_SetVtxDesc(GX_VA_POS,  GX_DIRECT);
+		GX_SetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+		GX_SetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+	} else {
+		GX_SetVtxDesc(GX_VA_POS,  GX_INDEX16);
+		GX_SetVtxDesc(GX_VA_CLR0, GX_INDEX16);
+		GX_SetVtxDesc(GX_VA_TEX0, GX_INDEX16);
+	}
 
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
@@ -75,8 +81,8 @@ void displist_add(s16 x, s16 y, s16 z, u16 c, f32 u, f32 v)
 	
 		dlist->index++;
 	} else {
-		GX_Position3f32(x,y,z);
-		GX_Color1u32(((c / 16) * 1048576) + ((c / 16) * 256) + 0xFF); // Hackish but works
+		GX_Position3s16(x,y,z);
+		GX_Color1u16(c);
 		GX_TexCoord2f32(u,v);
 	}
 }

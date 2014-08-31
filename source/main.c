@@ -23,13 +23,14 @@
 #include "netcat_logger.h"
 #include "chunked_render.h"
 #include "block_textures.h"
-
 #include "block/block_includes.h"
+#include "textures/inv_blocks/block_icons.h"
 
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
 unsigned char theWorld[worldY][worldX][worldZ];
 unsigned char lighting[worldX][worldZ];
+GRRLIB_texImg *tex_blockicons[256];
 
 player thePlayer;
 
@@ -209,6 +210,8 @@ int main() {
 	GRRLIB_texImg *tex_cursor     = GRRLIB_LoadTexture(cursor);
 	GRRLIB_texImg *tex_tmpscreen  = GRRLIB_CreateEmptyTexture(rmode->fbWidth, rmode->efbHeight);
 
+	//GRRLIB_texImg *tex_blockicons[256];
+
 	GRRLIB_SetMidHandle(tex_cursor, true);
 
 	GRRLIB_InitTileSet(tex_font, 16, 16, 32);
@@ -246,6 +249,7 @@ int main() {
 			GRRLIB_Render();
 			netcat_log("registering blocks\n");
 			initializeBlocks();
+			load_bi();
 			status = GENERATE;
 			break;
 		case GENERATE: // Generate the world
@@ -441,12 +445,10 @@ int main() {
 			}
 			GRRLIB_SetTexture(tex_terrain, 0);
 			chunked_render(thePlayer);
-			displist_unbind();
 
 			// Draw 2D elements
 			//netcat_log("switching 2d\n");
 			GRRLIB_2dMode();
-			renderAllFaces = true;
 
 			GRRLIB_SetBlend(GRRLIB_BLEND_INV);
 			GRRLIB_Rectangle(308, 239, 24, 2, 0xFFFFFFFF, true);
@@ -456,30 +458,10 @@ int main() {
 
 			GRRLIB_DrawImg(138, 436, tex_inventory, 0, 2, 2, 0xFFFFFFFF);
 
-			blockEntry entry;
-
-			GRRLIB_SetTexture(tex_terrain, 0);
-
-			displist_start(true);
-
 			int b;
 			for (b = 0; b < 9; b++) {
-				//This is slow.
-				GRRLIB_ObjectViewBegin();
-				GRRLIB_ObjectViewTrans(0, -worldY, 0);
-				GRRLIB_ObjectViewScale(20,20,20);
-				GRRLIB_ObjectViewRotate(0, 45, 0);
-				GRRLIB_ObjectViewRotate(208, 0, 0);
-				GRRLIB_ObjectViewTrans(b * 40 + 146, 467, -100);
-				GRRLIB_ObjectViewEnd();
-
-				entry = blockRegistry[thePlayer.inventory[b]];
-				entry.renderBlock(0, worldY, 0, 0);
-				entry.renderBlock(0, worldY, 0, 1);
-				
+				GRRLIB_DrawImg(b * 40 + 144, 442, tex_blockicons[thePlayer.inventory[b]], 0, 1, 1, 0xFFFFFFFF);
 			}
-
-			GRRLIB_2dMode();
 
 			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
 
@@ -501,7 +483,7 @@ int main() {
 				for (b = 0; b < 42; b++) {
 					x = b % 9;
 					y = floor(b/9);
-					GXCraft_DrawText(x * 48 + 110, y * 48 + 114, tex_font, "%02d", inv_blocks[b]);
+					GRRLIB_DrawImg(x * 48 + 110, y * 48 + 116, tex_blockicons[inv_blocks[b]], 0, 1, 1, 0xFFFFFFFF);
 				}
 				GRRLIB_SetAntiAliasing(true);
 				GRRLIB_DrawImg(IR_0.sx, IR_0.sy, tex_cursor, IR_0.angle, 1, 1, 0xFFFFFFFF);
@@ -539,8 +521,6 @@ int main() {
 				scr_scanY = 0;
 				status = SCREENSHOT;
 			}
-
-			renderAllFaces = false;
 
 			GRRLIB_Render();
 			FPS = CalculateFrameRate();

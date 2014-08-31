@@ -183,7 +183,7 @@ int chunk_cmp(const void *a, const void *b)
 
 void chunked_render(player thePlayer)
 {
-	displist_start(false);
+	displist_start();
 	int i;
 	int nrendered = 0;
 	for (i=0; i<nRenderChunks; i++)

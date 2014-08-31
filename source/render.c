@@ -7,8 +7,6 @@
 
 static char dest[41];
 
-bool renderAllFaces = false;
-
 void GXCraft_DrawText(f32 xPos, f32 yPos, GRRLIB_texImg* font, const char* format, ...) {
     va_list argptr;
     va_start(argptr, format);
@@ -24,12 +22,12 @@ bool testFace(unsigned char face) {
 
 inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 
-	bool drawBack  = renderAllFaces || zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = renderAllFaces || zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = renderAllFaces || xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = renderAllFaces || xPos <= 0        || testFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = renderAllFaces || yPos >= worldY-1 || testFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = renderAllFaces || (yPos > 0        && testFace(theWorld[yPos - 1][xPos][zPos]));
+	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = xPos <= 0        || testFace(theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testFace(theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = yPos > 0         && testFace(theWorld[yPos - 1][xPos][zPos]);
 
 	int size = 0;
 	if (drawBack)  size += 4;
@@ -40,24 +38,22 @@ inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 	if (drawBott)  size += 4;
 	
 	if (size == 0) return;
-
-	displist_begin(size);
 	
 	f32 u0 = tex->u0, v0 = tex->v0;
 	f32 u1 = tex->u1, v1 = tex->v1;
 
-	if (drawBott) {
-		displist_add( 1+xPos,yPos,zPos,
-		0x555F,
+	if (drawBack) {
+		displist_add(xPos, 1+yPos, 1+zPos,
+		0xCCCF,
 		u0,v0);
-		displist_add(xPos,yPos,zPos,
-		0x555F,
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		0xCCCF,
 		u1,v0);
-		displist_add(xPos,yPos, 1+zPos,
-		0x555F,
-		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
-		0x555F,
+		0xCCCF,
+		u1,v1);
+		displist_add(xPos,yPos, 1+zPos,
+		0xCCCF,
 		u0,v1);
 	}
 
@@ -88,21 +84,6 @@ inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
 		0x999F,
-		u0,v1);
-	}
-
-	if (drawBack) {
-		displist_add(xPos, 1+yPos, 1+zPos,
-		0xCCCF,
-		u0,v0);
-		displist_add( 1+xPos, 1+yPos, 1+zPos,
-		0xCCCF,
-		u1,v0);
-		displist_add( 1+xPos,yPos, 1+zPos,
-		0xCCCF,
-		u1,v1);
-		displist_add(xPos,yPos, 1+zPos,
-		0xCCCF,
 		u0,v1);
 	}
 
@@ -137,14 +118,26 @@ inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 		u0,v1);
 	}
 
-	displist_end();
+	if (drawBott) {
+		displist_add( 1+xPos,yPos,zPos,
+		0x555F,
+		u0,v0);
+		displist_add(xPos,yPos,zPos,
+		0x555F,
+		u1,v0);
+		displist_add(xPos,yPos, 1+zPos,
+		0x555F,
+		u1,v1);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0x555F,
+		u0,v1);
+	}
+
 }
 
 inline void drawBlockCrossed(int xPos, int yPos, int zPos, blockTexture *tex) {
 	unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
-
-	displist_begin(8);
-
+	
 	f32 u0 = tex->u0, v0 = tex->v0;
 	f32 u1 = tex->u1, v1 = tex->v1;
 
@@ -173,18 +166,16 @@ inline void drawBlockCrossed(int xPos, int yPos, int zPos, blockTexture *tex) {
 	displist_add(xPos,yPos, 1+zPos,
 	c,
 	u0,v1);
-
-	displist_end();
 }
 
 inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop, blockTexture *texSide, blockTexture *texBott) {
 
-	bool drawBack  = renderAllFaces || zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = renderAllFaces || zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = renderAllFaces || xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = renderAllFaces || xPos <= 0        || testFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = renderAllFaces || yPos >= worldY-1 || testFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = renderAllFaces || (yPos > 0        && testFace(theWorld[yPos - 1][xPos][zPos]));
+	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = xPos <= 0        || testFace(theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testFace(theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = yPos > 0         && testFace(theWorld[yPos - 1][xPos][zPos]);
 
 	int size = 0;
 	if (drawBack)  size += 4;
@@ -193,36 +184,24 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 	if (drawLeft)  size += 4;
 	
 	if (size == 0 && !drawTop && !drawBott) return;
-
-	f32 u0, v0;
-	f32 u1, v1;
-
-	if (drawBott) {
-		displist_begin(4);
-
-		u0 = texTop->u0, v0 = texTop->v0;
-		u1 = texTop->u1, v1 = texTop->v1;
 	
-		displist_add( 1+xPos,yPos,zPos,
-		0x555F,
+	f32 u0 = texSide->u0, v0 = texSide->v0;
+	f32 u1 = texSide->u1, v1 = texSide->v1;
+
+	if (drawBack) {
+		displist_add(xPos, 1+yPos, 1+zPos,
+		0xCCCF,
 		u0,v0);
-		displist_add(xPos,yPos,zPos,
-		0x555F,
+		displist_add( 1+xPos, 1+yPos, 1+zPos,
+		0xCCCF,
 		u1,v0);
-		displist_add(xPos,yPos, 1+zPos,
-		0x555F,
-		u1,v1);
 		displist_add( 1+xPos,yPos, 1+zPos,
-		0x555F,
+		0xCCCF,
+		u1,v1);
+		displist_add(xPos,yPos, 1+zPos,
+		0xCCCF,
 		u0,v1);
-
-		displist_end();
 	}
-
-	u0 = texSide->u0, v0 = texSide->v0;
-	u1 = texSide->u1, v1 = texSide->v1;
-
-	displist_begin(size);
 
 	if (drawFront) {
 		displist_add( 1+xPos, 1+yPos,zPos,
@@ -254,21 +233,6 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 		u0,v1);
 	}
 
-	if (drawBack) {
-		displist_add(xPos, 1+yPos, 1+zPos,
-		0xCCCF,
-		u0,v0);
-		displist_add( 1+xPos, 1+yPos, 1+zPos,
-		0xCCCF,
-		u1,v0);
-		displist_add( 1+xPos,yPos, 1+zPos,
-		0xCCCF,
-		u1,v1);
-		displist_add(xPos,yPos, 1+zPos,
-		0xCCCF,
-		u0,v1);
-	}
-
 	if (drawLeft) {
 		displist_add(xPos, 1+yPos,zPos,
 		0x999F,
@@ -284,11 +248,7 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 		u0,v1);
 	}
 
-	displist_end();
-
 	if (drawTop) {
-		displist_begin(4);
-
 		u0 = texTop->u0, v0 = texTop->v0;
 		u1 = texTop->u1, v1 = texTop->v1;
 		
@@ -306,8 +266,24 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 		displist_add(xPos, 1+yPos, 1+zPos,
 		c,
 		u0,v1);
+	}
 
-		displist_end();
+	if (drawBott) {
+		u0 = texTop->u0, v0 = texTop->v0;
+		u1 = texTop->u1, v1 = texTop->v1;
+	
+		displist_add( 1+xPos,yPos,zPos,
+		0x555F,
+		u0,v0);
+		displist_add(xPos,yPos,zPos,
+		0x555F,
+		u1,v0);
+		displist_add(xPos,yPos, 1+zPos,
+		0x555F,
+		u1,v1);
+		displist_add( 1+xPos,yPos, 1+zPos,
+		0x555F,
+		u0,v1);
 	}
 }
 

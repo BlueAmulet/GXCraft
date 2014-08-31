@@ -5,4 +5,5 @@ wii_screenshot.png
 build/
 source/textures/*.c
 source/textures/*.h
-
+source/textures/inv_blocks/*.c
+source/textures/inv_blocks/*.h

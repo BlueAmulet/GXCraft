@@ -8,18 +8,7 @@ for i = 1,#args do
 			if line:find("_top") then
 				top = { line:match("getTexture%((%d+),%s?(%d+)%)") }
 			elseif line:find("_bott") then
-			elseif line:find("_side") then
-				base = { line:match("getTexture%((%d+),%s?(%d+)%)") }
-			end
-		end
-	end
-	for line in io.lines(args[i]) do
-		if line:find("registerBlock",nil,true) then
-			entry = line:match("registerBlock%((%d+),")
-		elseif line:find("getTexture") then
-			if line:find("_top") then
-			elseif line:find("_bott") then
-			elseif base == nil then
+			elseif line:find("_side") or base == nil then
 				base = { line:match("getTexture%((%d+),%s?(%d+)%)") }
 			end
 		end

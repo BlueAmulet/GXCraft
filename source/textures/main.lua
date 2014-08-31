@@ -138,7 +138,7 @@ for k,v in pairs(torender) do
 	canvasu:getImageData():encode(k .. ".png")
 	local pngdata = love.filesystem.read(k .. ".png")
 	love.filesystem.remove(k .. ".png")
-	local file = io.open("inv_blocks/" .. k .. ".png","wb")
+	local file = io.open("inv_blocks/bi_" .. k .. ".png","wb")
 	file:write(pngdata)
 	file:close()
 end

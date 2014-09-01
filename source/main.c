@@ -79,6 +79,12 @@ static void updateNeighbors(int x, int z) {
 	if (z % 16 ==  0) chunked_rerenderChunk(floor(x/16),floor(z/16)-1,true);
 }
 
+static void setIfAir(int x, int y, int z, unsigned char blockID) {
+	unsigned char tBlockID = getBlock(x,y,z);
+	if (tBlockID == 0 || tBlockID == 255)
+		setBlock(x,y,z,blockID);
+}
+
 static void placeTree(int x, int y, int z) {
 	if (getBlock(x,y-1,z) == 2)
 		setBlock(x,y-1,z,3);
@@ -86,20 +92,20 @@ static void placeTree(int x, int y, int z) {
 	for (ly = y + 3; ly <= y + 4; ly++) {
 		for (lx = x - 2; lx <= x + 2; lx++) {
 			for (lz = z - 2; lz <= z + 2; lz++) {
-				setBlock(lx,ly,lz,18);
+				setIfAir(lx,ly,lz,18);
 			}
 		}
 	}
 	for (lx = x - 1; lx <= x + 1; lx++) {
 		for (lz = z - 1; lz <= z + 1; lz++) {
-			setBlock(lx,y+5,lz,18);
+			setIfAir(lx,y+5,lz,18);
 		}
 	}
-	setBlock(x,y+6,z,18);
-	setBlock(x-1,y+6,z,18);
-	setBlock(x+1,y+6,z,18);
-	setBlock(x,y+6,z-1,18);
-	setBlock(x,y+6,z+1,18);
+	setIfAir(x,y+6,z,18);
+	setIfAir(x-1,y+6,z,18);
+	setIfAir(x+1,y+6,z,18);
+	setIfAir(x,y+6,z-1,18);
+	setIfAir(x,y+6,z+1,18);
 	for (ly = y; ly < y + 6; ly++)
 		setBlock(x,ly,z,17);
 }
@@ -189,6 +195,8 @@ int main() {
 	thePlayer.flying = true;
 	thePlayer.select = false;
 	thePlayer.timer = 0;
+
+	bool wasUnder = false;
 
 	int displistX = 256;
 	int displistZ = 256;
@@ -335,6 +343,15 @@ int main() {
 				//TODO: Check for Nunchuk Z (Jumping)
 			}
 
+			// Limit motion speed
+			if (wasUnder) {
+				thePlayer.motionX = thePlayer.motionX / 2;
+				thePlayer.motionZ = thePlayer.motionZ / 2;
+				// Restrict Y
+			} else {
+				// Restrict Y
+			}
+
 			// Apply motion to player
 			thePlayer.posX += thePlayer.motionX * deltaTime;
 			thePlayer.posY += thePlayer.motionY * deltaTime;
@@ -351,8 +368,21 @@ int main() {
 			//netcat_log("switching 3d\n");
 			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
-			GXColor c = {0x9E, 0xCE, 0xFF};
-			GX_SetFog(GX_FOG_LIN, renderDistance - 32, renderDistance - chunkSize, 0.1, 1000, c);
+			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
+				if (!wasUnder) {
+					GRRLIB_SetBackgroundColour(0x05, 0x05, 0x33, 0xFF);
+					wasUnder = true;
+				}
+				GXColor c = {0x05, 0x05, 0x33};
+				GX_SetFog(GX_FOG_LIN, 0, 32, 0.1, 1000, c);
+			} else {
+				if (wasUnder) {
+					GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
+					wasUnder = false;
+				}
+				GXColor c = {0x9E, 0xCE, 0xFF};
+				GX_SetFog(GX_FOG_LIN, renderDistance - 32, renderDistance - chunkSize, 0.1, 1000, c);
+			}
 
 			GRRLIB_ObjectViewBegin();
 			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);
@@ -371,11 +401,11 @@ int main() {
 
 			float i;
 			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
-				unsigned char block = getBlock(xLook*i+thePlayer.posX,yLook*i+thePlayer.posY+1.625,zLook*i+thePlayer.posZ);
+				unsigned char block = getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625),floor(zLook*i+thePlayer.posZ));
 				if (block != 0 && block != 8 && block != 10) {
-					int selBlockX = (int)(xLook*i+thePlayer.posX);
-					int selBlockY = (int)(yLook*i+thePlayer.posY+1.625);
-					int selBlockZ = (int)(zLook*i+thePlayer.posZ);
+					int selBlockX = floor(xLook*i+thePlayer.posX);
+					int selBlockY = floor(yLook*i+thePlayer.posY+1.625);
+					int selBlockZ = floor(zLook*i+thePlayer.posZ);
 					GRRLIB_SetTexture(tex_inventory, 0);
 					drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 
@@ -430,6 +460,17 @@ int main() {
 					setBlock(rx,ry,rz,3);
 					chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
 					updateNeighbors(rx, rz);
+				} else if (blockID == 6) {
+					if (lighting[rx][rz] > ry) { //not working?
+						setBlock(rx,ry,rz,0);
+						chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
+						updateNeighbors(rx, rz);
+					} else {
+						placeTree(rx,ry,rz);	
+						// this wont update chunks properly. duplicated because we need special chunk care here.
+						chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
+						updateNeighbors(rx, rz);
+					}
 				}
 			}
 
@@ -478,7 +519,6 @@ int main() {
 				if (sx >= 0 && sx < 9 && sy >= 0 && sb < 42)
 					GRRLIB_Rectangle(sx * 48 + 98, sy * 48 + 104, 52, 52, 0xFFFFFF7F, true);
 
-				// TODO: Draw blocks on this.
 				int x, y;
 				for (b = 0; b < 42; b++) {
 					x = b % 9;
@@ -534,7 +574,13 @@ int main() {
 
 			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
-			GX_SetFog(GX_FOG_LIN, renderDistance/2, renderDistance, 0.1, 1000, c);
+			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
+				GXColor c = {0x05, 0x05, 0x33};
+				GX_SetFog(GX_FOG_LIN, 0, 32, 0.1, 1000, c);
+			} else {
+				GXColor c = {0x9E, 0xCE, 0xFF};
+				GX_SetFog(GX_FOG_LIN, renderDistance - 32, renderDistance - chunkSize, 0.1, 1000, c);
+			}
 
 			GRRLIB_ObjectViewBegin();
 			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);

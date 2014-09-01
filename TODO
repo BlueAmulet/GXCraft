@@ -1,15 +1,12 @@
 Add better world generation (caves, flower pockets)
-Add block names?
 Get/Create new textures
 Add non flying mode
-Fix flowers
-Make being underwater have water effect
+Fix flower alpha
 Have Water and lava react to blocks being removed around them
-Have saplings turn into trees
-Have water slow the player
 Better Lighting?
 Clouds
-Block selection derps out at negative X/Y/Z
 Inventory selection mistakes selected entries offscreen left/top
 Block place/delay timer is fps dependant
-
+Tree generation won't properly update neighbor chunks
+Sky transition between air and underwater is delayed by a frame
+Restrict vertical movement

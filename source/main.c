@@ -513,8 +513,8 @@ int main() {
 
 				// Draw selection box (52x52)
 				signed short sx, sy, sb;
-				sx = (IR_0.sx - 50) / 48 - 1;
-				sy = (IR_0.sy - 56) / 48 - 1;
+				sx = ((short)(IR_0.sx) - 52) / 48 - 1;
+				sy = ((short)(IR_0.sy) - 58) / 48 - 1;
 				sb = sy * 9 + sx;
 				if (sx >= 0 && sx < 9 && sy >= 0 && sb < 42)
 					GRRLIB_Rectangle(sx * 48 + 98, sy * 48 + 104, 52, 52, 0xFFFFFF7F, true);
@@ -523,7 +523,7 @@ int main() {
 				for (b = 0; b < 42; b++) {
 					x = b % 9;
 					y = floor(b/9);
-					GRRLIB_DrawImg(x * 48 + 110, y * 48 + 116, tex_blockicons[inv_blocks[b]], 0, 1, 1, 0xFFFFFFFF);
+					GRRLIB_DrawImg(x * 48 + 108, y * 48 + 114, tex_blockicons[inv_blocks[b]], 0, 1, 1, 0xFFFFFFFF);
 				}
 				GRRLIB_SetAntiAliasing(true);
 				GRRLIB_DrawImg(IR_0.sx, IR_0.sy, tex_cursor, IR_0.angle, 1, 1, 0xFFFFFFFF);

@@ -5,7 +5,6 @@ Fix flower alpha
 Have Water and lava react to blocks being removed around them
 Better Lighting?
 Clouds
-Inventory selection mistakes selected entries offscreen left/top
 Block place/delay timer is fps dependant
 Tree generation won't properly update neighbor chunks
 Sky transition between air and underwater is delayed by a frame

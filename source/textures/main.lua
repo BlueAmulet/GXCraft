@@ -80,7 +80,9 @@ for k,v in pairs(torender) do
 	if top == true then
 		canvasu:renderTo(function()
 			love.graphics.setColor(255,255,255)
-			love.graphics.draw(terrain,quad,8,8,0,1,1)
+			terrain:setFilter("nearest","nearest")
+			love.graphics.draw(terrain,quad,0,0,0,2,2)
+			terrain:setFilter("linear","linear")
 		end)
 	else
 		sidec:renderTo(function()

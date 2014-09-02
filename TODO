@@ -9,3 +9,4 @@ Tree generation won't properly update neighbor chunks
 Sky transition between air and underwater is delayed by a frame
 Restrict vertical movement
 Make sand always place on the ground
+Block placement may replace block instead of adding

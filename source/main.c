@@ -13,6 +13,7 @@
 #include "textures/inv_select.h"
 #include "textures/terrain_blocks.h"
 #include "textures/cursor.h"
+#include "textures/clouds.h"
 
 #include "main.h"
 #include "player.h"
@@ -216,6 +217,7 @@ int main() {
 	GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
 	GRRLIB_texImg *tex_terrain    = GRRLIB_LoadTexture(terrain_blocks);
 	GRRLIB_texImg *tex_cursor     = GRRLIB_LoadTexture(cursor);
+	GRRLIB_texImg *tex_clouds     = GRRLIB_LoadTexture(clouds);
 	GRRLIB_texImg *tex_tmpscreen  = GRRLIB_CreateEmptyTexture(rmode->fbWidth, rmode->efbHeight);
 
 	//GRRLIB_texImg *tex_blockicons[256];
@@ -236,6 +238,8 @@ int main() {
 	14, 42, 41, 47, 46, 49 };
 
 	f64 lastTime = ticks_to_secsf(gettime());
+
+	double cloudPos = 0;
 
 	struct mallinfo meminfo;
 
@@ -406,7 +410,7 @@ int main() {
 					int selBlockX = floor(xLook*i+thePlayer.posX);
 					int selBlockY = floor(yLook*i+thePlayer.posY+1.625);
 					int selBlockZ = floor(zLook*i+thePlayer.posZ);
-					GRRLIB_SetTexture(tex_inventory, 0);
+					GRRLIB_SetTexture(tex_inventory, false);
 					drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 
 					double blockSelOffX = fmod(xLook*i+thePlayer.posX,1)-0.5f;
@@ -474,6 +478,28 @@ int main() {
 				}
 			}
 
+			// Draw Clouds
+			GRRLIB_SetTexture(tex_clouds, true);
+
+			GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
+
+			GX_Position3f32(-worldX,worldY+3,-worldZ);
+			GX_Color1u32(0xFFFFFFFF);
+			GX_TexCoord2f32(cloudPos,0);
+			GX_Position3f32(-worldX,worldY+3,worldZ*2);
+			GX_Color1u32(0xFFFFFFFF);
+			GX_TexCoord2f32(cloudPos,1);
+			GX_Position3f32(worldX*2,worldY+3,worldZ*2);
+			GX_Color1u32(0xFFFFFFFF);
+			GX_TexCoord2f32(cloudPos+1,1);
+			GX_Position3f32(worldX*2,worldY+3,-worldZ);
+			GX_Color1u32(0xFFFFFFFF);
+			GX_TexCoord2f32(cloudPos+1,0);
+
+			GX_End();
+
+			cloudPos = fmod(cloudPos + deltaTime/1000,1);
+
 			if (rerenderDisplayList)
 			{
 				netcat_log("rerendering display list\n");
@@ -484,7 +510,7 @@ int main() {
 				dluse = chunked_getfifousage();
 				dlsize = chunked_getfifototal();
 			}
-			GRRLIB_SetTexture(tex_terrain, 0);
+			GRRLIB_SetTexture(tex_terrain, false);
 			chunked_render(thePlayer);
 
 			// Draw 2D elements
@@ -593,7 +619,7 @@ int main() {
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
 
-			GRRLIB_SetTexture(tex_terrain, 0);
+			GRRLIB_SetTexture(tex_terrain, false);
 			chunked_render(thePlayer);
 
 			//Complain to user

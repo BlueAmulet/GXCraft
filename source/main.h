@@ -13,3 +13,5 @@ extern GRRLIB_texImg *tex_blockicons[256];
 
 extern unsigned char theWorld[worldY][worldX][worldZ];
 extern unsigned char lighting[worldX][worldZ];
+
+unsigned char getBlock(int x, int y, int z);

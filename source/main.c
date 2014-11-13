@@ -26,6 +26,7 @@
 #include "block_textures.h"
 #include "block/block_includes.h"
 #include "textures/inv_blocks/block_icons.h"
+#include "aabb.h"
 
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
@@ -67,7 +68,7 @@ static void setBlock(int x, int y, int z, unsigned char blockID) {
 }
 
 // Safe block retrieval;
-static unsigned char getBlock(int x, int y, int z) {
+unsigned char getBlock(int x, int y, int z) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
 		return theWorld[y][x][z];
 	return 0;
@@ -355,11 +356,22 @@ int main() {
 			} else {
 				// Restrict Y
 			}
+			
+			double nextX = thePlayer.posX + thePlayer.motionX * deltaTime;
+			double nextY = thePlayer.posY + thePlayer.motionY * deltaTime;
+			double nextZ = thePlayer.posZ + thePlayer.motionZ * deltaTime;
+			
+			aabb player = aabb_alloc(nextX-0.25,nextY,nextZ-0.25,nextX+0.25,nextY+1.625,nextZ+0.25);
+			while (aabb_resolvecollisionwithworld(player));
+			//get values from player
+			vector3 position = aabb_getMin(player);
+			netcat_logf("position: %f, %f, %f\n",position.x,position.y,position.z);
 
-			// Apply motion to player
-			thePlayer.posX += thePlayer.motionX * deltaTime;
-			thePlayer.posY += thePlayer.motionY * deltaTime;
-			thePlayer.posZ += thePlayer.motionZ * deltaTime;
+			// Apply aabb to player
+			thePlayer.posX = position.x+0.25;
+			thePlayer.posY = position.y;
+			thePlayer.posZ = position.z+0.25;
+			aabb_dealloc(player);
 
 			// Keep values in bound
 			if (thePlayer.lookX > 180)       thePlayer.lookX -= 360;

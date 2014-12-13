@@ -11,7 +11,7 @@ displayList *displist_create(u16 size)
 	list->index = 0;
 	list->vertex   = malloc(sizeof(s16)*size*3);
 	list->color    = malloc(sizeof(u16)*size  );
-	list->texcoord = malloc(sizeof(f32)*size*2);
+	list->texcoord = malloc(sizeof(s8)*size*2);
 
 	return list;
 }
@@ -25,7 +25,7 @@ void displist_start()
 
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
 	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
-	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+	GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U8, 8);
 	
 	/**/
 }
@@ -49,8 +49,8 @@ void displist_add(s16 x, s16 y, s16 z, u16 c, f32 u, f32 v)
 	
 	dlist->color[idx] = c;
 	
-	dlist->texcoord[idx*2+0] = u;
-	dlist->texcoord[idx*2+1] = v;
+	dlist->texcoord[idx*2+0] = (s8)(u*256);
+	dlist->texcoord[idx*2+1] = (s8)(v*256);
 	
 	dlist->index++;
 }
@@ -59,7 +59,7 @@ void displist_render(displayList *list)
 {
 	GX_SetArray (GX_VA_POS,  list->vertex, sizeof(s16) * 3);
 	GX_SetArray (GX_VA_CLR0, list->color, sizeof(u16));
-	GX_SetArray (GX_VA_TEX0, list->texcoord, sizeof(f32) * 2);
+	GX_SetArray (GX_VA_TEX0, list->texcoord, sizeof(u8) * 2);
 	
 	u16 i;
 	GX_Begin(GX_QUADS, GX_VTXFMT0, list->index);
@@ -71,7 +71,8 @@ void displist_render(displayList *list)
 		}	
 	GX_End ();
 	
+	//TODO: Flush range if list data is dirty
 	DCFlushRange(list->vertex, sizeof(s16) * 3 * list->size);
 	DCFlushRange(list->color, sizeof(u16) * list->size);
-	DCFlushRange(list->texcoord, sizeof(f32) * 2 * list->size);
+	DCFlushRange(list->texcoord, sizeof(u8) * 2 * list->size);
 }

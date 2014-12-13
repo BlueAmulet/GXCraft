@@ -6,7 +6,7 @@ typedef struct {
 	u16 index;
 	s16 *vertex;
 	u16 *color;
-	f32 *texcoord;
+	u8 *texcoord;
 } displayList;
 
 displayList *displist_create(u16 size);

@@ -371,6 +371,7 @@ int main() {
 
 			//netcat_log("switching 3d\n");
 			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
+			GX_SetCullMode(GX_CULL_NONE);
 
 			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
 				if (!wasUnder) {

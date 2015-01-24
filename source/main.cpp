@@ -1,6 +1,7 @@
 /*===========================================
     GXCraft by gamax92 and ds84182
 ============================================*/
+extern "C" {
 #include <grrlib.h>
 
 #include <stdlib.h>
@@ -26,7 +27,7 @@
 #include "block_textures.h"
 #include "block/block_includes.h"
 #include "textures/inv_blocks/block_icons.h"
-
+}
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
 unsigned char theWorld[worldY][worldX][worldZ];
@@ -241,6 +242,8 @@ int main() {
 
 	double cloudPos = 0;
 
+	int memusage;
+	double xLook, yLook, zLook;
 	struct mallinfo meminfo;
 
 	while (!exitloop) {
@@ -400,9 +403,9 @@ int main() {
 				rerenderDisplayList = true;
 			}
 
-			double xLook =  sin(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
-			double yLook = -sin(to_radians(thePlayer.lookY));
-			double zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
+			xLook =  sin(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
+			yLook = -sin(to_radians(thePlayer.lookY));
+			zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
 
 			float i;
 			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
@@ -565,7 +568,7 @@ int main() {
 			}
 
 			meminfo = mallinfo();
-			int memusage = meminfo.uordblks;
+			memusage = meminfo.uordblks;
 			if (memusage > 0xE800000) // Correct gap between MEM2 and MEM2
 				memusage -= 0xE800000;
 

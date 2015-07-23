@@ -28,6 +28,7 @@ extern "C" {
 #include "block/block_includes.h"
 #include "textures/inv_blocks/block_icons.h"
 }
+#include <vector>
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
 unsigned char theWorld[worldY][worldX][worldZ];
@@ -35,6 +36,8 @@ unsigned char lighting[worldX][worldZ];
 GRRLIB_texImg *tex_blockicons[256];
 
 player thePlayer;
+
+std::vector<guVector> flowingLiquid;
 
 inline double to_degrees(double radians) {
 	return radians*(180.0f/M_PI);
@@ -44,12 +47,29 @@ inline double to_radians(double degrees) {
 	return (degrees*M_PI)/180.0f;
 }
 
-// Safe block placement;
+// Safe block retrieval
+static unsigned char getBlock(int x, int y, int z) {
+	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
+		return theWorld[y][x][z];
+	return 0;
+}
+
+#define tryAddLiquidBlock(xpos, ypos, zpos) \
+blockID = getBlock(xpos, ypos, zpos);\
+if (blockID == 8 || blockID == 10) {\
+	toAdd.x = xpos;\
+	toAdd.y = ypos;\
+	toAdd.z = zpos;\
+	flowingLiquid.push_back(toAdd);\
+}
+
+// Safe block placement
 static void setBlock(int x, int y, int z, unsigned char blockID) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ) {
 		theWorld[y][x][z] = blockID;
 		if (blockID == 6 || blockID == 18 || blockID == 20 || blockID == 37 || blockID == 38 || blockID == 39 || blockID == 40)
 			return;
+		guVector toAdd;
 		if (blockID != 0) {
 			if (lighting[x][z] < y)
 				lighting[x][z] = y;
@@ -63,22 +83,27 @@ static void setBlock(int x, int y, int z, unsigned char blockID) {
 					}
 				}
 			}
+			tryAddLiquidBlock(x-1, y, z);
+			tryAddLiquidBlock(x+1, y, z);
+			tryAddLiquidBlock(x, y, z-1);
+			tryAddLiquidBlock(x, y, z+1);
 		}
+		tryAddLiquidBlock(x, y+1, z);
 	}
 }
-
-// Safe block retrieval;
-static unsigned char getBlock(int x, int y, int z) {
-	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
-		return theWorld[y][x][z];
-	return 0;
-}
+#undef tryAddLiquidBlock
 
 static void updateNeighbors(int x, int z) {
-	if (x % 16 == 15) chunked_rerenderChunk(floor(x/16)+1,floor(z/16),true);
-	if (x % 16 ==  0) chunked_rerenderChunk(floor(x/16)-1,floor(z/16),true);
-	if (z % 16 == 15) chunked_rerenderChunk(floor(x/16),floor(z/16)+1,true);
-	if (z % 16 ==  0) chunked_rerenderChunk(floor(x/16),floor(z/16)-1,true);
+	if (x % 16 == 15) chunked_markchunkforupdate(floor(x/16)+1,floor(z/16));
+	if (x % 16 ==  0) chunked_markchunkforupdate(floor(x/16)-1,floor(z/16));
+	if (z % 16 == 15) chunked_markchunkforupdate(floor(x/16),floor(z/16)+1);
+	if (z % 16 ==  0) chunked_markchunkforupdate(floor(x/16),floor(z/16)-1);
+}
+
+static void setBlockAndUpdate(int x, int y, int z, unsigned char blockID) {
+	setBlock(x, y, z, blockID);
+	chunked_markchunkforupdate(floor(x/16), floor(z/16));
+	updateNeighbors(x, z);
 }
 
 static void setIfAir(int x, int y, int z, unsigned char blockID) {
@@ -176,10 +201,11 @@ int main() {
 	u8 FPS = 0;
 
 	memset(theWorld, 255, sizeof theWorld);
+	flowingLiquid.reserve(32);
 
 	bool rerenderDisplayList = true;
 	bool exitloop = false;
-	short scr_scanY = 0;	
+	short scr_scanY = 0;
 	int dluse = 0;
 	int dlsize = 0;
 
@@ -192,7 +218,7 @@ int main() {
 	thePlayer.lookX = 0;
 	thePlayer.lookY = 0;
 	thePlayer.lookZ = 0;
-	unsigned char startinv[10] = {01,04,45,03,05,17,18,20,43,0};
+	unsigned char startinv[10] = { 1, 4,45, 3, 5,17,18,20,43,0};
 	memcpy(thePlayer.inventory, startinv, sizeof(thePlayer.inventory));
 	thePlayer.flying = true;
 	thePlayer.select = false;
@@ -232,7 +258,7 @@ int main() {
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
 	unsigned char inv_blocks[42] = {
-	 1,  4, 45, 03, 05, 17, 18, 20, 43,
+	 1,  4, 45,  3,  5, 17, 18, 20, 43,
 	48,  6, 37, 38, 39, 40, 12, 13, 19,
 	21, 22, 23, 24, 25, 26, 27, 28, 29,
 	30, 31, 32, 33, 34, 35, 36, 16, 15,
@@ -254,7 +280,7 @@ int main() {
 			GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "WAITING FOR CLIENT...");
 			GRRLIB_Render();
-			netcat_accept();	
+			netcat_accept();
 			status = REGISTER;
 			break;
 		case REGISTER: // Register blocks
@@ -373,7 +399,7 @@ int main() {
 			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
 
 			//netcat_log("switching 3d\n");
-			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
+			GRRLIB_3dMode(0.1, 1000, 45, true, false);
 			GX_SetCullMode(GX_CULL_NONE);
 
 			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
@@ -436,24 +462,20 @@ int main() {
 						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
 
 					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
-						setBlock(selBlockX,selBlockY,selBlockZ,0);
-						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
-						updateNeighbors(selBlockX, selBlockZ);
+						setBlockAndUpdate(selBlockX,selBlockY,selBlockZ,0);
 						thePlayer.timer = 18;
 					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer == 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
 						selBlockX+=faceBlockX;
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
 
-						setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
-						chunked_rerenderChunk(floor(selBlockX/16), floor(selBlockZ/16), true);
-						updateNeighbors(selBlockX, selBlockZ);
+						setBlockAndUpdate(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
 						thePlayer.timer = 18;
 					}
 					break;
 				}
 			}
-			
+
 			// Random Block Update!
 			for (i = 0; i < pow(renderDistance/16,2)*48; i++) {
 				signed int rx = randnum(thePlayer.posX - renderDistance, thePlayer.posX + renderDistance);
@@ -461,26 +483,52 @@ int main() {
 				signed int rz = randnum(thePlayer.posZ - renderDistance, thePlayer.posZ + renderDistance);
 				unsigned char blockID = getBlock(rx,ry,rz);
 				if (blockID == 3 && lighting[rx][rz] <= ry) {
-					setBlock(rx,ry,rz,2);
-					chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
-					updateNeighbors(rx, rz);
+					setBlockAndUpdate(rx,ry,rz,2);
 				} else if (blockID == 2 && lighting[rx][rz] > ry) {
-					setBlock(rx,ry,rz,3);
-					chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
-					updateNeighbors(rx, rz);
+					setBlockAndUpdate(rx,ry,rz,3);
 				} else if (blockID == 6) {
 					if (lighting[rx][rz] > ry) { //not working?
-						setBlock(rx,ry,rz,0);
-						chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
-						updateNeighbors(rx, rz);
+						setBlockAndUpdate(rx,ry,rz,0);
 					} else {
-						placeTree(rx,ry,rz);	
+						placeTree(rx,ry,rz);
 						// this wont update chunks properly. duplicated because we need special chunk care here.
-						chunked_rerenderChunk(floor(rx/16), floor(rz/16), true);
+						chunked_markchunkforupdate(floor(rx/16), floor(rz/16));
 						updateNeighbors(rx, rz);
 					}
 				}
 			}
+#define trySetLiquidBlock(xpos,ypos,zpos) \
+if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
+	setBlockAndUpdate(liquid.xpos, liquid.ypos, liquid.zpos, liquidType);\
+	newLiquid.x = liquid.xpos;\
+	newLiquid.y = liquid.ypos;\
+	newLiquid.z = liquid.zpos;\
+	flowingLiquid.push_back(newLiquid);\
+}
+			// Fluid Updates
+			if (flowingLiquid.size() > 0) {
+				int fls = flowingLiquid.size();
+				for (i = 0; i < std::min(fls, 10); i++) {
+					guVector liquid = flowingLiquid[0];
+					flowingLiquid.erase(flowingLiquid.begin());
+					guVector newLiquid;
+					unsigned char liquidType = getBlock(liquid.x, liquid.y, liquid.z);
+					unsigned char bottomBlock = getBlock(liquid.x, liquid.y-1, liquid.z);
+					if (bottomBlock == 0 && liquidType != 0) {
+						setBlockAndUpdate(liquid.x, liquid.y-1, liquid.z, liquidType);
+						newLiquid.x = liquid.x;
+						newLiquid.y = liquid.y-1;
+						newLiquid.z = liquid.z;
+						flowingLiquid.push_back(newLiquid);
+					} else if (bottomBlock != liquidType) {
+						trySetLiquidBlock(x-1,y,z);
+						trySetLiquidBlock(x+1,y,z);
+						trySetLiquidBlock(x,y,z-1);
+						trySetLiquidBlock(x,y,z+1);
+					}
+				}
+			}
+#undef trySetLiquidBlock
 
 			// Draw Clouds
 			GRRLIB_SetTexture(tex_clouds, true);
@@ -503,6 +551,8 @@ int main() {
 			GX_End();
 
 			cloudPos = fmod(cloudPos + deltaTime/1000,1);
+
+			chunked_rerenderChunkUpdates();
 
 			if (rerenderDisplayList)
 			{
@@ -569,7 +619,7 @@ int main() {
 
 			meminfo = mallinfo();
 			memusage = meminfo.uordblks;
-			if (memusage > 0xE800000) // Correct gap between MEM2 and MEM2
+			if (memusage > 0xE800000) // Correct gap between MEM1 and MEM2
 				memusage -= 0xE800000;
 
 			// Draw debugging elements
@@ -580,16 +630,21 @@ int main() {
 			GXCraft_DrawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
 			GXCraft_DrawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
 			GXCraft_DrawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
-			GXCraft_DrawText(10, 130, tex_font, "DLSIZE: %i/%i (%i%%)", dluse, dlsize, dluse*100/dlsize);
+			GXCraft_DrawText(10, 130, tex_font, "DLSIZE: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
 			GXCraft_DrawText(10, 145, tex_font, "MEMUSAGE: %d (%dMB)", memusage, memusage/1048576);
+			GXCraft_DrawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flowingLiquid.size(), flowingLiquid.capacity(), flowingLiquid.size()*100/flowingLiquid.capacity());
 
-			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2 && netcat_init) {
-				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false); // This is giving me the last content?
-				GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false);
-				netcat_log("-- START SCREENSHOT --\n");
-				netcat_logf("W: %d, H: %d\n", tex_tmpscreen->w, tex_tmpscreen->h);
-				scr_scanY = 0;
-				status = SCREENSHOT;
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
+				if (netcat_init) {
+					GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false); // This is giving me the last content?
+					GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false);
+					netcat_log("-- START SCREENSHOT --\n");
+					netcat_logf("W: %d, H: %d\n", tex_tmpscreen->w, tex_tmpscreen->h);
+					scr_scanY = 0;
+					status = SCREENSHOT;
+				} else {
+					GRRLIB_ScrShot("GXCraft.png");
+				}
 			}
 
 			GRRLIB_Render();

@@ -21,6 +21,7 @@ void chunked_init()
 	{
 		renderchunk *rc = malloc(sizeof(renderchunk));
 		rc->active = false;
+		rc->update = false;
 		rc->list = NULL;
 		renderchunks[i] = rc;
 	}
@@ -65,14 +66,45 @@ int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z)
 	return -1;
 }
 
+void chunked_markchunkforupdate(unsigned short x, unsigned short z)
+{
+	//try to find an existing renderchunk with the coords
+	int i;
+	for (i=0; i<nRenderChunks; i++)
+	{
+		renderchunk *rc = renderchunks[i];
+		if (rc->active && rc->x == x && rc->z == z)
+		{
+			netcat_log("marking active chunk for render update\n");
+			rc->update = true;
+			return;
+		}
+	}
+	netcat_log("no chunk to mark for render update!\n");
+}
+
+void chunked_rerenderChunkUpdates()
+{
+	int i;
+	for (i=0; i<nRenderChunks; i++)
+	{
+		renderchunk *rc = renderchunks[i];
+		if (rc->active && rc->update)
+		{
+			chunked_rerenderChunk(rc->x, rc->z, true);
+		}
+	}
+}
+
 inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 {
 	if (cx < 0 || cz < 0 || cx >= worldX/chunkSize || cz >= worldZ/chunkSize)
 		return;
 	renderchunk *rc = renderchunks[chunked_getchunkfromchunkpos(cx,cz)];
-	if ((!rc->active) || force)
+	if ((!rc->active) || rc->update || force)
 	{
 		rc->active = true;
+		rc->update = false;
 		netcat_logf("rendering chunk %d, %d\n",cx,cz);
 		//check for display list
 		if (rc->list == NULL)
@@ -144,6 +176,7 @@ void chunked_refresh(int renderDistance, player thePlayer)
 			if (chunked_isoob(rc, rcd, px, pz))
 			{
 				rc->active = false;
+				rc->update = false;
 				nremoved++;
 			}
 			else

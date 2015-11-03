@@ -22,6 +22,7 @@ extern "C" {
 #include "block.h"
 #include "terrain.h"
 #include "render.h"
+#include "fail3d.h"
 #include "netcat_logger.h"
 #include "chunked_render.h"
 #include "block_textures.h"
@@ -94,15 +95,15 @@ static void setBlock(int x, int y, int z, unsigned char blockID) {
 #undef tryAddLiquidBlock
 
 static void updateNeighbors(int x, int z) {
-	if (x % 16 == 15) chunked_markchunkforupdate(floor(x/16)+1,floor(z/16));
-	if (x % 16 ==  0) chunked_markchunkforupdate(floor(x/16)-1,floor(z/16));
-	if (z % 16 == 15) chunked_markchunkforupdate(floor(x/16),floor(z/16)+1);
-	if (z % 16 ==  0) chunked_markchunkforupdate(floor(x/16),floor(z/16)-1);
+	if (x % chunkSize == chunkSize-1) chunked_markchunkforupdate(floor(x/chunkSize)+1,floor(z/chunkSize));
+	if (x % chunkSize == 0) chunked_markchunkforupdate(floor(x/chunkSize)-1,floor(z/chunkSize));
+	if (z % chunkSize == chunkSize-1) chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)+1);
+	if (z % chunkSize == 0) chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
 }
 
 static void setBlockAndUpdate(int x, int y, int z, unsigned char blockID) {
 	setBlock(x, y, z, blockID);
-	chunked_markchunkforupdate(floor(x/16), floor(z/16));
+	chunked_markchunkforupdate(floor(x/chunkSize), floor(z/chunkSize));
 	updateNeighbors(x, z);
 }
 
@@ -233,6 +234,7 @@ int main() {
 	WPAD_Init();
 	chunked_init();
 	initTextures();
+	fail3d_init(575);
 
 	WPADData *data;
 	ir_t IR_0;
@@ -401,6 +403,7 @@ int main() {
 			//netcat_log("switching 3d\n");
 			GRRLIB_3dMode(0.1, 1000, 45, true, false);
 			GX_SetCullMode(GX_CULL_NONE);
+			GX_SetZCompLoc(GX_FALSE);
 
 			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
 				if (!wasUnder) {
@@ -492,7 +495,7 @@ int main() {
 					} else {
 						placeTree(rx,ry,rz);
 						// this wont update chunks properly. duplicated because we need special chunk care here.
-						chunked_markchunkforupdate(floor(rx/16), floor(rz/16));
+						chunked_markchunkforupdate(floor(rx/chunkSize), floor(rz/chunkSize));
 						updateNeighbors(rx, rz);
 					}
 				}

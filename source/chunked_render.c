@@ -6,6 +6,7 @@
 #include "netcat_logger.h"
 #include "block.h"
 #include "render.h"
+#include "fail3d.h"
 #include "main.h"
 
 #define chunked_isoob(rc,rcd,px,pz) (rc->x > px+rcd) || (rc->x < px-rcd) || (rc->z > pz+rcd) || (rc->z < pz-rcd)
@@ -214,8 +215,18 @@ int chunk_cmp(const void *a, const void *b)
 		return 0;
 }
 
+void calculateChunkPoint(guVector *polygon, guVector *center, guVector *camera) {
+	fail3d_translatePoint(polygon, center);
+	fail3d_rotatePoint(polygon, camera);
+	fail3d_calculatePointPosition(polygon);
+}
+
 void chunked_render(player thePlayer)
 {
+	guVector center = {thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ};
+	guVector camera = {thePlayer.lookY, thePlayer.lookX, thePlayer.lookZ};
+	guVector polygon;
+
 	displist_start();
 	int i;
 	int nrendered = 0;
@@ -224,8 +235,33 @@ void chunked_render(player thePlayer)
 		renderchunk *rc = renderchunks[i];
 		if (rc->active)
 		{
-			renderorder[nrendered] = i;
-			nrendered++;
+			bool allL, allR, allU, allD;
+			allL = allR = allU = allD = true;
+			bool vZ = false;
+
+#define testChunk(xval, yval, zval) \
+polygon.x = xval; \
+polygon.y = -(yval); \
+polygon.z = -(zval); \
+calculateChunkPoint(&polygon, &center, &camera); \
+if (polygon.x >= 0) allL = false; \
+if (polygon.x <= rmode->fbWidth) allR = false; \
+if (polygon.y >= 0) allU = false; \
+if (polygon.y <= rmode->efbHeight) allD = false; \
+if (polygon.z > 0) vZ = true;
+			testChunk(rc->x*chunkSize,           0,      rc->z*chunkSize);
+			testChunk(rc->x*chunkSize,           worldY, rc->z*chunkSize);
+			testChunk(rc->x*chunkSize+chunkSize, 0,      rc->z*chunkSize);
+			testChunk(rc->x*chunkSize+chunkSize, worldY, rc->z*chunkSize);
+			testChunk(rc->x*chunkSize,           0,      rc->z*chunkSize+chunkSize);
+			testChunk(rc->x*chunkSize,           worldY, rc->z*chunkSize+chunkSize);
+			testChunk(rc->x*chunkSize+chunkSize, 0,      rc->z*chunkSize+chunkSize);
+			testChunk(rc->x*chunkSize+chunkSize, worldY, rc->z*chunkSize+chunkSize);
+#undef testChunk
+			if (!(allL || allR || allU || allD) && vZ) {
+				renderorder[nrendered] = i;
+				nrendered++;
+			}
 		}
 	}
 	//sort the render order

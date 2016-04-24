@@ -24,13 +24,13 @@ void generateTerrain() {
 	terrainData[0][0] = terrainData[0][DATA_SIZE-1] = terrainData[DATA_SIZE-1][0] = terrainData[DATA_SIZE-1][DATA_SIZE-1] = SEED;
 
 	double h = 200.0; // the range (-h -> h) for the average offset
-	srand(513);       // seed the random generator	
+	srand(513);       // seed the random generator
 
 	// side length is the distance of a single square side
 	// or distance of diagonal in diamond
 	// each iteration we are looking at smaller squares and diamonds, we decrease the variation of the offset
 	for (sideLength = DATA_SIZE-1; sideLength >= 2; sideLength /= 2, h /= 2.0)
-	{		
+	{
 		int halfSide = sideLength/2;
 
 		// generate new square values
@@ -44,7 +44,7 @@ void generateTerrain() {
 				terrainData[x+sideLength][y]   +         //top   right
 				terrainData[x][y+sideLength]   +         //lower left
 				terrainData[x+sideLength][y+sideLength]; //lower right
-		
+
 				avg /= 4.0;
 
 				// center is average plus random offset in the range (-h, h)
@@ -53,7 +53,7 @@ void generateTerrain() {
 
 			}
 		}
-		
+
 		// Generate the diamond values
 		// Since diamonds are staggered, we only move x by half side
 		// NOTE: if the data shouldn't wrap the x < DATA_SIZE and y < DATA_SIZE
@@ -62,10 +62,10 @@ void generateTerrain() {
 			for (y = (x + halfSide) % sideLength; y < DATA_SIZE - 1; y += sideLength)
 			{
 				// x,y is center of diamond
-				// we must use mod and add DATA_SIZE for subtraction 
+				// we must use mod and add DATA_SIZE for subtraction
 				// so that we can wrap around the array to find the corners
 
-				double avg = 
+				double avg =
 				terrainData[(x-halfSide+DATA_SIZE)%DATA_SIZE][y] + // left  of center
 				terrainData[(x+halfSide)%DATA_SIZE][y]           + // right of center
 				terrainData[x][(y+halfSide)%DATA_SIZE]           + // below center
@@ -77,7 +77,7 @@ void generateTerrain() {
 				// calc random value in the range (-h,+h)
 				double offset = (-h) + rand() * (h - (-h)) / RAND_MAX;
 				avg = avg + offset;
-			
+
 				// update value for center of diamond
 				terrainData[x][y] = avg;
 

@@ -20,16 +20,16 @@ void netcat_console()
 	char localip[16] = {0};
 	char gateway[16] = {0};
 	char netmask[16] = {0};
-	
+
 	ret = if_config (localip, netmask, gateway, TRUE);
 	if (ret >= 0)
 	{
 		//char temp[1026];
-	
+
 		clientlen = sizeof(client);
 
 		sock = net_socket (AF_INET, SOCK_STREAM, IPPROTO_IP);
-		
+
 		memset (&server, 0, sizeof (server));
 		memset (&client, 0, sizeof (client));
 
@@ -37,9 +37,9 @@ void netcat_console()
 		server.sin_port = htons (1337);
 		server.sin_addr.s_addr = INADDR_ANY;
 		net_bind (sock, (struct sockaddr *) &server, sizeof (server));
-		
+
 		net_listen( sock, 5);
-		
+
 		netcat_init = true;
 	}
 }
@@ -48,7 +48,7 @@ void netcat_accept()
 {
 	if (!netcat_init) return;
 	csock = net_accept (sock, (struct sockaddr *) &client, &clientlen);
-		
+
 	if ( csock < 0 ) {
 		printf("Error connecting socket %d!\n", csock);
 		while(1);

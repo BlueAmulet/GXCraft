@@ -117,7 +117,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 		int bx, bz;
 		bx = cx*chunkSize;
 		bz = cz*chunkSize;
-		
+
 		displist_clear(rc->list);
 		displist_bind(rc->list);
 		int x;
@@ -135,7 +135,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 			}
 		}
 		netcat_log("rendered pass 0\n");
-		
+
 		displist_clear(rc->blendlist);
 		displist_bind(rc->blendlist);
 		for (y = 0; y < worldY; y++) {
@@ -192,7 +192,7 @@ void chunked_refresh(int renderDistance, player thePlayer)
 	unsigned short maxcx, maxcz;
 	maxcx = worldX/chunkSize;
 	maxcz = worldZ/chunkSize;
-	
+
 	for (cx = max(px-rcd,0); cx < min(maxcx,px + rcd); cx++) {
 		for (cz = max(pz-rcd,0); cz < min(maxcz,pz + rcd); cz++) {
 			chunked_rerenderChunk(cx,cz,false);

@@ -36,9 +36,9 @@ inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 	if (drawLeft)  size += 4;
 	if (drawTop)   size += 4;
 	if (drawBott)  size += 4;
-	
+
 	if (size == 0) return;
-	
+
 	f32 u0 = tex->u0, v0 = tex->v0;
 	f32 u1 = tex->u1, v1 = tex->v1;
 
@@ -137,7 +137,7 @@ inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 
 inline void drawBlockCrossed(int xPos, int yPos, int zPos, blockTexture *tex) {
 	unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
-	
+
 	f32 u0 = tex->u0, v0 = tex->v0;
 	f32 u1 = tex->u1, v1 = tex->v1;
 
@@ -182,9 +182,9 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 	if (drawFront) size += 4;
 	if (drawRight) size += 4;
 	if (drawLeft)  size += 4;
-	
+
 	if (size == 0 && !drawTop && !drawBott) return;
-	
+
 	f32 u0 = texSide->u0, v0 = texSide->v0;
 	f32 u1 = texSide->u1, v1 = texSide->v1;
 
@@ -251,7 +251,7 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 	if (drawTop) {
 		u0 = texTop->u0, v0 = texTop->v0;
 		u1 = texTop->u1, v1 = texTop->v1;
-		
+
 		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 
 		displist_add(xPos, 1+yPos,zPos,
@@ -271,7 +271,7 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 	if (drawBott) {
 		u0 = texTop->u0, v0 = texTop->v0;
 		u1 = texTop->u1, v1 = texTop->v1;
-	
+
 		displist_add( 1+xPos,yPos,zPos,
 		0x555F,
 		u0,v0);

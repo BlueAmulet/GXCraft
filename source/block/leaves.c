@@ -43,9 +43,9 @@ inline void drawLeavesBlock(int xPos, int yPos, int zPos) {
 	if (drawLeft)  size += 4;
 	if (drawTop)   size += 4;
 	if (drawBott)  size += 4;
-	
+
 	if (size == 0) return;
-	
+
 	f32 u0 = tex_leaves->u0, v0 = tex_leaves->v0;
 	f32 u1 = tex_leaves->u1, v1 = tex_leaves->v1;
 

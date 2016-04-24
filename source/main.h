@@ -1,4 +1,4 @@
-#include <grrlib.h>
+#pragma once
 
 #define worldX 512
 #define worldY 64
@@ -11,5 +11,5 @@
 
 extern GRRLIB_texImg *tex_blockicons[256];
 
-extern unsigned char theWorld[worldY][worldX][worldZ];
-extern unsigned char lighting[worldX][worldZ];
+extern u8 theWorld[worldY][worldX][worldZ];
+extern u8 lighting[worldX][worldZ];

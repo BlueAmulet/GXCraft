@@ -126,7 +126,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 		for (y = worldY - 1; y >= 0; y--) {
 			for (x = bx; x < bx+chunkSize; x++) {
 				for (z = bz; z < bz+chunkSize; z++) {
-					unsigned char blockID = theWorld[y][x][z];
+					u8 blockID = theWorld[y][x][z];
 					if (blockID != 0) {
 						blockEntry entry = blockRegistry[blockID];
 						entry.renderBlock(x, y, z, 0);
@@ -141,7 +141,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 		for (y = 0; y < worldY; y++) {
 			for (x = bx; x < bx+chunkSize; x++) {
 				for (z = bz; z < bz+chunkSize; z++) {
-					unsigned char blockID = theWorld[y][x][z];
+					u8 blockID = theWorld[y][x][z];
 					if (blockID != 0) {
 						blockEntry entry = blockRegistry[blockID];
 						entry.renderBlock(x, y, z, 1);

@@ -1,5 +1,4 @@
 #pragma once
-
 typedef struct player_s {
 	double posX;
 	double posY;
@@ -10,7 +9,7 @@ typedef struct player_s {
 	double lookX;
 	double lookY;
 	double lookZ;
-	unsigned char inventory[10];
+	u8 inventory[10];
 	bool flying;
 	bool select;
 	unsigned short timer;

@@ -16,7 +16,7 @@ void GXCraft_DrawText(f32 xPos, f32 yPos, GRRLIB_texImg* font, const char* forma
 	GRRLIB_Printf(xPos  , yPos  , font, 0xFFFFFFFF, 1, "%s", dest);
 }
 
-bool testFace(unsigned char face) {
+bool testFace(u8 face) {
 	return face == 0 || face == 6 || face == 8 || face == 18 || face == 20 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 

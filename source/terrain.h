@@ -1,3 +1,5 @@
+#pragma once
+
 //Size of the grid to generate
 //This must be 2^n+1 (e.g. 257)
 #define DATA_SIZE 513

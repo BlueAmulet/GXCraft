@@ -1,11 +1,9 @@
 /*===========================================
     GXCraft by gamax92 and ds84182
 ============================================*/
+
 extern "C" {
 #include <grrlib.h>
-
-#include <stdlib.h>
-#include <math.h>
 #include <wiiuse/wpad.h>
 #include <ogc/lwp_watchdog.h>
 
@@ -29,11 +27,14 @@ extern "C" {
 #include "block/block_includes.h"
 #include "textures/inv_blocks/block_icons.h"
 }
+#include <cstdlib>
+#include <cmath>
 #include <vector>
+
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
-unsigned char theWorld[worldY][worldX][worldZ];
-unsigned char lighting[worldX][worldZ];
+u8 theWorld[worldY][worldX][worldZ];
+u8 lighting[worldX][worldZ];
 GRRLIB_texImg *tex_blockicons[256];
 
 player thePlayer;
@@ -49,7 +50,7 @@ inline double to_radians(double degrees) {
 }
 
 // Safe block retrieval
-static unsigned char getBlock(int x, int y, int z) {
+static u8 getBlock(int x, int y, int z) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
 		return theWorld[y][x][z];
 	return 0;
@@ -65,7 +66,7 @@ if (blockID == 8 || blockID == 10) {\
 }
 
 // Safe block placement
-static void setBlock(int x, int y, int z, unsigned char blockID) {
+static void setBlock(int x, int y, int z, u8 blockID) {
 	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ) {
 		theWorld[y][x][z] = blockID;
 		if (blockID == 6 || blockID == 18 || blockID == 20 || blockID == 37 || blockID == 38 || blockID == 39 || blockID == 40)
@@ -101,14 +102,14 @@ static void updateNeighbors(int x, int z) {
 	if (z % chunkSize == 0) chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
 }
 
-static void setBlockAndUpdate(int x, int y, int z, unsigned char blockID) {
+static void setBlockAndUpdate(int x, int y, int z, u8 blockID) {
 	setBlock(x, y, z, blockID);
 	chunked_markchunkforupdate(floor(x/chunkSize), floor(z/chunkSize));
 	updateNeighbors(x, z);
 }
 
-static void setIfAir(int x, int y, int z, unsigned char blockID) {
-	unsigned char tBlockID = getBlock(x,y,z);
+static void setIfAir(int x, int y, int z, u8 blockID) {
+	u8 tBlockID = getBlock(x,y,z);
 	if (tBlockID == 0 || tBlockID == 255)
 		setBlock(x,y,z,blockID);
 }
@@ -259,7 +260,7 @@ int main() {
 
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
-	unsigned char inv_blocks[42] = {
+	u8 inv_blocks[42] = {
 	 1,  4, 45,  3,  5, 17, 18, 20, 43,
 	48,  6, 37, 38, 39, 40, 12, 13, 19,
 	21, 22, 23, 24, 25, 26, 27, 28, 29,
@@ -438,7 +439,7 @@ int main() {
 
 			float i;
 			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
-				unsigned char block = getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625),floor(zLook*i+thePlayer.posZ));
+				u8 block = getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625),floor(zLook*i+thePlayer.posZ));
 				if (block != 0 && block != 8 && block != 10) {
 					int selBlockX = floor(xLook*i+thePlayer.posX);
 					int selBlockY = floor(yLook*i+thePlayer.posY+1.625);
@@ -484,7 +485,7 @@ int main() {
 				signed int rx = randnum(thePlayer.posX - renderDistance, thePlayer.posX + renderDistance);
 				signed int ry = randnum(0, worldY - 1);
 				signed int rz = randnum(thePlayer.posZ - renderDistance, thePlayer.posZ + renderDistance);
-				unsigned char blockID = getBlock(rx,ry,rz);
+				u8 blockID = getBlock(rx,ry,rz);
 				if (blockID == 3 && lighting[rx][rz] <= ry) {
 					setBlockAndUpdate(rx,ry,rz,2);
 				} else if (blockID == 2 && lighting[rx][rz] > ry) {
@@ -515,8 +516,8 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 					guVector liquid = flowingLiquid[0];
 					flowingLiquid.erase(flowingLiquid.begin());
 					guVector newLiquid;
-					unsigned char liquidType = getBlock(liquid.x, liquid.y, liquid.z);
-					unsigned char bottomBlock = getBlock(liquid.x, liquid.y-1, liquid.z);
+					u8 liquidType = getBlock(liquid.x, liquid.y, liquid.z);
+					u8 bottomBlock = getBlock(liquid.x, liquid.y-1, liquid.z);
 					if (bottomBlock == 0 && liquidType != 0) {
 						setBlockAndUpdate(liquid.x, liquid.y-1, liquid.z, liquidType);
 						newLiquid.x = liquid.x;
@@ -765,7 +766,7 @@ static void color85(char *buf, u32 color) {
 	color >>= 8;
 	int cnt;
 	for (cnt = 3; cnt >= 0; cnt--) {
-		unsigned char val = color % 85;
+		u8 val = color % 85;
 		color /= 85;
 		buf[cnt] = val + 33;
 	}

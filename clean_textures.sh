@@ -1,10 +1,7 @@
 #!/bin/sh
 
 cd source/textures/
-rm -v *.c
-rm -v *.h
+rm -v *.c *.h
 cd inv_blocks/
-rm *.c
-rm *.h
+rm -v *.c *.h *.cpp *.hpp
 cd ../../../
-

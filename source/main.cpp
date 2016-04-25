@@ -13,23 +13,23 @@ extern "C" {
 #include "textures/terrain_blocks.h"
 #include "textures/cursor.h"
 #include "textures/clouds.h"
-
-#include "main.h"
-#include "player.h"
-#include "controls.h"
-#include "block.h"
-#include "terrain.h"
-#include "render.h"
-#include "fail3d.h"
-#include "netcat_logger.h"
-#include "chunked_render.h"
-#include "block_textures.h"
-#include "block/block_includes.h"
-#include "textures/inv_blocks/block_icons.h"
 }
 #include <cstdlib>
 #include <cmath>
 #include <vector>
+
+#include "main.hpp"
+#include "player.hpp"
+#include "controls.hpp"
+#include "block.hpp"
+#include "terrain.hpp"
+#include "render.hpp"
+#include "fail3d.hpp"
+#include "netcat_logger.hpp"
+#include "chunked_render.hpp"
+#include "block_textures.hpp"
+#include "block/block_includes.hpp"
+#include "textures/inv_blocks/block_icons.hpp"
 
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
@@ -97,15 +97,15 @@ static void setBlock(int x, int y, int z, u8 blockID) {
 #undef tryAddLiquidBlock
 
 static void updateNeighbors(int x, int z) {
-	if (x % chunkSize == chunkSize-1) chunked_markchunkforupdate(floor(x/chunkSize)+1,floor(z/chunkSize));
-	if (x % chunkSize == 0)           chunked_markchunkforupdate(floor(x/chunkSize)-1,floor(z/chunkSize));
-	if (z % chunkSize == chunkSize-1) chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)+1);
-	if (z % chunkSize == 0)           chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
+	if (x % chunkSize == chunkSize-1) Chunked::markchunkforupdate(floor(x/chunkSize)+1,floor(z/chunkSize));
+	if (x % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize)-1,floor(z/chunkSize));
+	if (z % chunkSize == chunkSize-1) Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)+1);
+	if (z % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
 }
 
 static void setBlockAndUpdate(int x, int y, int z, u8 blockID) {
 	setBlock(x, y, z, blockID);
-	chunked_markchunkforupdate(floor(x/chunkSize), floor(z/chunkSize));
+	Chunked::markchunkforupdate(floor(x/chunkSize), floor(z/chunkSize));
 	updateNeighbors(x, z);
 }
 
@@ -188,7 +188,7 @@ static int randnum(int x, int y);
 typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
 int main() {
-	//netcat_console(); // Comment this to disable netcat logger
+	//Netcat::console(); // Comment this to disable netcat logger
 
 	if (seed == 0) {
 		srand(time(NULL));
@@ -199,7 +199,7 @@ int main() {
 	int renderDistance = 96;
 
 	gamestate status;
-	if (netcat_init)
+	if (Netcat::init)
 		status = NETCAT;
 	else
 		status = REGISTER;
@@ -216,8 +216,8 @@ int main() {
 	int dlsize = 0;
 
 	// Initialize the player
-	thePlayer.posX = worldX/2;
-	thePlayer.posZ = worldZ/2;
+	thePlayer.posX = floorf(worldX/2.0)+0.5;
+	thePlayer.posZ = floorf(worldZ/2.0)+0.5;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
 	thePlayer.motionZ = 0;
@@ -237,9 +237,9 @@ int main() {
 
 	GRRLIB_Init();
 	WPAD_Init();
-	chunked_init();
+	Chunked::init();
 	initTextures();
-	fail3d_init(575);
+	Fail3D::init(575);
 
 	WPADData *data;
 	ir_t IR_0;
@@ -287,7 +287,7 @@ int main() {
 			GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "WAITING FOR CLIENT...");
 			GRRLIB_Render();
-			netcat_accept();
+			Netcat::accept();
 			status = REGISTER;
 			break;
 		case REGISTER: // Register blocks
@@ -295,7 +295,7 @@ int main() {
 			GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
 			GRRLIB_Render();
-			netcat_log("registering blocks\n");
+			Netcat::log("registering blocks\n");
 			initializeBlocks();
 			load_bi();
 			status = GENERATE;
@@ -304,7 +304,7 @@ int main() {
 			GRRLIB_2dMode();
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 			GRRLIB_Render();
-			netcat_log("generating world\n");
+			Netcat::log("generating world\n");
 			generateWorld();
 			int y;
 			for (y = worldY - 1; y >= 0; y--) {
@@ -406,11 +406,11 @@ int main() {
 			if (thePlayer.lookZ > 180)       thePlayer.lookZ -= 360;
 			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
 
-			//netcat_log("switching 3d\n");
+			//Netcat::log("switching 3d\n");
 			GRRLIB_3dMode(0.1, 1000, 45, true, false);
 			GX_SetZCompLoc(GX_FALSE);
 
-			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
+			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
 				if (!wasUnder) {
 					GRRLIB_SetBackgroundColour(0x05, 0x05, 0x33, 0xFF);
 					wasUnder = true;
@@ -427,13 +427,13 @@ int main() {
 			}
 
 			GRRLIB_ObjectViewBegin();
-			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);
+			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625f, -thePlayer.posZ);
 			GRRLIB_ObjectViewRotate(0, thePlayer.lookX, 0);
 			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
 			GRRLIB_ObjectViewEnd();
 
 			if (abs(displistX - thePlayer.posX) + abs(displistZ - thePlayer.posZ) > 8) {
-				netcat_log("rerender display list because player too far from last render point\n");
+				Netcat::log("rerender display list because player too far from last render point\n");
 				rerenderDisplayList = true;
 			}
 
@@ -443,16 +443,16 @@ int main() {
 
 			float i;
 			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
-				u8 block = getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625),floor(zLook*i+thePlayer.posZ));
+				u8 block = getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625f),floor(zLook*i+thePlayer.posZ));
 				if (block != 0 && block != 8 && block != 10) {
 					int selBlockX = floor(xLook*i+thePlayer.posX);
-					int selBlockY = floor(yLook*i+thePlayer.posY+1.625);
+					int selBlockY = floor(yLook*i+thePlayer.posY+1.625f);
 					int selBlockZ = floor(zLook*i+thePlayer.posZ);
 					GRRLIB_SetTexture(tex_inventory, false);
-					drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
+					Render::drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 
 					double blockSelOffX = fmod(xLook*i+thePlayer.posX,1)-0.5f;
-					double blockSelOffY = fmod(yLook*i+thePlayer.posY+1.625,1)-0.5f;
+					double blockSelOffY = fmod(yLook*i+thePlayer.posY+1.625f,1)-0.5f;
 					double blockSelOffZ = fmod(zLook*i+thePlayer.posZ,1)-0.5f;
 
 					double aBlockSelOffX = fabs(blockSelOffX);
@@ -500,7 +500,7 @@ int main() {
 					} else {
 						placeTree(rx,ry,rz);
 						// this wont update chunks properly. duplicated because we need special chunk care here.
-						chunked_markchunkforupdate(floor(rx/chunkSize), floor(rz/chunkSize));
+						Chunked::markchunkforupdate(floor(rx/chunkSize), floor(rz/chunkSize));
 						updateNeighbors(rx, rz);
 					}
 				}
@@ -560,22 +560,22 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 
 			cloudPos = fmod(cloudPos + deltaTime/1000,1);
 
-			chunked_rerenderChunkUpdates();
+			Chunked::rerenderChunkUpdates();
 
 			if (rerenderDisplayList) {
-				netcat_log("rerendering display list\n");
+				Netcat::log("rerendering display list\n");
 				rerenderDisplayList = false;
 				displistX = thePlayer.posX;
 				displistZ = thePlayer.posZ;
-				chunked_refresh(renderDistance, thePlayer);
-				dluse = chunked_getfifousage();
-				dlsize = chunked_getfifototal();
+				Chunked::refresh(renderDistance, thePlayer);
+				dluse = Chunked::getfifousage();
+				dlsize = Chunked::getfifototal();
 			}
 			GRRLIB_SetTexture(tex_terrain, false);
-			chunked_render(thePlayer);
+			Chunked::render(thePlayer);
 
 			// Draw 2D elements
-			//netcat_log("switching 2d\n");
+			//Netcat::log("switching 2d\n");
 			GRRLIB_2dMode();
 
 			GRRLIB_SetBlend(GRRLIB_BLEND_INV);
@@ -596,7 +596,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			if (thePlayer.select) {
 				GRRLIB_Rectangle(80, 60, 480, 300, 0x0000007F, true);
 
-				GXCraft_DrawText(224, 80, tex_font, "SELECT BLOCK");
+				Render::drawText(224, 80, tex_font, "SELECT BLOCK");
 
 				// Draw selection box (52x52)
 				signed short sx, sy, sb;
@@ -630,24 +630,24 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 				memusage -= 0xE800000;
 
 			// Draw debugging elements
-			GXCraft_DrawText(10,  25, tex_font, "FPS: %d", FPS);
-			GXCraft_DrawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
-			GXCraft_DrawText(10,  55, tex_font, "PY:% 7.2f", thePlayer.posY);
-			GXCraft_DrawText(10,  70, tex_font, "PZ:% 7.2f", thePlayer.posZ);
-			GXCraft_DrawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
-			GXCraft_DrawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
-			GXCraft_DrawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
-			GXCraft_DrawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
-			GXCraft_DrawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1048576.0);
-			GXCraft_DrawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flowingLiquid.size(), flowingLiquid.capacity(), flowingLiquid.size()*100/flowingLiquid.capacity());
-			GXCraft_DrawText(406, 25, tex_font, "Seed: %08X", seed);
+			Render::drawText(10,  25, tex_font, "FPS: %d", FPS);
+			Render::drawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
+			Render::drawText(10,  55, tex_font, "PY:% 7.2f", thePlayer.posY);
+			Render::drawText(10,  70, tex_font, "PZ:% 7.2f", thePlayer.posZ);
+			Render::drawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
+			Render::drawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
+			Render::drawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
+			Render::drawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
+			Render::drawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1048576.0);
+			Render::drawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flowingLiquid.size(), flowingLiquid.capacity(), flowingLiquid.size()*100/flowingLiquid.capacity());
+			Render::drawText(406, 25, tex_font, "Seed: %08X", seed);
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
-				if (netcat_init) {
+				if (Netcat::init) {
 					GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false); // This is giving me the last content?
 					GRRLIB_Screen2Texture(0, 0, tex_tmpscreen, false);
-					netcat_log("-- START SCREENSHOT --\n");
-					netcat_logf("W: %d, H: %d\n", tex_tmpscreen->w, tex_tmpscreen->h);
+					Netcat::log("-- START SCREENSHOT --\n");
+					Netcat::logf("W: %d, H: %d\n", tex_tmpscreen->w, tex_tmpscreen->h);
 					scr_scanY = 0;
 					status = SCREENSHOT;
 				} else {
@@ -667,7 +667,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 
 			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
-			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
+			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
 				GXColor c = {0x05, 0x05, 0x33};
 				GX_SetFog(GX_FOG_LIN, 0, 32, 0.1, 1000, c);
 			} else {
@@ -676,7 +676,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			}
 
 			GRRLIB_ObjectViewBegin();
-			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ);
+			GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625f, -thePlayer.posZ);
 			GRRLIB_ObjectViewRotate(0, thePlayer.lookX, 0);
 			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
 			GRRLIB_ObjectViewEnd();
@@ -687,27 +687,27 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
 
 			GRRLIB_SetTexture(tex_terrain, false);
-			chunked_render(thePlayer);
+			Chunked::render(thePlayer);
 
 			//Complain to user
 			GRRLIB_2dMode();
 			GRRLIB_Rectangle(0, 0, 640, 480, 0x0000007F, true);
 			if (data->data_present == 0)
-				GXCraft_DrawText(144, 232, tex_font, "PLEASE CONNECT WIIMOTE");
+				Render::drawText(144, 232, tex_font, "PLEASE CONNECT WIIMOTE");
 			else
-				GXCraft_DrawText(144, 232, tex_font, "PLEASE CONNECT NUNCHUK");
+				Render::drawText(144, 232, tex_font, "PLEASE CONNECT NUNCHUK");
 			GRRLIB_Render();
 			break;
 		case SCREENSHOT:
 			WPAD_ScanPads();
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) { // Cancel screenshot
-				netcat_log("-- ABORT SCREENSHOT --\n");
+				Netcat::log("-- ABORT SCREENSHOT --\n");
 				status = INGAME;
 				break;
 			}
 
-			netcat_logf("%03d: ", scr_scanY);
+			Netcat::logf("%03d: ", scr_scanY);
 			char c85[5];
 			memset(c85, 0, sizeof c85);
 			u32 lastcol = 0x00000000;
@@ -720,9 +720,9 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 					times = 1;
 				} else if (pixel != lastcol) {
 					color85(c85,lastcol);
-					netcat_log(c85);
+					Netcat::log(c85);
 					if (times > 1) {
-						netcat_logf("~%03d",times);
+						Netcat::logf("~%03d",times);
 					}
 					lastcol = pixel;
 					times = 1;
@@ -732,15 +732,15 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			}
 			// Dump whats left
 			color85(c85,lastcol);
-			netcat_log(c85);
+			Netcat::log(c85);
 			if (times > 1) {
-				netcat_logf("~%03d",times);
+				Netcat::logf("~%03d",times);
 			}
-			netcat_log("\n");
+			Netcat::log("\n");
 			scr_scanY++;
 			if (scr_scanY >= tex_tmpscreen->h) {
 				status = INGAME;
-				netcat_log("-- END SCREENSHOT --\n");
+				Netcat::log("-- END SCREENSHOT --\n");
 			}
 
 			// Draw fake scanner
@@ -752,8 +752,8 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 		}
 		lastTime = thisTime;
 	}
-	netcat_log("ending...\n");
-	netcat_close();
+	Netcat::log("ending...\n");
+	Netcat::close();
 
 	GRRLIB_FreeTexture(tex_font);
 	GRRLIB_FreeTexture(tex_inventory);

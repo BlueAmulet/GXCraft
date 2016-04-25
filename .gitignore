@@ -7,3 +7,5 @@ source/textures/*.c
 source/textures/*.h
 source/textures/inv_blocks/*.c
 source/textures/inv_blocks/*.h
+source/textures/inv_blocks/block_icons.cpp
+source/textures/inv_blocks/block_icons.hpp

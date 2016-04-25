@@ -14,12 +14,10 @@
 renderchunk *renderchunks[nRenderChunks];
 int renderorder[nRenderChunks];
 
-void chunked_init()
-{
+void chunked_init() {
 	//initialize all the renderchunks
 	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = malloc(sizeof(renderchunk));
 		rc->active = false;
 		rc->update = false;
@@ -28,35 +26,28 @@ void chunked_init()
 	}
 }
 
-void chunked_deallocall()
-{
+void chunked_deallocall() {
 	int i;
 	//dealloc all the renderchunks
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunks[i]->active = false;
 	}
 }
 
-int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z)
-{
+int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z) {
 	//first try to find an existing renderchunk with the coords
 	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (rc->active && rc->x == x && rc->z == z)
-		{
+		if (rc->active && rc->x == x && rc->z == z) {
 			netcat_log("found active chunk with same x and z\n");
 			return i;
 		}
 	}
 	//else, find an inactive chunk
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (!rc->active)
-		{
+		if (!rc->active) {
 			netcat_log("found inactive chunk\n");
 			rc->x = x;
 			rc->z = z;
@@ -67,15 +58,12 @@ int chunked_getchunkfromchunkpos(unsigned short x, unsigned short z)
 	return -1;
 }
 
-void chunked_markchunkforupdate(unsigned short x, unsigned short z)
-{
+void chunked_markchunkforupdate(unsigned short x, unsigned short z) {
 	//try to find an existing renderchunk with the coords
 	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (rc->active && rc->x == x && rc->z == z)
-		{
+		if (rc->active && rc->x == x && rc->z == z) {
 			netcat_log("marking active chunk for render update\n");
 			rc->update = true;
 			return;
@@ -84,32 +72,26 @@ void chunked_markchunkforupdate(unsigned short x, unsigned short z)
 	netcat_log("no chunk to mark for render update!\n");
 }
 
-void chunked_rerenderChunkUpdates()
-{
+void chunked_rerenderChunkUpdates() {
 	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (rc->active && rc->update)
-		{
+		if (rc->active && rc->update) {
 			chunked_rerenderChunk(rc->x, rc->z, true);
 		}
 	}
 }
 
-inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
-{
+inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force) {
 	if (cx < 0 || cz < 0 || cx >= worldX/chunkSize || cz >= worldZ/chunkSize)
 		return;
 	renderchunk *rc = renderchunks[chunked_getchunkfromchunkpos(cx,cz)];
-	if ((!rc->active) || rc->update || force)
-	{
+	if ((!rc->active) || rc->update || force) {
 		rc->active = true;
 		rc->update = false;
 		netcat_logf("rendering chunk %d, %d\n",cx,cz);
 		//check for display list
-		if (rc->list == NULL)
-		{
+		if (rc->list == NULL) {
 			rc->list = displist_create(256);
 			rc->blendlist = displist_create(256);
 		}
@@ -160,8 +142,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 	}
 }
 
-void chunked_refresh(int renderDistance, player thePlayer)
-{
+void chunked_refresh(int renderDistance, player thePlayer) {
 	//convert the player's position to chunk position
 	signed short px, pz;
 	px = thePlayer.posX/chunkSize;
@@ -171,13 +152,10 @@ void chunked_refresh(int renderDistance, player thePlayer)
 	int nactive = 0;
 	int nremoved = 0;
 	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (rc->active)
-		{
-			if (chunked_isoob(rc, rcd, px, pz))
-			{
+		if (rc->active) {
+			if (chunked_isoob(rc, rcd, px, pz)) {
 				rc->active = false;
 				rc->update = false;
 				nremoved++;
@@ -203,8 +181,7 @@ void chunked_refresh(int renderDistance, player thePlayer)
 }
 
 static player cmp_player;
-int chunk_cmp(const void *a, const void *b)
-{
+int chunk_cmp(const void *a, const void *b) {
 	renderchunk *ca = renderchunks[*((const int *)a)];
 	renderchunk *cb = renderchunks[*((const int *)b)];
 	int adst = abs(ca->x*chunkSize - cmp_player.posX) + abs(ca->z*chunkSize - cmp_player.posZ);
@@ -223,8 +200,7 @@ void calculateChunkPoint(guVector *polygon, guVector *center, guVector *camera) 
 	fail3d_calculatePointPosition(polygon);
 }
 
-void chunked_render(player thePlayer)
-{
+void chunked_render(player thePlayer) {
 	guVector center = {thePlayer.posX, -thePlayer.posY - 1.625, -thePlayer.posZ};
 	guVector camera = {thePlayer.lookY, thePlayer.lookX, thePlayer.lookZ};
 	guVector polygon;
@@ -232,11 +208,9 @@ void chunked_render(player thePlayer)
 	displist_start();
 	int i;
 	int nrendered = 0;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (rc->active)
-		{
+		if (rc->active) {
 			bool allL, allR, allU, allD;
 			allL = allR = allU = allD = true;
 			bool vZ = false;
@@ -269,8 +243,7 @@ if (polygon.z > 0) vZ = true;
 	//sort the render order
 	cmp_player = thePlayer;
 	qsort(renderorder, nrendered, sizeof(int), chunk_cmp);
-	for (i=0; i<nrendered; i++)
-	{
+	for (i=0; i<nrendered; i++) {
 		renderchunk *rc = renderchunks[renderorder[i]];
 		displist_render(rc->list);
 	}
@@ -278,22 +251,18 @@ if (polygon.z > 0) vZ = true;
 	GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
 	GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
 	GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);*/
-	for (i=0; i<nrendered; i++)
-	{
+	for (i=0; i<nrendered; i++) {
 		renderchunk *rc = renderchunks[renderorder[i]];
 		displist_render(rc->blendlist);
 	}
 }
 
-int chunked_getfifousage()
-{
+int chunked_getfifousage() {
 	int usage = 0;
 	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (rc->active)
-		{
+		if (rc->active) {
 			usage += rc->list->index-1;
 			usage += rc->blendlist->index-1;
 		}
@@ -301,15 +270,12 @@ int chunked_getfifousage()
 	return usage;
 }
 
-int chunked_getfifototal()
-{
+int chunked_getfifototal() {
 	int usage = 0;
 	int i;
-	for (i=0; i<nRenderChunks; i++)
-	{
+	for (i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
-		if (rc->active)
-		{
+		if (rc->active) {
 			usage += rc->list->size;
 			usage += rc->blendlist->size;
 		}

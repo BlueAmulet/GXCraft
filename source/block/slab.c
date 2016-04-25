@@ -3,7 +3,6 @@
 #include "../block.h"
 #include "../render.h"
 
-
 #include "slab.h"
 
 blockTexture *tex_slab;

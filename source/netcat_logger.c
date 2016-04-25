@@ -13,8 +13,7 @@ static struct sockaddr_in client;
 static struct sockaddr_in server;
 static u32 clientlen;
 
-void netcat_console()
-{
+void netcat_console() {
 	s32 ret;
 
 	char localip[16] = {0};
@@ -22,8 +21,7 @@ void netcat_console()
 	char netmask[16] = {0};
 
 	ret = if_config (localip, netmask, gateway, TRUE);
-	if (ret >= 0)
-	{
+	if (ret >= 0) {
 		//char temp[1026];
 
 		clientlen = sizeof(client);
@@ -44,8 +42,7 @@ void netcat_console()
 	}
 }
 
-void netcat_accept()
-{
+void netcat_accept() {
 	if (!netcat_init) return;
 	csock = net_accept (sock, (struct sockaddr *) &client, &clientlen);
 
@@ -58,20 +55,17 @@ void netcat_accept()
 	netcat_log("Hi there.\n");
 }
 
-void netcat_close()
-{
+void netcat_close() {
 	if (!netcat_init) return;
 	net_close(csock);
 }
 
-void netcat_log(const char* data)
-{
+void netcat_log(const char* data) {
 	if (!netcat_init) return;
 	net_send(csock, data, strlen(data), 0);
 }
 
-void netcat_logf(const char* format, ...)
-{
+void netcat_logf(const char* format, ...) {
 	if (!netcat_init) return;
     va_list argptr;
     va_start(argptr, format);

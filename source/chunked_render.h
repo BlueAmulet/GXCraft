@@ -3,8 +3,7 @@
 #include "player.h"
 #define nRenderChunks 256
 
-typedef struct
-{
+typedef struct {
 	bool active;
 	bool update;
 	unsigned short x, z;

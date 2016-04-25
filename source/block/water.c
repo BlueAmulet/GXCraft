@@ -28,7 +28,6 @@ bool testWaterFace(unsigned char face) {
 }
 
 inline void drawWaterBlock(int xPos, int yPos, int zPos) {
-
 	bool drawBack  = zPos >= worldZ-1 || testWaterFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testWaterFace(theWorld[yPos][xPos][zPos - 1]);
 	bool drawRight = xPos >= worldX-1 || testWaterFace(theWorld[yPos][xPos + 1][zPos]);

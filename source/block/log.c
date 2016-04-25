@@ -3,7 +3,6 @@
 #include "../block.h"
 #include "../render.h"
 
-
 #include "log.h"
 
 blockTexture *tex_log_top;

@@ -28,7 +28,6 @@ bool testLeavesFace(unsigned char face) {
 }
 
 inline void drawLeavesBlock(int xPos, int yPos, int zPos) {
-
 	bool drawBack  = zPos >= worldZ-1 || testLeavesFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testLeavesFace(theWorld[yPos][xPos][zPos - 1]);
 	bool drawRight = xPos >= worldX-1 || testLeavesFace(theWorld[yPos][xPos + 1][zPos]);

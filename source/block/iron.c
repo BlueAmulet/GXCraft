@@ -3,8 +3,6 @@
 #include "../block.h"
 #include "../render.h"
 
-
-
 #include "iron.h"
 
 blockTexture *tex_iron_top;

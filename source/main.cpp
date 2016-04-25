@@ -562,8 +562,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 
 			chunked_rerenderChunkUpdates();
 
-			if (rerenderDisplayList)
-			{
+			if (rerenderDisplayList) {
 				netcat_log("rerendering display list\n");
 				rerenderDisplayList = false;
 				displistX = thePlayer.posX;

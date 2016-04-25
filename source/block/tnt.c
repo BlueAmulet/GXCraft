@@ -3,8 +3,6 @@
 #include "../block.h"
 #include "../render.h"
 
-
-
 #include "tnt.h"
 
 blockTexture *tex_tnt_top;

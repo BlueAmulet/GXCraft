@@ -21,7 +21,6 @@ bool testFace(u8 face) {
 }
 
 inline void drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
-
 	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
 	bool drawRight = xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
@@ -169,7 +168,6 @@ inline void drawBlockCrossed(int xPos, int yPos, int zPos, blockTexture *tex) {
 }
 
 inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop, blockTexture *texSide, blockTexture *texBott) {
-
 	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
 	bool drawRight = xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
@@ -288,7 +286,6 @@ inline void drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop
 }
 
 inline void drawSelectionBlock(int xPos, int yPos, int zPos) {
-
 	GX_Begin(GX_LINES, GX_VTXFMT0, 24);
 
 	GX_Position3f32(xPos-0.01,yPos+1.01,zPos+1.01);

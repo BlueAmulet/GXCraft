@@ -28,15 +28,12 @@ void generateTerrain(unsigned int seed) {
 	// side length is the distance of a single square side
 	// or distance of diagonal in diamond
 	// each iteration we are looking at smaller squares and diamonds, we decrease the variation of the offset
-	for (sideLength = DATA_SIZE-1; sideLength >= 2; sideLength /= 2, h /= 2.0)
-	{
+	for (sideLength = DATA_SIZE-1; sideLength >= 2; sideLength /= 2, h /= 2.0) {
 		int halfSide = sideLength/2;
 
 		// generate new square values
-		for(x = 0; x < DATA_SIZE - 1; x += sideLength)
-		{
-			for(y = 0; y < DATA_SIZE - 1; y += sideLength)
-			{
+		for(x = 0; x < DATA_SIZE - 1; x += sideLength) {
+			for(y = 0; y < DATA_SIZE - 1; y += sideLength) {
 				// x, y is upper left corner of the square
 				// calculate average of existing corners
 				double avg = terrainData[x][y] +         //top   left
@@ -56,10 +53,8 @@ void generateTerrain(unsigned int seed) {
 		// Generate the diamond values
 		// Since diamonds are staggered, we only move x by half side
 		// NOTE: if the data shouldn't wrap the x < DATA_SIZE and y < DATA_SIZE
-		for (x = 0; x < DATA_SIZE - 1; x += halfSide)
-		{
-			for (y = (x + halfSide) % sideLength; y < DATA_SIZE - 1; y += sideLength)
-			{
+		for (x = 0; x < DATA_SIZE - 1; x += halfSide) {
+			for (y = (x + halfSide) % sideLength; y < DATA_SIZE - 1; y += sideLength) {
 				// x,y is center of diamond
 				// we must use mod and add DATA_SIZE for subtraction
 				// so that we can wrap around the array to find the corners
@@ -90,10 +85,8 @@ void generateTerrain(unsigned int seed) {
 	}
 
 	// Calculate minY and maxY values
-	for (i = 0; i < DATA_SIZE - 1; i++)
-	{
-		for(j = 0; j < DATA_SIZE - 1; j++)
-		{
+	for (i = 0; i < DATA_SIZE - 1; i++) {
+		for(j = 0; j < DATA_SIZE - 1; j++) {
 			if (terrainData[i][j] > maxY)
 				maxY = terrainData[i][j];
 			if (terrainData[i][j] < minY)

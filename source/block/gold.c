@@ -3,8 +3,6 @@
 #include "../block.h"
 #include "../render.h"
 
-
-
 #include "gold.h"
 
 blockTexture *tex_gold_top;

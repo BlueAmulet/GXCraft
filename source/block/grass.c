@@ -3,8 +3,6 @@
 #include "../block.h"
 #include "../render.h"
 
-
-
 #include "grass.h"
 
 blockTexture *tex_grass_side;

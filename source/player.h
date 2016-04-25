@@ -12,5 +12,5 @@ typedef struct player_s {
 	u8 inventory[10];
 	bool flying;
 	bool select;
-	unsigned short timer;
+	double timer;
 } player;

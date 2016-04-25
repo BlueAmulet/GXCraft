@@ -7,4 +7,4 @@
 extern float maxY;
 extern float minY;
 extern double terrainData[DATA_SIZE][DATA_SIZE];
-extern void generateTerrain();
+extern void generateTerrain(unsigned int);

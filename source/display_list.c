@@ -1,4 +1,5 @@
 #include <malloc.h>
+#include <math.h>
 
 #include "display_list.h"
 
@@ -10,7 +11,7 @@ displayList *displist_create(u16 size)
 	list->size = size;
 	list->index = 0;
 	list->vertex   = malloc(sizeof(s16)*size*3);
-	list->color    = malloc(sizeof(u16)*size  );
+	list->color    = malloc(sizeof(u16)*size);
 	list->texcoord = malloc(sizeof(s8)*size*2);
 
 	return list;
@@ -53,6 +54,25 @@ void displist_add(s16 x, s16 y, s16 z, u16 c, f32 u, f32 v)
 	dlist->texcoord[idx*2+1] = (s8)(v*256);
 
 	dlist->index++;
+
+	if (dlist->index >= dlist->size) {
+		u16 size = dlist->size*2;
+		dlist->size = size;
+		dlist->vertex   = realloc(dlist->vertex, sizeof(s16)*size*3);
+		dlist->color    = realloc(dlist->color, sizeof(u16)*size);
+		dlist->texcoord = realloc(dlist->texcoord, sizeof(s8)*size*2);
+	}
+}
+
+void displist_fit(displayList *list)
+{
+	u16 size = pow(2.0, ceil(log2(list->index)));
+	if (size <= dlist->size) {
+		list->size = size;
+		list->vertex   = realloc(list->vertex, sizeof(s16)*size*3);
+		list->color    = realloc(list->color, sizeof(u16)*size);
+		list->texcoord = realloc(list->texcoord, sizeof(s8)*size*2);
+	}
 }
 
 void displist_render(displayList *list)

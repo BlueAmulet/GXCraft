@@ -8,7 +8,7 @@
 blockTexture *tex_redshroom;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 0) return;
+	if (pass == 1) return;
 	drawBlockCrossed(xPos, yPos, zPos, tex_redshroom);
 }
 

@@ -2,7 +2,6 @@ Add better world generation (caves, flower pockets)
 Get/Create new textures
 Add non flying mode
 Better Lighting?
-Block place/delay timer is fps dependant
 Tree generation won't properly update neighbor chunks?
 Sky transition between air and underwater is delayed by a frame
 Restrict vertical movement

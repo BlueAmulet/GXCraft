@@ -33,6 +33,7 @@ extern "C" {
 
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
+unsigned int seed = 0; // 0 = Generate Seed
 u8 theWorld[worldY][worldX][worldZ];
 u8 lighting[worldX][worldZ];
 GRRLIB_texImg *tex_blockicons[256];
@@ -97,9 +98,9 @@ static void setBlock(int x, int y, int z, u8 blockID) {
 
 static void updateNeighbors(int x, int z) {
 	if (x % chunkSize == chunkSize-1) chunked_markchunkforupdate(floor(x/chunkSize)+1,floor(z/chunkSize));
-	if (x % chunkSize == 0) chunked_markchunkforupdate(floor(x/chunkSize)-1,floor(z/chunkSize));
+	if (x % chunkSize == 0)           chunked_markchunkforupdate(floor(x/chunkSize)-1,floor(z/chunkSize));
 	if (z % chunkSize == chunkSize-1) chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)+1);
-	if (z % chunkSize == 0) chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
+	if (z % chunkSize == 0)           chunked_markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
 }
 
 static void setBlockAndUpdate(int x, int y, int z, u8 blockID) {
@@ -140,7 +141,7 @@ static void placeTree(int x, int y, int z) {
 }
 
 static void generateWorld() {
-	generateTerrain();
+	generateTerrain(seed);
 	short x,y,z;
 	for (x = 0; x < worldX; x++) {
 		for (z = 0; z < worldZ; z++) {
@@ -189,8 +190,11 @@ typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate
 int main() {
 	//netcat_console(); // Comment this to disable netcat logger
 
-	time_t t;
-	srand((unsigned) time(&t));
+	if (seed == 0) {
+		srand(time(NULL));
+		seed = rand();
+	}
+	srand(seed);
 
 	int renderDistance = 96;
 
@@ -212,8 +216,8 @@ int main() {
 	int dlsize = 0;
 
 	// Initialize the player
-	thePlayer.posX = 315.5;
-	thePlayer.posZ = 64.5;
+	thePlayer.posX = worldX/2;
+	thePlayer.posZ = worldZ/2;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
 	thePlayer.motionZ = 0;
@@ -323,8 +327,9 @@ int main() {
 				thePlayer.motionY = 0;
 			}
 
-			if (thePlayer.timer > 0)
-				thePlayer.timer--;
+			if (thePlayer.timer > 0) {
+				thePlayer.timer -= 60.0/(double)FPS;
+			}
 
 			WPAD_ScanPads();
 			WPAD_IR(WPAD_CHAN_0, &IR_0);
@@ -403,7 +408,6 @@ int main() {
 
 			//netcat_log("switching 3d\n");
 			GRRLIB_3dMode(0.1, 1000, 45, true, false);
-			GX_SetCullMode(GX_CULL_NONE);
 			GX_SetZCompLoc(GX_FALSE);
 
 			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625),floor(thePlayer.posZ)) == 8) {
@@ -465,10 +469,10 @@ int main() {
 					if (aBlockSelOffZ > aBlockSelOffX && aBlockSelOffZ > aBlockSelOffY)
 						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
 
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer == 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer <= 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
 						setBlockAndUpdate(selBlockX,selBlockY,selBlockZ,0);
 						thePlayer.timer = 18;
-					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer == 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
+					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer <= 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
 						selBlockX+=faceBlockX;
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
@@ -588,7 +592,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 				GRRLIB_DrawImg(b * 40 + 144, 442, tex_blockicons[thePlayer.inventory[b]], 0, 1, 1, 0xFFFFFFFF);
 			}
 
-			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, 0xFFFFFFFF);
+			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, thePlayer.flying ? 0xBFBFBFFF: 0xFFFFFFFF);
 
 			if (thePlayer.select) {
 				GRRLIB_Rectangle(80, 60, 480, 300, 0x0000007F, true);
@@ -634,9 +638,10 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			GXCraft_DrawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
 			GXCraft_DrawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
 			GXCraft_DrawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
-			GXCraft_DrawText(10, 130, tex_font, "DLSIZE: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
-			GXCraft_DrawText(10, 145, tex_font, "MEMUSAGE: %d (%dMB)", memusage, memusage/1048576);
+			GXCraft_DrawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
+			GXCraft_DrawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1048576.0);
 			GXCraft_DrawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flowingLiquid.size(), flowingLiquid.capacity(), flowingLiquid.size()*100/flowingLiquid.capacity());
+			GXCraft_DrawText(406, 25, tex_font, "Seed: %08X", seed);
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
 				if (netcat_init) {
@@ -824,7 +829,7 @@ static void initializeBlocks() {
 static u8 CalculateFrameRate() {
 	static u8 frameCount = 0;
 	static u32 lastTime;
-	static u8 FPS = 0;
+	static u8 FPS = 60;
 	u32 currentTime = ticks_to_millisecs(gettime());
 
 	frameCount++;

@@ -15,8 +15,7 @@ double terrainData[DATA_SIZE][DATA_SIZE];
 float maxY = -1e32;
 float minY = 1e32;
 
-void generateTerrain() {
-
+void generateTerrain(unsigned int seed) {
 	// for loop initializers
 	int sideLength, x, y, i, j;
 
@@ -24,7 +23,7 @@ void generateTerrain() {
 	terrainData[0][0] = terrainData[0][DATA_SIZE-1] = terrainData[DATA_SIZE-1][0] = terrainData[DATA_SIZE-1][DATA_SIZE-1] = SEED;
 
 	double h = 200.0; // the range (-h -> h) for the average offset
-	srand(513);       // seed the random generator
+	srand(seed);      // seed the random generator
 
 	// side length is the distance of a single square side
 	// or distance of diagonal in diamond

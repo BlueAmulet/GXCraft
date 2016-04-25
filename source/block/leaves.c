@@ -12,7 +12,7 @@ blockTexture *tex_leaves;
 inline void drawLeavesBlock(int xPos, int yPos, int zPos);
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 0) return;
+	if (pass == 1) return;
 	drawLeavesBlock(xPos, yPos, zPos);
 }
 

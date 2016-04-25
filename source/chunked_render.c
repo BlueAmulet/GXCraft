@@ -110,8 +110,8 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 		//check for display list
 		if (rc->list == NULL)
 		{
-			rc->list = displist_create(6*1024);
-			rc->blendlist = displist_create(6*1024);
+			rc->list = displist_create(256);
+			rc->blendlist = displist_create(256);
 		}
 		//start rendering blocks
 		int bx, bz;
@@ -134,6 +134,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 				}
 			}
 		}
+		displist_fit(rc->list);
 		netcat_log("rendered pass 0\n");
 
 		displist_clear(rc->blendlist);
@@ -149,6 +150,7 @@ inline void chunked_rerenderChunk(signed short cx, signed short cz, bool force)
 				}
 			}
 		}
+		displist_fit(rc->blendlist);
 		netcat_log("rendered pass 1\n");
 		netcat_logf("%d/%d\n",rc->list->index,rc->list->size);
 	}

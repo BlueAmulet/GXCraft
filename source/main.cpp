@@ -2,11 +2,15 @@
     GXCraft by gamax92 and ds84182
 ============================================*/
 
-extern "C" {
+#include <cstdlib>
+#include <cmath>
+#include <vector>
+
 #include <grrlib.h>
 #include <wiiuse/wpad.h>
 #include <ogc/lwp_watchdog.h>
 
+extern "C" {
 #include "textures/font.h"
 #include "textures/inventory.h"
 #include "textures/inv_select.h"
@@ -14,9 +18,6 @@ extern "C" {
 #include "textures/cursor.h"
 #include "textures/clouds.h"
 }
-#include <cstdlib>
-#include <cmath>
-#include <vector>
 
 #include "main.hpp"
 #include "player.hpp"
@@ -180,6 +181,8 @@ static void generateWorld() {
 	// TODO: Add Flower pockets
 }
 
+#define blockclamp(a,b) a=floor(a) + ((b < 0) ? 0 : 0.9999)
+
 static void initializeBlocks();
 static u8 CalculateFrameRate();
 static void color85(char *buf, u32 color);
@@ -317,7 +320,7 @@ int main() {
 			GX_SetLineWidth(15, GX_TO_ONE);
 			status = INGAME;
 			break;
-		case INGAME: // Main loop
+		case INGAME: { // Main loop
 			// Reset Motion
 			thePlayer.motionX = 0;
 			thePlayer.motionZ = 0;
@@ -394,9 +397,68 @@ int main() {
 			}
 
 			// Apply motion to player
-			thePlayer.posX += thePlayer.motionX * deltaTime;
-			thePlayer.posY += thePlayer.motionY * deltaTime;
-			thePlayer.posZ += thePlayer.motionZ * deltaTime;
+			// Super simple collision checking, may eventually look into AABB
+			double motionVX = thePlayer.motionX * deltaTime;
+			double motionVY = thePlayer.motionY * deltaTime;
+			double motionVZ = thePlayer.motionZ * deltaTime;
+			do {
+				u8 block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ));
+				if (block != 0 && block != 8 && block != 10) {
+					// Allow player to get out of ground if they glitch inside
+					thePlayer.posX += motionVX;
+					thePlayer.posY += motionVY;
+					thePlayer.posZ += motionVZ;
+					break;
+				}
+				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
+				if (block == 0 || block == 8 || block == 10) {
+					thePlayer.posX += motionVX;
+					thePlayer.posY += motionVY;
+					thePlayer.posZ += motionVZ;
+					break;
+				}
+				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
+				if (block == 0 || block == 8 || block == 10) {
+					thePlayer.posX += motionVX;
+					blockclamp(thePlayer.posY, motionVY);
+					thePlayer.posZ += motionVZ;
+					break;
+				}
+				block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
+				if (block == 0 || block == 8 || block == 10) {
+					blockclamp(thePlayer.posX, motionVX);
+					thePlayer.posY += motionVY;
+					thePlayer.posZ += motionVZ;
+					break;
+				}
+				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
+				if (block == 0 || block == 8 || block == 10) {
+					thePlayer.posX += motionVX;
+					thePlayer.posY += motionVY;
+					blockclamp(thePlayer.posZ, motionVZ);
+					break;
+				}
+				block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
+				if (block == 0 || block == 8 || block == 10) {
+					blockclamp(thePlayer.posX, motionVX);
+					blockclamp(thePlayer.posY, motionVY);
+					thePlayer.posZ += motionVZ;
+					break;
+				}
+				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ));
+				if (block == 0 || block == 8 || block == 10) {
+					thePlayer.posX += motionVX;
+					blockclamp(thePlayer.posY, motionVY);
+					blockclamp(thePlayer.posZ, motionVZ);
+					break;
+				}
+				block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
+				if (block == 0 || block == 8 || block == 10) {
+					blockclamp(thePlayer.posX, motionVX);
+					thePlayer.posY += motionVY;
+					blockclamp(thePlayer.posZ, motionVZ);
+				}
+			} while (0);
 
 			// Keep values in bound
 			if (thePlayer.lookX > 180)       thePlayer.lookX -= 360;
@@ -657,7 +719,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 
 			GRRLIB_Render();
 			FPS = CalculateFrameRate();
-			break;
+			break; }
 		case NUNCHUK:
 			WPAD_ScanPads();
 

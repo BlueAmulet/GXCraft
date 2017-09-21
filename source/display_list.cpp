@@ -59,6 +59,10 @@ void DisplayList::fit() {
 }
 
 void DisplayList::render() {
+	if (!this->index) {
+		return;
+	}
+
 	GX_SetArray(GX_VA_POS,  this->vertex, sizeof(s16) * 3);
 	GX_SetArray(GX_VA_CLR0, this->color, sizeof(u16));
 	GX_SetArray(GX_VA_TEX0, this->texcoord, sizeof(u8) * 2);

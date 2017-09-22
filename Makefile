@@ -57,7 +57,7 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 # automatically build a list of object files for our project
 #---------------------------------------------------------------------------------
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+CPPFILES	:=	Main.cpp $(filter-out Main.cpp, $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp))))
 sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))

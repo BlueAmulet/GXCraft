@@ -109,7 +109,7 @@ inline void Chunked::rerenderChunk(signed short cx, signed short cz, bool force)
 		for (y = worldY - 1; y >= 0; y--) {
 			for (x = bx; x < bx+chunkSize; x++) {
 				for (z = bz; z < bz+chunkSize; z++) {
-					u8 blockID = theWorld[y][x][z];
+					uint8_t blockID = theWorld->theWorld[y][x][z];
 					if (blockID != 0) {
 						blockEntry entry = blockRegistry[blockID];
 						entry.renderBlock(x, y, z, 0);
@@ -125,7 +125,7 @@ inline void Chunked::rerenderChunk(signed short cx, signed short cz, bool force)
 		for (y = 0; y < worldY; y++) {
 			for (x = bx; x < bx+chunkSize; x++) {
 				for (z = bz; z < bz+chunkSize; z++) {
-					u8 blockID = theWorld[y][x][z];
+					uint8_t blockID = theWorld->theWorld[y][x][z];
 					if (blockID != 0) {
 						blockEntry entry = blockRegistry[blockID];
 						entry.renderBlock(x, y, z, 1);
@@ -143,7 +143,7 @@ inline void Chunked::rerenderChunk(signed short cx, signed short cz, bool force)
 	}
 }
 
-void Chunked::refresh(int renderDistance, player thePlayer) {
+void Chunked::refresh(int renderDistance) {
 	//convert the player's position to chunk position
 	signed short px, pz;
 	px = thePlayer.posX/chunkSize;
@@ -201,7 +201,7 @@ static void calculateChunkPoint(guVector *polygon, guVector *center, guVector *c
 	Fail3D::calculatePointPosition(polygon);
 }
 
-void Chunked::render(player thePlayer) {
+void Chunked::render() {
 	guVector center = {thePlayer.posX, -thePlayer.posY - 1.625f, -thePlayer.posZ};
 	guVector camera = {thePlayer.lookY, thePlayer.lookX, thePlayer.lookZ};
 	guVector polygon;

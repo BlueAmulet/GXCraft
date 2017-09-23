@@ -4,7 +4,6 @@
 
 #include <cstdlib>
 #include <cmath>
-#include <vector>
 
 #include <grrlib.h>
 #include <wiiuse/wpad.h>
@@ -23,7 +22,7 @@ extern "C" {
 #include "Player.hpp"
 #include "Controls.hpp"
 #include "Block.hpp"
-#include "Terrain.hpp"
+#include "World.hpp"
 #include "Render.hpp"
 #include "Fail3D.hpp"
 #include "NetcatLogger.hpp"
@@ -35,13 +34,10 @@ extern "C" {
 #define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
 
 unsigned int seed = 0; // 0 = Generate Seed
-u8 theWorld[worldY][worldX][worldZ];
-u8 lighting[worldX][worldZ];
 GRRLIB_texImg *tex_blockicons[256];
 
 player thePlayer;
-
-std::vector<guVector> flowingLiquid;
+World *theWorld;
 
 inline double to_degrees(double radians) {
 	return radians*(180.0f/M_PI);
@@ -51,142 +47,11 @@ inline double to_radians(double degrees) {
 	return (degrees*M_PI)/180.0f;
 }
 
-// Safe block retrieval
-static u8 getBlock(int x, int y, int z) {
-	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
-		return theWorld[y][x][z];
-	return 0;
-}
-
-#define tryAddLiquidBlock(xpos, ypos, zpos) \
-blockID = getBlock(xpos, ypos, zpos);\
-if (blockID == 8 || blockID == 10) {\
-	toAdd.x = xpos;\
-	toAdd.y = ypos;\
-	toAdd.z = zpos;\
-	flowingLiquid.push_back(toAdd);\
-}
-
-// Safe block placement
-static void setBlock(int x, int y, int z, u8 blockID) {
-	if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ) {
-		theWorld[y][x][z] = blockID;
-		if (blockID == 6 || blockID == 18 || blockID == 20 || blockID == 37 || blockID == 38 || blockID == 39 || blockID == 40)
-			return;
-		guVector toAdd;
-		if (blockID != 0) {
-			if (lighting[x][z] < y)
-				lighting[x][z] = y;
-		} else {
-			if (y >= lighting[x][z]) {
-				int sy;
-				for (sy = y - 1; y >= 0; sy--) {
-					if (theWorld[sy][x][z] != 0 && theWorld[sy][x][z] != 6 && theWorld[sy][x][z] != 18 && theWorld[sy][x][z] != 20 && theWorld[sy][x][z] != 37 && theWorld[sy][x][z] != 38 && theWorld[sy][x][z] != 39 && theWorld[sy][x][z] != 40) {
-						lighting[x][z] = sy;
-						break;
-					}
-				}
-			}
-			tryAddLiquidBlock(x-1, y, z);
-			tryAddLiquidBlock(x+1, y, z);
-			tryAddLiquidBlock(x, y, z-1);
-			tryAddLiquidBlock(x, y, z+1);
-		}
-		tryAddLiquidBlock(x, y+1, z);
-	}
-}
-#undef tryAddLiquidBlock
-
-static void updateNeighbors(int x, int z) {
-	if (x % chunkSize == chunkSize-1) Chunked::markchunkforupdate(floor(x/chunkSize)+1,floor(z/chunkSize));
-	if (x % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize)-1,floor(z/chunkSize));
-	if (z % chunkSize == chunkSize-1) Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)+1);
-	if (z % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
-}
-
-static void setBlockAndUpdate(int x, int y, int z, u8 blockID) {
-	setBlock(x, y, z, blockID);
-	Chunked::markchunkforupdate(floor(x/chunkSize), floor(z/chunkSize));
-	updateNeighbors(x, z);
-}
-
-static void setIfAir(int x, int y, int z, u8 blockID) {
-	u8 tBlockID = getBlock(x,y,z);
-	if (tBlockID == 0 || tBlockID == 255)
-		setBlock(x,y,z,blockID);
-}
-
-static void placeTree(int x, int y, int z) {
-	if (getBlock(x,y-1,z) == 2)
-		setBlock(x,y-1,z,3);
-	int lx,ly,lz;
-	for (ly = y + 3; ly <= y + 4; ly++) {
-		for (lx = x - 2; lx <= x + 2; lx++) {
-			for (lz = z - 2; lz <= z + 2; lz++) {
-				setIfAir(lx,ly,lz,18);
-			}
-		}
-	}
-	for (lx = x - 1; lx <= x + 1; lx++) {
-		for (lz = z - 1; lz <= z + 1; lz++) {
-			setIfAir(lx,y+5,lz,18);
-		}
-	}
-	setIfAir(x,y+6,z,18);
-	setIfAir(x-1,y+6,z,18);
-	setIfAir(x+1,y+6,z,18);
-	setIfAir(x,y+6,z-1,18);
-	setIfAir(x,y+6,z+1,18);
-	for (ly = y; ly < y + 6; ly++)
-		setBlock(x,ly,z,17);
-}
-
-static void generateWorld() {
-	generateTerrain(seed);
-	short x,y,z;
-	for (x = 0; x < worldX; x++) {
-		for (z = 0; z < worldZ; z++) {
-			double terrainPiece = floor(((terrainData[x][z] - minY) / (maxY - minY) * (worldY - 2)) + 1);
-			if (terrainPiece < 15)
-				lighting[x][z] = 15;
-			else
-				lighting[x][z] = terrainPiece;
-			for (y = 0; y < worldY; y++) {
-				if (y == 0)
-					theWorld[y][x][z] = 7;
-				else if (y < terrainPiece - 2)
-					theWorld[y][x][z] = 1;
-				else if (y < terrainPiece && y >= terrainPiece - 2)
-					theWorld[y][x][z] = 3;
-				else if (y == terrainPiece) {
-					if (terrainPiece < 15)
-						theWorld[y][x][z] = 3;
-					else
-						theWorld[y][x][z] = 2;
-				} else if (y == terrainPiece + 1 && terrainPiece >= 16) {
-					int type = rand() % 1000;
-					if (type == 1)
-						placeTree(x,y,z);
-					else
-						theWorld[y][x][z] = 0;
-				} else if (theWorld[y][x][z] == 255) {
-					if (y < 16)
-						theWorld[y][x][z] = 8;
-					else
-						theWorld[y][x][z] = 0;
-				}
-			}
-		}
-	}
-	// TODO: Add Flower pockets
-}
-
 #define blockclamp(a,b) a=floor(a) + ((b < 0) ? 0 : 0.9999)
 
 static void initializeBlocks();
 static u8 CalculateFrameRate();
 static void color85(char *buf, u32 color);
-static int randnum(int x, int y);
 
 typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
@@ -208,9 +73,6 @@ int main() {
 		status = REGISTER;
 
 	u8 FPS = 0;
-
-	memset(theWorld, 255, sizeof theWorld);
-	flowingLiquid.reserve(32);
 
 	bool rerenderDisplayList = true;
 	bool exitloop = false;
@@ -308,10 +170,10 @@ int main() {
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 			GRRLIB_Render();
 			Netcat::log("generating world\n");
-			generateWorld();
+			theWorld = new World(seed);
 			int y;
 			for (y = worldY - 1; y >= 0; y--) {
-				if (theWorld[y][(int)thePlayer.posX][(int)thePlayer.posZ] != 0) {
+				if (theWorld->getBlock((int)thePlayer.posX, y, (int)thePlayer.posZ) != 0) {
 					thePlayer.posY = y + 1;
 					break;
 				}
@@ -402,7 +264,7 @@ int main() {
 			double motionVY = thePlayer.motionY * deltaTime;
 			double motionVZ = thePlayer.motionZ * deltaTime;
 			do {
-				u8 block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ));
+				u8 block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ));
 				if (block != 0 && block != 8 && block != 10) {
 					// Allow player to get out of ground if they glitch inside
 					thePlayer.posX += motionVX;
@@ -410,49 +272,49 @@ int main() {
 					thePlayer.posZ += motionVZ;
 					break;
 				}
-				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
+				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
 				if (block == 0 || block == 8 || block == 10) {
 					thePlayer.posX += motionVX;
 					thePlayer.posY += motionVY;
 					thePlayer.posZ += motionVZ;
 					break;
 				}
-				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
+				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
 				if (block == 0 || block == 8 || block == 10) {
 					thePlayer.posX += motionVX;
 					blockclamp(thePlayer.posY, motionVY);
 					thePlayer.posZ += motionVZ;
 					break;
 				}
-				block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
+				block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
 				if (block == 0 || block == 8 || block == 10) {
 					blockclamp(thePlayer.posX, motionVX);
 					thePlayer.posY += motionVY;
 					thePlayer.posZ += motionVZ;
 					break;
 				}
-				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
+				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
 				if (block == 0 || block == 8 || block == 10) {
 					thePlayer.posX += motionVX;
 					thePlayer.posY += motionVY;
 					blockclamp(thePlayer.posZ, motionVZ);
 					break;
 				}
-				block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
+				block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
 				if (block == 0 || block == 8 || block == 10) {
 					blockclamp(thePlayer.posX, motionVX);
 					blockclamp(thePlayer.posY, motionVY);
 					thePlayer.posZ += motionVZ;
 					break;
 				}
-				block = getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ));
+				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ));
 				if (block == 0 || block == 8 || block == 10) {
 					thePlayer.posX += motionVX;
 					blockclamp(thePlayer.posY, motionVY);
 					blockclamp(thePlayer.posZ, motionVZ);
 					break;
 				}
-				block = getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
+				block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
 				if (block == 0 || block == 8 || block == 10) {
 					blockclamp(thePlayer.posX, motionVX);
 					thePlayer.posY += motionVY;
@@ -472,7 +334,7 @@ int main() {
 			GRRLIB_3dMode(0.1, 1000, 45, true, false);
 			GX_SetZCompLoc(GX_FALSE);
 
-			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
+			if (theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
 				if (!wasUnder) {
 					GRRLIB_SetBackgroundColour(0x05, 0x05, 0x33, 0xFF);
 					wasUnder = true;
@@ -505,7 +367,7 @@ int main() {
 
 			float i;
 			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
-				u8 block = getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625f),floor(zLook*i+thePlayer.posZ));
+				u8 block = theWorld->getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625f),floor(zLook*i+thePlayer.posZ));
 				if (block != 0 && block != 8 && block != 10) {
 					int selBlockX = floor(xLook*i+thePlayer.posX);
 					int selBlockY = floor(yLook*i+thePlayer.posY+1.625f);
@@ -531,74 +393,23 @@ int main() {
 					if (aBlockSelOffZ > aBlockSelOffX && aBlockSelOffZ > aBlockSelOffY)
 						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
 
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer <= 0 && getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
-						setBlockAndUpdate(selBlockX,selBlockY,selBlockZ,0);
+					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer <= 0 && theWorld->getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
+						theWorld->setBlock(selBlockX,selBlockY,selBlockZ,0);
 						thePlayer.timer = 18;
 					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer <= 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
 						selBlockX+=faceBlockX;
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
 
-						setBlockAndUpdate(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
+						theWorld->setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
 						thePlayer.timer = 18;
 					}
 					break;
 				}
 			}
 
-			// Random Block Update!
-			for (i = 0; i < pow(renderDistance/16,2)*48; i++) {
-				signed int rx = randnum(thePlayer.posX - renderDistance, thePlayer.posX + renderDistance);
-				signed int ry = randnum(0, worldY - 1);
-				signed int rz = randnum(thePlayer.posZ - renderDistance, thePlayer.posZ + renderDistance);
-				u8 blockID = getBlock(rx,ry,rz);
-				if (blockID == 3 && lighting[rx][rz] <= ry) {
-					setBlockAndUpdate(rx,ry,rz,2);
-				} else if (blockID == 2 && lighting[rx][rz] > ry) {
-					setBlockAndUpdate(rx,ry,rz,3);
-				} else if (blockID == 6) {
-					if (lighting[rx][rz] > ry) { //not working?
-						setBlockAndUpdate(rx,ry,rz,0);
-					} else {
-						placeTree(rx,ry,rz);
-						// this wont update chunks properly. duplicated because we need special chunk care here.
-						Chunked::markchunkforupdate(floor(rx/chunkSize), floor(rz/chunkSize));
-						updateNeighbors(rx, rz);
-					}
-				}
-			}
-#define trySetLiquidBlock(xpos,ypos,zpos) \
-if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
-	setBlockAndUpdate(liquid.xpos, liquid.ypos, liquid.zpos, liquidType);\
-	newLiquid.x = liquid.xpos;\
-	newLiquid.y = liquid.ypos;\
-	newLiquid.z = liquid.zpos;\
-	flowingLiquid.push_back(newLiquid);\
-}
-			// Fluid Updates
-			if (flowingLiquid.size() > 0) {
-				int fls = flowingLiquid.size();
-				for (i = 0; i < std::min(fls, 10); i++) {
-					guVector liquid = flowingLiquid[0];
-					flowingLiquid.erase(flowingLiquid.begin());
-					guVector newLiquid;
-					u8 liquidType = getBlock(liquid.x, liquid.y, liquid.z);
-					u8 bottomBlock = getBlock(liquid.x, liquid.y-1, liquid.z);
-					if (bottomBlock == 0 && liquidType != 0) {
-						setBlockAndUpdate(liquid.x, liquid.y-1, liquid.z, liquidType);
-						newLiquid.x = liquid.x;
-						newLiquid.y = liquid.y-1;
-						newLiquid.z = liquid.z;
-						flowingLiquid.push_back(newLiquid);
-					} else if (bottomBlock != liquidType) {
-						trySetLiquidBlock(x-1,y,z);
-						trySetLiquidBlock(x+1,y,z);
-						trySetLiquidBlock(x,y,z-1);
-						trySetLiquidBlock(x,y,z+1);
-					}
-				}
-			}
-#undef trySetLiquidBlock
+			// Tick the world
+			theWorld->updateWorld(renderDistance);
 
 			// Draw Clouds
 			GRRLIB_SetTexture(tex_clouds, true);
@@ -629,12 +440,12 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 				rerenderDisplayList = false;
 				displistX = thePlayer.posX;
 				displistZ = thePlayer.posZ;
-				Chunked::refresh(renderDistance, thePlayer);
+				Chunked::refresh(renderDistance);
 				dluse = Chunked::getfifousage();
 				dlsize = Chunked::getfifototal();
 			}
 			GRRLIB_SetTexture(tex_terrain, false);
-			Chunked::render(thePlayer);
+			Chunked::render();
 
 			// Draw 2D elements
 			//Netcat::log("switching 2d\n");
@@ -691,6 +502,9 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			if (memusage > 0xE800000) // Correct gap between MEM1 and MEM2
 				memusage -= 0xE800000;
 
+			int flsize = theWorld->getLiquidsSize();
+			int flcapacity = theWorld->getLiquidsCapacity();
+
 			// Draw debugging elements
 			Render::drawText(10,  25, tex_font, "FPS: %d", FPS);
 			Render::drawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
@@ -701,7 +515,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			Render::drawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
 			Render::drawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
 			Render::drawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1048576.0);
-			Render::drawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flowingLiquid.size(), flowingLiquid.capacity(), flowingLiquid.size()*100/flowingLiquid.capacity());
+			Render::drawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flsize, flcapacity, flsize*100/flcapacity);
 			Render::drawText(406, 25, tex_font, "Seed: %08X", seed);
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
@@ -729,7 +543,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 
 			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
 
-			if (getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
+			if (theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
 				GXColor c = {0x05, 0x05, 0x33};
 				GX_SetFog(GX_FOG_LIN, 0, 32, 0.1, 1000, c);
 			} else {
@@ -749,7 +563,7 @@ if (getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
 
 			GRRLIB_SetTexture(tex_terrain, false);
-			Chunked::render(thePlayer);
+			Chunked::render();
 
 			//Complain to user
 			GRRLIB_2dMode();
@@ -900,9 +714,4 @@ static u8 CalculateFrameRate() {
 		frameCount = 0;
 	}
 	return FPS;
-}
-
-static int randnum(int x, int y) {
-	double uni = ((double)rand())/((double)RAND_MAX);
-	return floor(uni * (y - x + 1)) + x;
 }

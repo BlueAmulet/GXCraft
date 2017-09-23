@@ -28,12 +28,12 @@ bool testLeavesFace(unsigned char face) {
 }
 
 inline void drawLeavesBlock(int xPos, int yPos, int zPos) {
-	bool drawBack  = zPos >= worldZ-1 || testLeavesFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = zPos <= 0        || testLeavesFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = xPos >= worldX-1 || testLeavesFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = xPos <= 0        || testLeavesFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = yPos >= worldY-1 || testLeavesFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = yPos > 0         && testLeavesFace(theWorld[yPos - 1][xPos][zPos]);
+	bool drawBack  = zPos >= worldZ-1 || testLeavesFace(theWorld->theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = zPos <= 0        || testLeavesFace(theWorld->theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = xPos >= worldX-1 || testLeavesFace(theWorld->theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = xPos <= 0        || testLeavesFace(theWorld->theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testLeavesFace(theWorld->theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = yPos > 0         && testLeavesFace(theWorld->theWorld[yPos - 1][xPos][zPos]);
 
 	if (!drawBack && !drawFront && !drawRight && !drawLeft && !drawTop && !drawBott) return;
 
@@ -103,7 +103,7 @@ inline void drawLeavesBlock(int xPos, int yPos, int zPos) {
 	}
 
 	if (drawTop) {
-		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+		unsigned short c = theWorld->lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 		dlist->add(xPos, 1+yPos,zPos,
 		c,
 		u0,v0);

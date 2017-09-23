@@ -1,4 +1,7 @@
 #pragma once
+#include <cstdint>
+#include <grrlib.h>
+
 typedef struct player_s {
 	f32 posX;
 	f32 posY;
@@ -9,7 +12,7 @@ typedef struct player_s {
 	f32 lookX;
 	f32 lookY;
 	f32 lookZ;
-	u8 inventory[10];
+	uint8_t inventory[10];
 	bool flying;
 	bool select;
 	double timer;

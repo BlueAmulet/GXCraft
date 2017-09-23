@@ -1,6 +1,5 @@
 #pragma once
 #include "DisplayList.hpp"
-#include "Player.hpp"
 
 #define nRenderChunks 256
 
@@ -24,8 +23,8 @@ class Chunked {
 		static void markchunkforupdate(unsigned short, unsigned short);
 		static void rerenderChunkUpdates();
 		static void rerenderChunk(signed short, signed short, bool);
-		static void refresh(int, player);
-		static void render(player);
+		static void refresh(int);
+		static void render();
 		static int getfifousage();
 		static int getfifototal();
 };

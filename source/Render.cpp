@@ -31,12 +31,12 @@ bool Render::testFace(u8 face) {
 }
 
 void Render::drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
-	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = xPos <= 0        || testFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = yPos >= worldY-1 || testFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = yPos > 0         && testFace(theWorld[yPos - 1][xPos][zPos]);
+	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld->theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = zPos <= 0        || testFace(theWorld->theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = xPos >= worldX-1 || testFace(theWorld->theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = xPos <= 0        || testFace(theWorld->theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testFace(theWorld->theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = yPos > 0         && testFace(theWorld->theWorld[yPos - 1][xPos][zPos]);
 
 	if (!drawBack && !drawFront && !drawRight && !drawLeft && !drawTop && !drawBott) return;
 
@@ -104,7 +104,7 @@ void Render::drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 	}
 
 	if (drawTop) {
-		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+		unsigned short c = theWorld->lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 		dlist->add(xPos, 1+yPos,zPos,
 		c,
 		u0,v0);
@@ -137,7 +137,7 @@ void Render::drawBlock(int xPos, int yPos, int zPos, blockTexture *tex) {
 }
 
 void Render::drawBlockCrossed(int xPos, int yPos, int zPos, blockTexture *tex) {
-	unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+	unsigned short c = theWorld->lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 
 	f32 u0 = tex->u0, v0 = tex->v0;
 	f32 u1 = tex->u1, v1 = tex->v1;
@@ -170,12 +170,12 @@ void Render::drawBlockCrossed(int xPos, int yPos, int zPos, blockTexture *tex) {
 }
 
 void Render::drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTop, blockTexture *texSide, blockTexture *texBott) {
-	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld[yPos][xPos][zPos + 1]);
-	bool drawFront = zPos <= 0        || testFace(theWorld[yPos][xPos][zPos - 1]);
-	bool drawRight = xPos >= worldX-1 || testFace(theWorld[yPos][xPos + 1][zPos]);
-	bool drawLeft  = xPos <= 0        || testFace(theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = yPos >= worldY-1 || testFace(theWorld[yPos + 1][xPos][zPos]);
-	bool drawBott  = yPos > 0         && testFace(theWorld[yPos - 1][xPos][zPos]);
+	bool drawBack  = zPos >= worldZ-1 || testFace(theWorld->theWorld[yPos][xPos][zPos + 1]);
+	bool drawFront = zPos <= 0        || testFace(theWorld->theWorld[yPos][xPos][zPos - 1]);
+	bool drawRight = xPos >= worldX-1 || testFace(theWorld->theWorld[yPos][xPos + 1][zPos]);
+	bool drawLeft  = xPos <= 0        || testFace(theWorld->theWorld[yPos][xPos - 1][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testFace(theWorld->theWorld[yPos + 1][xPos][zPos]);
+	bool drawBott  = yPos > 0         && testFace(theWorld->theWorld[yPos - 1][xPos][zPos]);
 
 	if (!drawBack && !drawFront && !drawRight && !drawLeft && !drawTop && !drawBott) return;
 
@@ -246,7 +246,7 @@ void Render::drawMultiTexBlock(int xPos, int yPos, int zPos, blockTexture *texTo
 		u0 = texTop->u0, v0 = texTop->v0;
 		u1 = texTop->u1, v1 = texTop->v1;
 
-		unsigned short c = lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+		unsigned short c = theWorld->lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
 
 		dlist->add(xPos, 1+yPos,zPos,
 		c,

@@ -13,10 +13,6 @@
 
 #define chunkSize 16
 
-extern float maxY;
-extern float minY;
-extern double terrainData[DATA_SIZE][DATA_SIZE];
-
 class World {
 	public:
 		uint8_t theWorld[worldY][worldX][worldZ];

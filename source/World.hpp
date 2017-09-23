@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <grrlib.h>
+#include <cstdint>
 
 //Size of the grid to generate
 //This must be 2^n+1 (e.g. 257)

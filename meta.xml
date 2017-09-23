@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+	<name>GXCraft</name>
+	<coder>gamax92, ds84182</coder>
+	<version>_VERSION_</version>
+	<release_date>_RELEASEDATE_</release_date>
+	<short_description>A Minecraft Classic clone</short_description>
+	<long_description>A Minecraft Classic clone for the Wii.</long_description>
+</app>

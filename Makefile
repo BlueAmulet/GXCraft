@@ -119,6 +119,15 @@ run-dolphin-nondebug:
 	dolphin-emu -b -e $(TARGET).dol
 
 #---------------------------------------------------------------------------------
+package:
+	@mkdir -p GXCraft
+	@cp GXCraft.dol GXCraft/boot.dol
+	@cp icon.png meta.xml GXCraft/
+	@sed -i "s/_VERSION_/r`git rev-list --count HEAD`.`git rev-parse --short HEAD`/" GXCraft/meta.xml
+	@sed -i "s/_RELEASEDATE_/`git show -s --date=format:'%Y%m%d%H%M%S' --format=%cd HEAD`/" GXCraft/meta.xml
+	zip -r GXCraft.zip GXCraft/
+
+#---------------------------------------------------------------------------------
 else
 
 DEPENDS	:=	$(OFILES:.o=.d)

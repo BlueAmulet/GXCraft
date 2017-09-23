@@ -43,67 +43,76 @@ inline void drawLeavesBlock(int xPos, int yPos, int zPos) {
 	f32 u1 = tex_leaves->u1, v1 = tex_leaves->v1;
 
 	if (drawBack) {
+		unsigned short c = (zPos < worldZ-1 && theWorld->lighting[xPos][zPos+1] > yPos) ? 0x888F : 0xCCCF;
+
 		dlist->add(xPos, 1+yPos, 1+zPos,
-		0xCCCF,
+		c,
 		u0,v0);
 		dlist->add( 1+xPos, 1+yPos, 1+zPos,
-		0xCCCF,
+		c,
 		u1,v0);
 		dlist->add( 1+xPos,yPos, 1+zPos,
-		0xCCCF,
+		c,
 		u1,v1);
 		dlist->add(xPos,yPos, 1+zPos,
-		0xCCCF,
+		c,
 		u0,v1);
 	}
 
 	if (drawFront) {
+		unsigned short c = (zPos > 0 && theWorld->lighting[xPos][zPos-1] > yPos) ? 0x888F : 0xCCCF;
+
 		dlist->add( 1+xPos, 1+yPos,zPos,
-		0xCCCF,
+		c,
 		u0,v0);
 		dlist->add(xPos, 1+yPos,zPos,
-		0xCCCF,
+		c,
 		u1,v0);
 		dlist->add(xPos,yPos,zPos,
-		0xCCCF,
+		c,
 		u1,v1);
 		dlist->add( 1+xPos,yPos,zPos,
-		0xCCCF,
+		c,
 		u0,v1);
 	}
 
 	if (drawRight) {
+		unsigned short c = (xPos < worldX-1 && theWorld->lighting[xPos+1][zPos] > yPos) ? 0x777F : 0x999F;
+
 		dlist->add( 1+xPos, 1+yPos, 1+zPos,
-		0x999F,
+		c,
 		u0,v0);
 		dlist->add( 1+xPos, 1+yPos,zPos,
-		0x999F,
+		c,
 		u1,v0);
 		dlist->add( 1+xPos,yPos,zPos,
-		0x999F,
+		c,
 		u1,v1);
 		dlist->add( 1+xPos,yPos, 1+zPos,
-		0x999F,
+		c,
 		u0,v1);
 	}
 
 	if (drawLeft) {
+		unsigned short c = (xPos > 0 && theWorld->lighting[xPos-1][zPos] > yPos) ? 0x777F : 0x999F;
+
 		dlist->add(xPos, 1+yPos,zPos,
-		0x999F,
+		c,
 		u0,v0);
 		dlist->add(xPos, 1+yPos, 1+zPos,
-		0x999F,
+		c,
 		u1,v0);
 		dlist->add(xPos,yPos, 1+zPos,
-		0x999F,
+		c,
 		u1,v1);
 		dlist->add(xPos,yPos,zPos,
-		0x999F,
+		c,
 		u0,v1);
 	}
 
 	if (drawTop) {
-		unsigned short c = theWorld->lighting[xPos][zPos] <= yPos ? 0xFFFF : 0x999F;
+		unsigned short c = (theWorld->lighting[xPos][zPos] > yPos) ? 0x999F : 0xFFFF;
+
 		dlist->add(xPos, 1+yPos,zPos,
 		c,
 		u0,v0);

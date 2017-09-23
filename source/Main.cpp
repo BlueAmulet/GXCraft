@@ -514,7 +514,7 @@ int main() {
 			Render::drawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
 			Render::drawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
 			Render::drawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
-			Render::drawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1048576.0);
+			Render::drawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1024.0/1024.0);
 			Render::drawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flsize, flcapacity, flsize*100/flcapacity);
 			Render::drawText(406, 25, tex_font, "Seed: %08X", seed);
 

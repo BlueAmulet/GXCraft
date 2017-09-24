@@ -73,14 +73,19 @@ void Chunked::markchunkforupdate(unsigned short x, unsigned short z) {
 	Netcat::log("no chunk to mark for render update!\n");
 }
 
-void Chunked::rerenderChunkUpdates() {
-	int i;
-	for (i=0; i<nRenderChunks; i++) {
+bool Chunked::rerenderChunkUpdates(bool all) {
+	bool rendered = false;
+	for (int i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
 		if (rc->active && rc->update) {
 			Chunked::rerenderChunk(rc->x, rc->z, true);
+			if (!all) // Slow chunk updates to avoid stutter
+				return true;
+			else
+				rendered = true;
 		}
 	}
+	return rendered;
 }
 
 inline void Chunked::rerenderChunk(signed short cx, signed short cz, bool force) {
@@ -143,12 +148,22 @@ inline void Chunked::rerenderChunk(signed short cx, signed short cz, bool force)
 	}
 }
 
+inline void Chunked::renderNewChunk(signed short cx, signed short cz) {
+	if (cx < 0 || cz < 0 || cx >= worldX/chunkSize || cz >= worldZ/chunkSize)
+		return;
+	renderchunk *rc = renderchunks[Chunked::getchunkfromchunkpos(cx,cz)];
+	if (!rc->active) {
+		rc->active = true;
+		rc->update = true;
+	}
+}
+
 void Chunked::refresh(int renderDistance) {
 	//convert the player's position to chunk position
 	signed short px, pz;
 	px = thePlayer.posX/chunkSize;
 	pz = thePlayer.posZ/chunkSize;
-	int rcd = renderDistance/chunkSize;
+	int rcd = renderDistance/chunkSize+1;
 	//remove the old chunks that are now out of range
 	int nactive = 0;
 	int nremoved = 0;
@@ -176,7 +191,7 @@ void Chunked::refresh(int renderDistance) {
 
 	for (cx = std::max(px-rcd,0); cx < std::min(maxcx,px + rcd); cx++) {
 		for (cz = std::max(pz-rcd,0); cz < std::min(maxcz,pz + rcd); cz++) {
-			Chunked::rerenderChunk(cx,cz,false);
+			Chunked::renderNewChunk(cx,cz);
 		}
 	}
 }
@@ -258,28 +273,21 @@ if (polygon.z > 0) vZ = true;
 	}
 }
 
-int Chunked::getfifousage() {
-	int usage = 0;
-	int i;
-	for (i=0; i<nRenderChunks; i++) {
-		renderchunk *rc = renderchunks[i];
-		if (rc->active) {
-			usage += rc->list->index-1;
-			usage += rc->blendlist->index-1;
-		}
-	}
-	return usage;
-}
+void Chunked::getfifousage(int *usage, int *total) {
+	int _usage = 0;
+	int _total = 0;
 
-int Chunked::getfifototal() {
-	int usage = 0;
-	int i;
-	for (i=0; i<nRenderChunks; i++) {
+	for (int i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
 		if (rc->active) {
-			usage += rc->list->size;
-			usage += rc->blendlist->size;
+			_usage += rc->list->index-1;
+			_usage += rc->blendlist->index-1;
+			_total += rc->list->size;
+			_total += rc->blendlist->size;
 		}
 	}
-	return usage;
+	if (usage)
+		*usage = _usage;
+	if (total)
+		*total = _total;
 }

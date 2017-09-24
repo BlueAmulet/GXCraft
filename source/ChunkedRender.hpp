@@ -18,13 +18,13 @@ class Chunked {
 		static void deallocall();
 		static int getchunkfromchunkpos(short unsigned int, short unsigned int);
 		static int chunk_cmp(const void*, const void*);
+		static void renderNewChunk(signed short, signed short);
 	public:
 		static void init();
 		static void markchunkforupdate(unsigned short, unsigned short);
-		static void rerenderChunkUpdates();
+		static bool rerenderChunkUpdates(bool);
 		static void rerenderChunk(signed short, signed short, bool);
 		static void refresh(int);
 		static void render();
-		static int getfifousage();
-		static int getfifototal();
+		static void getfifousage(int*, int*);
 };

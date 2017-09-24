@@ -74,7 +74,7 @@ int main() {
 
 	u8 FPS = 0;
 
-	bool rerenderDisplayList = true;
+	bool rerenderDisplayList = false;
 	bool exitloop = false;
 	short scr_scanY = 0;
 	int dluse = 0;
@@ -180,6 +180,11 @@ int main() {
 			}
 			GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
 			GX_SetLineWidth(15, GX_TO_ONE);
+
+			// Generate all initial chunks
+			Chunked::refresh(renderDistance);
+			Chunked::rerenderChunkUpdates(true);
+			Chunked::getfifousage(&dluse, &dlsize);
 			status = INGAME;
 			break;
 		case INGAME: { // Main loop
@@ -196,6 +201,7 @@ int main() {
 				thePlayer.timer -= 60.0/(double)FPS;
 			}
 
+			// Handle Controller Input
 			WPAD_ScanPads();
 			WPAD_IR(WPAD_CHAN_0, &IR_0);
 
@@ -433,17 +439,16 @@ int main() {
 
 			cloudPos = fmod(cloudPos + deltaTime/1000,1);
 
-			Chunked::rerenderChunkUpdates();
-
 			if (rerenderDisplayList) {
 				Netcat::log("rerendering display list\n");
 				rerenderDisplayList = false;
 				displistX = thePlayer.posX;
 				displistZ = thePlayer.posZ;
 				Chunked::refresh(renderDistance);
-				dluse = Chunked::getfifousage();
-				dlsize = Chunked::getfifototal();
 			}
+			if (Chunked::rerenderChunkUpdates(false))
+				Chunked::getfifousage(&dluse, &dlsize);
+
 			GRRLIB_SetTexture(tex_terrain, false);
 			Chunked::render();
 

@@ -21,6 +21,7 @@ extern "C" {
 #include "Main.hpp"
 #include "Player.hpp"
 #include "Controls.hpp"
+#include "Utils.hpp"
 #include "Block.hpp"
 #include "World.hpp"
 #include "Render.hpp"
@@ -371,46 +372,21 @@ int main() {
 			yLook = -sin(to_radians(thePlayer.lookY));
 			zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
 
-			float i;
-			for (i = 0; i < 7; i += 0.01) { // TODO: This may be too precise?
-				u8 block = theWorld->getBlock(floor(xLook*i+thePlayer.posX),floor(yLook*i+thePlayer.posY+1.625f),floor(zLook*i+thePlayer.posZ));
-				if (block != 0 && block != 8 && block != 10) {
-					int selBlockX = floor(xLook*i+thePlayer.posX);
-					int selBlockY = floor(yLook*i+thePlayer.posY+1.625f);
-					int selBlockZ = floor(zLook*i+thePlayer.posZ);
-					GRRLIB_SetTexture(tex_inventory, false);
-					Render::drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
+			int selBlockX, selBlockY, selBlockZ, faceBlockX, faceBlockY, faceBlockZ;
+			if (Utils::voxelCollisionRay(thePlayer.posX, thePlayer.posY+1.625f, thePlayer.posZ, xLook*7.0, yLook*7.0, zLook*7.0, &selBlockX, &selBlockY, &selBlockZ, &faceBlockX, &faceBlockY, &faceBlockZ)) {
+				GRRLIB_SetTexture(tex_inventory, false);
+				Render::drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 
-					double blockSelOffX = fmod(xLook*i+thePlayer.posX,1)-0.5f;
-					double blockSelOffY = fmod(yLook*i+thePlayer.posY+1.625f,1)-0.5f;
-					double blockSelOffZ = fmod(zLook*i+thePlayer.posZ,1)-0.5f;
+				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer <= 0 && theWorld->getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
+					theWorld->setBlock(selBlockX,selBlockY,selBlockZ,0);
+					thePlayer.timer = 18;
+				} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer <= 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
+					selBlockX+=faceBlockX;
+					selBlockY+=faceBlockY;
+					selBlockZ+=faceBlockZ;
 
-					double aBlockSelOffX = fabs(blockSelOffX);
-					double aBlockSelOffY = fabs(blockSelOffY);
-					double aBlockSelOffZ = fabs(blockSelOffZ);
-
-					signed char faceBlockX = 0;
-					signed char faceBlockY = 0;
-					signed char faceBlockZ = 0;
-					if (aBlockSelOffX > aBlockSelOffY && aBlockSelOffX > aBlockSelOffZ)
-						faceBlockX = aBlockSelOffX/blockSelOffX;
-					if (aBlockSelOffY > aBlockSelOffX && aBlockSelOffY > aBlockSelOffZ)
-						faceBlockY = aBlockSelOffY/blockSelOffY;
-					if (aBlockSelOffZ > aBlockSelOffX && aBlockSelOffZ > aBlockSelOffY)
-						faceBlockZ = aBlockSelOffZ/blockSelOffZ;
-
-					if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer <= 0 && theWorld->getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
-						theWorld->setBlock(selBlockX,selBlockY,selBlockZ,0);
-						thePlayer.timer = 18;
-					} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer <= 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
-						selBlockX+=faceBlockX;
-						selBlockY+=faceBlockY;
-						selBlockZ+=faceBlockZ;
-
-						theWorld->setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
-						thePlayer.timer = 18;
-					}
-					break;
+					theWorld->setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
+					thePlayer.timer = 18;
 				}
 			}
 

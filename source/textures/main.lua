@@ -4,11 +4,8 @@
 
 --love.graphics.setDefaultFilter("nearest", "nearest")
 
-love.graphics.setPointSize(1)
-love.graphics.setPointStyle("rough")
-
 local terrain = love.graphics.newImage("terrain_blocks.png")
-local canvasu = love.graphics.newCanvas(32,32)
+local imagedat = love.image.newImageData(32,32)
 local sidec = love.graphics.newCanvas(14,15)
 local tmp = love.graphics.newCanvas(16,16) -- Prevent bleeding
 local topc = love.graphics.newCanvas(28,28)
@@ -71,19 +68,18 @@ for k,v in pairs(torender) do
 	love.graphics.setColor(255,255,255)
 	local base = v[1]
 	local top = v[2] or base
-	canvasu:clear()
-	sidec:clear()
-	tmp:clear()
-	topc:clear()
+	imagedat:mapPixel(function() return 0, 0, 0, 0 end)
+	sidec:renderTo(love.graphics.clear)
+	tmp:renderTo(love.graphics.clear)
+	topc:renderTo(love.graphics.clear)
 
 	local quad = love.graphics.newQuad(base[1]*16, base[2]*16, 16, 16, 256, 256)
 	if top == true then
-		canvasu:renderTo(function()
-			love.graphics.setColor(255,255,255)
-			terrain:setFilter("nearest","nearest")
-			love.graphics.draw(terrain,quad,0,0,0,2,2)
-			terrain:setFilter("linear","linear")
+		tmp:renderTo(function()
+			love.graphics.draw(terrain,quad)
 		end)
+		tmpdata = tmp:newImageData()
+		imagedat:mapPixel(function(x, y) return tmpdata:getPixel(x/2, y/2) end)
 	else
 		sidec:renderTo(function()
 			love.graphics.draw(terrain,quad,0,0,0,14/16,15/16)
@@ -98,49 +94,37 @@ for k,v in pairs(torender) do
 		end)
 
 		-- Scale is odd, so we do this.
-		topc:renderTo(function()
-			love.graphics.setBlendMode("replace")
-			for y = 0,14 do
-				local ry 
-				if y < 7 then
-					ry = y * 2
-				else
-					ry = y * 2 - 1
-				end
-				for x = 0,27 do
-					local r,g,b,a = topc:getPixel(x, ry)
-					love.graphics.setColor(r,g,b,a)
-					love.graphics.point(x+0.5,y+0.5)
-				end
+		topcdata = topc:newImageData()
+		for y = 0,14 do
+			local ry
+			if y < 7 then
+				ry = y * 2
+			else
+				ry = y * 2 - 1
 			end
-			love.graphics.setColor(0,0,0,0)
-			love.graphics.rectangle("fill",0,15,28,13)
-			love.graphics.setBlendMode("alpha")
-		end)
+			for x = 0,27 do
+				topcdata:setPixel(x, y, topcdata:getPixel(x, ry))
+			end
+		end
+		topcdata:mapPixel(function() return 0, 0, 0, 0 end, 0, 15, 28, 13)
 
-		canvasu:renderTo(function()
-			local mult1 = 204/255
-			local mult2 = 153/255
-			--Shear is odd, so we do this.
-			for y = 0,14 do
-				for x = 0,13 do
-					local r,g,b,a = sidec:getPixel(x,y)
-					love.graphics.setColor(r*mult1,g*mult1,b*mult1,a)
-					love.graphics.point(2.5+x,9.5+y+math.floor((x+1)*0.5))
-					love.graphics.setColor(r*mult2,g*mult2,b*mult2,a)
-					love.graphics.point(16.5+x,16.5+y-math.floor((x+1)*0.5))
-				end
+		-- Shear is odd, so we do this.
+		imagedat:paste(topcdata, 2, 1, 0, 0, 28, 15)
+		sidecdata = sidec:newImageData()
+		local mult1 = 204/255
+		local mult2 = 153/255
+		for y = 0,14 do
+			for x = 0,13 do
+				local r,g,b,a = sidecdata:getPixel(x,y)
+				imagedat:setPixel(2+x,9+y+math.floor((x+1)*0.5),r*mult1,g*mult1,b*mult1,a)
+				imagedat:setPixel(16+x,16+y-math.floor((x+1)*0.5),r*mult2,g*mult2,b*mult2,a)
 			end
-			love.graphics.setColor(255,255,255)
-			love.graphics.draw(topc,2,1)
-		end)
+		end
 	end
 
-	-- Fuck you LÖVE for making me have to do this crap below.
-	canvasu:getImageData():encode(k .. ".png")
-	local pngdata = love.filesystem.read(k .. ".png")
-	love.filesystem.remove(k .. ".png")
-	local file = io.open("inv_blocks/bi_" .. k .. ".png","wb")
+	-- Save generated image to disk
+	local pngdata = imagedat:encode("png"):getString()
+	local file = io.open("inv_blocks/bi_" .. k .. ".png", "wb")
 	file:write(pngdata)
 	file:close()
 end

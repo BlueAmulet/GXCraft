@@ -13,17 +13,17 @@ template <typename T> static T mod(T x, T y) {
 }
 
 template <typename T> static T intbound(T s, T ds) {
-	if (ds == 0) // Protect against negative zero
-		ds = 0;
-	if (ds < 0) {
+	if (ds == T(0)) // Protect against negative zero
+		ds = T(0);
+	if (ds < T(0)) {
 		s=mod(-s, T(1));
-		if (s == 0)
-			return 0;
+		if (s == T(0))
+			return T(0);
 		else
 			return (s - 1) / ds;
 	} else {
 		s=mod(s, T(1));
-		return (1 - s) / ds;
+		return (T(1) - s) / ds;
 	}
 }
 

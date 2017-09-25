@@ -196,7 +196,7 @@ void Chunked::refresh(int renderDistance) {
 	}
 }
 
-static player cmp_player;
+static Player cmp_player;
 int Chunked::chunk_cmp(const void *a, const void *b) {
 	renderchunk *ca = Chunked::renderchunks[*((const int *)a)];
 	renderchunk *cb = Chunked::renderchunks[*((const int *)b)];

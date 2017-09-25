@@ -19,7 +19,7 @@ extern "C" {
 }
 
 #include "Main.hpp"
-#include "Player.hpp"
+#include "Entity.hpp"
 #include "Controls.hpp"
 #include "Utils.hpp"
 #include "Block.hpp"
@@ -37,7 +37,7 @@ extern "C" {
 unsigned int seed = 0; // 0 = Generate Seed
 GRRLIB_texImg *tex_blockicons[256];
 
-player thePlayer;
+Player thePlayer;
 World *theWorld;
 
 inline double to_degrees(double radians) {
@@ -47,8 +47,6 @@ inline double to_degrees(double radians) {
 inline double to_radians(double degrees) {
 	return (degrees*M_PI)/180.0f;
 }
-
-#define blockclamp(a,b) a=floor(a) + ((b < 0) ? 0 : 0.9999)
 
 static void initializeBlocks();
 static u8 CalculateFrameRate();
@@ -266,68 +264,7 @@ int main() {
 			}
 
 			// Apply motion to player
-			// Super simple collision checking, may eventually look into AABB
-			double motionVX = thePlayer.motionX * deltaTime;
-			double motionVY = thePlayer.motionY * deltaTime;
-			double motionVZ = thePlayer.motionZ * deltaTime;
-			do {
-				u8 block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ));
-				if (block != 0 && block != 8 && block != 10) {
-					// Allow player to get out of ground if they glitch inside
-					thePlayer.posX += motionVX;
-					thePlayer.posY += motionVY;
-					thePlayer.posZ += motionVZ;
-					break;
-				}
-				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
-				if (block == 0 || block == 8 || block == 10) {
-					thePlayer.posX += motionVX;
-					thePlayer.posY += motionVY;
-					thePlayer.posZ += motionVZ;
-					break;
-				}
-				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
-				if (block == 0 || block == 8 || block == 10) {
-					thePlayer.posX += motionVX;
-					blockclamp(thePlayer.posY, motionVY);
-					thePlayer.posZ += motionVZ;
-					break;
-				}
-				block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ+motionVZ));
-				if (block == 0 || block == 8 || block == 10) {
-					blockclamp(thePlayer.posX, motionVX);
-					thePlayer.posY += motionVY;
-					thePlayer.posZ += motionVZ;
-					break;
-				}
-				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
-				if (block == 0 || block == 8 || block == 10) {
-					thePlayer.posX += motionVX;
-					thePlayer.posY += motionVY;
-					blockclamp(thePlayer.posZ, motionVZ);
-					break;
-				}
-				block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY),floor(thePlayer.posZ+motionVZ));
-				if (block == 0 || block == 8 || block == 10) {
-					blockclamp(thePlayer.posX, motionVX);
-					blockclamp(thePlayer.posY, motionVY);
-					thePlayer.posZ += motionVZ;
-					break;
-				}
-				block = theWorld->getBlock(floor(thePlayer.posX+motionVX),floor(thePlayer.posY),floor(thePlayer.posZ));
-				if (block == 0 || block == 8 || block == 10) {
-					thePlayer.posX += motionVX;
-					blockclamp(thePlayer.posY, motionVY);
-					blockclamp(thePlayer.posZ, motionVZ);
-					break;
-				}
-				block = theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+motionVY),floor(thePlayer.posZ));
-				if (block == 0 || block == 8 || block == 10) {
-					blockclamp(thePlayer.posX, motionVX);
-					thePlayer.posY += motionVY;
-					blockclamp(thePlayer.posZ, motionVZ);
-				}
-			} while (0);
+			thePlayer.moveEntity(deltaTime);
 
 			// Keep values in bound
 			if (thePlayer.lookX > 180)       thePlayer.lookX -= 360;

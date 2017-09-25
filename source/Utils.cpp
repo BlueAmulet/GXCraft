@@ -13,6 +13,8 @@ template <typename T> static T mod(T x, T y) {
 }
 
 template <typename T> static T intbound(T s, T ds) {
+	if (ds == 0) // Protect against negative zero
+		ds = 0;
 	if (ds < 0) {
 		s=mod(-s, T(1));
 		if (s == 0)

@@ -3,23 +3,11 @@
 
 #include "Fail3D.hpp"
 
-double Fail3D::focalLength;
-double Fail3D::vanishingPointX;
-double Fail3D::vanishingPointY;
+static double focalLength;
+static double vanishingPointX;
+static double vanishingPointY;
 
-void Fail3D::init(double fl) {
-	focalLength = fl;
-	vanishingPointX = rmode->fbWidth/2;
-	vanishingPointY = rmode->efbHeight/2;
-}
-
-void Fail3D::translatePoint(guVector *polygon, guVector *center) {
-	polygon->x -= center->x;
-	polygon->y -= center->y;
-	polygon->z -= center->z;
-}
-
-void Fail3D::rotateCoords(double *a, double *b, double angle) {
+static void rotateCoords(double *a, double *b, double angle) {
 	double cosV = cos(angle);
 	double sinV = sin(angle);
 	double a1 = (*a * cosV) - (*b * sinV);
@@ -28,21 +16,35 @@ void Fail3D::rotateCoords(double *a, double *b, double angle) {
 	*b = b1;
 }
 
-void Fail3D::rotatePoint(guVector *polygon, guVector *camera) {
-	double x = polygon->x;
-	double y = polygon->y;
-	double z = polygon->z;
+namespace Fail3D {
+	void init(double fl) {
+		focalLength = fl;
+		vanishingPointX = rmode->fbWidth/2;
+		vanishingPointY = rmode->efbHeight/2;
+	}
 
-	rotateCoords(&x, &z, DegToRad(camera->y));
-	rotateCoords(&y, &z, DegToRad(camera->x));
+	void translatePoint(guVector *polygon, guVector *center) {
+		polygon->x -= center->x;
+		polygon->y -= center->y;
+		polygon->z -= center->z;
+	}
 
-	polygon->x = x;
-	polygon->y = y;
-	polygon->z = z;
-}
+	void rotatePoint(guVector *polygon, guVector *camera) {
+		double x = polygon->x;
+		double y = polygon->y;
+		double z = polygon->z;
 
-void Fail3D::calculatePointPosition(guVector *polygon) {
-	double scale = fabs(focalLength/polygon->z);
-	polygon->x = vanishingPointX + polygon->x * scale;
-	polygon->y = vanishingPointY + polygon->y * scale;
+		rotateCoords(&x, &z, DegToRad(camera->y));
+		rotateCoords(&y, &z, DegToRad(camera->x));
+
+		polygon->x = x;
+		polygon->y = y;
+		polygon->z = z;
+	}
+
+	void calculatePointPosition(guVector *polygon) {
+		double scale = fabs(focalLength/polygon->z);
+		polygon->x = vanishingPointX + polygon->x * scale;
+		polygon->y = vanishingPointY + polygon->y * scale;
+	}
 }

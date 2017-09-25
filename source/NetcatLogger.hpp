@@ -1,11 +1,10 @@
 #pragma once
 
-class Netcat {
-	public:
-		static bool init;
-		static void console();
-		static void accept();
-		static void close();
-		static void log(const char* data);
-		static void logf(const char* format, ...);
+namespace Netcat {
+	extern bool init;
+	void console();
+	void accept();
+	void close();
+	void log(const char* data);
+	void logf(const char* format, ...);
 };

@@ -2,17 +2,14 @@
 #include "DisplayList.hpp"
 #include "BlockTextures.hpp"
 
-class Render {
-	private:
-		static bool testFace(u8);
-	public:
-		static void bind(DisplayList*);
-		static DisplayList* getbound();
+namespace Render {
+	void bind(DisplayList*);
+	DisplayList* getbound();
 
-		static void drawBlock(int, int, int, blockTexture*);
-		static void drawBlockCrossed(int, int, int, blockTexture*);
-		static void drawMultiTexBlock(int, int, int, blockTexture*, blockTexture*, blockTexture*);
-		static void drawSelectionBlock(int, int, int);
+	void drawText(f32, f32, GRRLIB_texImg*, const char*, ...);
 
-		static void drawText(f32, f32, GRRLIB_texImg*, const char*, ...);
+	void drawBlock(int, int, int, blockTexture*);
+	void drawBlockCrossed(int, int, int, blockTexture*);
+	void drawMultiTexBlock(int, int, int, blockTexture*, blockTexture*, blockTexture*);
+	void drawSelectionBlock(int, int, int);
 };

@@ -10,6 +10,8 @@ local sidec = love.graphics.newCanvas(14,15)
 local tmp = love.graphics.newCanvas(16,16) -- Prevent bleeding
 local topc = love.graphics.newCanvas(28,28)
 
+love.graphics.setBlendMode("replace", "premultiplied")
+
 local torender = {
 	[ 7] = {{ 1,1}}, -- bedrock
 	[45] = {{ 7,0}}, -- brick

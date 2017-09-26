@@ -143,6 +143,8 @@ int main() {
 	double xLook, yLook, zLook;
 	struct mallinfo meminfo;
 
+	bool showDebug = false;
+
 	while (!exitloop) {
 		f64 thisTime = ticks_to_secsf(gettime());
 		f64 deltaTime = (thisTime - lastTime);
@@ -189,12 +191,8 @@ int main() {
 		case INGAME: { // Main loop
 			// Reset Motion
 			thePlayer.motionX = 0;
+			thePlayer.motionY = 0;
 			thePlayer.motionZ = 0;
-			if (thePlayer.flying) {
-				thePlayer.motionY = 0;
-			} else {
-				thePlayer.motionY = 0;
-			}
 
 			if (thePlayer.timer > 0) {
 				thePlayer.timer -= 60.0/(double)FPS;
@@ -234,6 +232,9 @@ int main() {
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_NUNCHUK_BUTTON_C) {
 				thePlayer.select = !thePlayer.select;
 			}
+			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_NUNCHUK_BUTTON_Z) {
+				showDebug = !showDebug;
+			}
 			thePlayer.lookX += WPAD_StickX(WPAD_CHAN_0, 0) * deltaTime / 2.f;
 			thePlayer.lookY -= WPAD_StickY(WPAD_CHAN_0, 0) * deltaTime / 2.f;
 
@@ -251,7 +252,6 @@ int main() {
 					if (thePlayer.inventory[9] == 0) thePlayer.inventory[9] = 9;
 					thePlayer.inventory[9] -= 1;
 				}
-				//TODO: Check for Nunchuk Z (Jumping)
 			}
 
 			// Limit motion speed
@@ -424,17 +424,19 @@ int main() {
 			int flcapacity = theWorld->getLiquidsCapacity();
 
 			// Draw debugging elements
-			Render::drawText(10,  25, tex_font, "FPS: %d", FPS);
-			Render::drawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
-			Render::drawText(10,  55, tex_font, "PY:% 7.2f", thePlayer.posY);
-			Render::drawText(10,  70, tex_font, "PZ:% 7.2f", thePlayer.posZ);
-			Render::drawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
-			Render::drawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
-			Render::drawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
-			Render::drawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
-			Render::drawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1024.0/1024.0);
-			Render::drawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flsize, flcapacity, flsize*100/flcapacity);
-			Render::drawText(406, 25, tex_font, "Seed: %08X", seed);
+			if (showDebug) {
+				Render::drawText(10,  25, tex_font, "FPS: %d", FPS);
+				Render::drawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
+				Render::drawText(10,  55, tex_font, "PY:% 7.2f", thePlayer.posY);
+				Render::drawText(10,  70, tex_font, "PZ:% 7.2f", thePlayer.posZ);
+				Render::drawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
+				Render::drawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
+				Render::drawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
+				Render::drawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
+				Render::drawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1024.0/1024.0);
+				Render::drawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flsize, flcapacity, flsize*100/flcapacity);
+				Render::drawText(406, 25, tex_font, "Seed: %08X", seed);
+			}
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
 				if (Netcat::init) {

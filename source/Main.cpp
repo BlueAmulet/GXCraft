@@ -54,6 +54,19 @@ static void color85(char *buf, u32 color);
 
 typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
 
+static bool exitloop = false;
+static bool shutdown = false;
+
+static void ResetCallback() {
+	shutdown = false;
+	exitloop = true;
+}
+
+static void PowerCallback() {
+	shutdown = true;
+	exitloop = true;
+}
+
 int main() {
 	//Netcat::console(); // Comment this to disable netcat logger
 
@@ -74,7 +87,6 @@ int main() {
 	u8 FPS = 0;
 
 	bool rerenderDisplayList = false;
-	bool exitloop = false;
 	short scr_scanY = 0;
 	int dluse = 0;
 	int dlsize = 0;
@@ -127,6 +139,9 @@ int main() {
 	GRRLIB_SetBackgroundColour(0x00, 0x00, 0x00, 0xFF);
 
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
+
+	SYS_SetResetCallback(ResetCallback);
+	SYS_SetPowerCallback(PowerCallback);
 
 	u8 inv_blocks[42] = {
 	 1,  4, 45,  3,  5, 17, 18, 20, 43,
@@ -562,7 +577,11 @@ int main() {
 	GRRLIB_FreeTexture(tex_tmpscreen);
 
 	GRRLIB_Exit();
-	exit(0);
+
+	if (shutdown)
+		SYS_ResetSystem(SYS_POWEROFF, 0, 0);
+
+	return 0;
 }
 
 static void color85(char *buf, u32 color) {

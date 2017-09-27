@@ -4,13 +4,13 @@
 
 #define nRenderChunks 256
 
-typedef struct {
+struct RenderChunk {
 	bool active;
 	bool update;
 	unsigned short x, z;
 	DisplayList *list;
 	DisplayList *blendlist;
-} renderchunk;
+};
 
 namespace Chunked {
 	void init();

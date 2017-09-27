@@ -1,4 +1,5 @@
 #include <cmath>
+
 #include <grrlib.h>
 
 #include "Fail3D.hpp"

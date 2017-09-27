@@ -2,11 +2,11 @@
 #include <cmath>
 #include <cstdint>
 
+#include "FastNoise.hpp"
+
 #include "Main.hpp"
 #include "World.hpp"
 #include "ChunkedRender.hpp"
-
-#include "FastNoise.hpp"
 
 static int randnum(int x, int y) {
 	double uni = ((double)rand())/((double)RAND_MAX);

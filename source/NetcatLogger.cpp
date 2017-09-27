@@ -1,7 +1,9 @@
-#include <network.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdarg>
+
+#include <gctypes.h>
+#include <network.h>
 
 #include "NetcatLogger.hpp"
 
@@ -16,13 +18,11 @@ namespace Netcat {
 	bool init = false;
 
 	void console() {
-		s32 ret;
-
 		char localip[16] = {0};
 		char gateway[16] = {0};
 		char netmask[16] = {0};
 
-		ret = if_config(localip, netmask, gateway, TRUE, 32);
+		s32 ret = if_config(localip, netmask, gateway, TRUE, 32);
 		if (ret >= 0) {
 			//char temp[1026];
 

@@ -1,6 +1,7 @@
 #pragma once
+
 #include <cstdint>
-#include <grrlib.h>
+#include <gctypes.h>
 
 struct HitBox {
 	double width;

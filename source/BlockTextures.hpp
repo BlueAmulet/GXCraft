@@ -1,5 +1,6 @@
 #pragma once
-#include <grrlib.h>
+
+#include <gctypes.h>
 
 typedef struct
 {

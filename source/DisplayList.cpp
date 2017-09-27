@@ -1,5 +1,7 @@
-#include <malloc.h>
 #include <cmath>
+#include <malloc.h>
+
+#include <gccore.h>
 
 #include "DisplayList.hpp"
 
@@ -67,9 +69,8 @@ void DisplayList::render() {
 	GX_SetArray(GX_VA_CLR0, this->color, sizeof(u16));
 	GX_SetArray(GX_VA_TEX0, this->texcoord, sizeof(u8) * 2);
 
-	u16 i;
 	GX_Begin(GX_QUADS, GX_VTXFMT0, this->index);
-		for(i = 0; i < this->index ; i++) {
+		for(u16 i = 0; i < this->index ; i++) {
 			GX_Color1x16(i);
 			GX_Position1x16(i);
 			GX_TexCoord1x16(i);

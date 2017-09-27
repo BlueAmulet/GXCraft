@@ -1,4 +1,8 @@
 #pragma once
+
+#include <gctypes.h>
+#include <grrlib.h>
+
 #include "DisplayList.hpp"
 #include "BlockTextures.hpp"
 

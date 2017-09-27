@@ -1,5 +1,7 @@
 #pragma once
 
+#include <grrlib.h>
+
 #include "Entity.hpp"
 #include "World.hpp"
 

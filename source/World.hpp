@@ -3,6 +3,8 @@
 #include <vector>
 #include <cstdint>
 
+#include <gccore.h>
+
 #define worldX 512
 #define worldY 64
 #define worldZ 512

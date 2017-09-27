@@ -1,4 +1,6 @@
 #include <cmath>
+
+#include <gctypes.h>
 #include <wiiuse/wpad.h>
 
 #include "Controls.hpp"
@@ -11,7 +13,7 @@ s8 WPAD_StickX(u8 chan, u8 right) {
 	switch (data->exp.type) {
 		case WPAD_EXP_NUNCHUK:
 		case WPAD_EXP_GUITARHERO3:
-		if (right == 0) {
+			if (right == 0) {
 				mag = data->exp.nunchuk.js.mag;
 				ang = data->exp.nunchuk.js.ang;
 			}

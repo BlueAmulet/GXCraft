@@ -1,7 +1,8 @@
-#include <grrlib.h>
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+
+#include <grrlib.h>
 
 #include "ChunkedRender.hpp"
 #include "NetcatLogger.hpp"
@@ -16,17 +17,15 @@ static renderchunk* renderchunks[nRenderChunks];
 static int renderorder[nRenderChunks];
 
 static void deallocall() {
-	int i;
 	//dealloc all the renderchunks
-	for (i=0; i<nRenderChunks; i++) {
+	for (int i=0; i<nRenderChunks; i++) {
 		renderchunks[i]->active = false;
 	}
 }
 
 static int getchunkfromchunkpos(unsigned short x, unsigned short z) {
 	//first try to find an existing renderchunk with the coords
-	int i;
-	for (i=0; i<nRenderChunks; i++) {
+	for (int i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
 		if (rc->active && rc->x == x && rc->z == z) {
 			Netcat::log("found active chunk with same x and z\n");
@@ -34,7 +33,7 @@ static int getchunkfromchunkpos(unsigned short x, unsigned short z) {
 		}
 	}
 	//else, find an inactive chunk
-	for (i=0; i<nRenderChunks; i++) {
+	for (int i=0; i<nRenderChunks; i++) {
 		renderchunk *rc = renderchunks[i];
 		if (!rc->active) {
 			Netcat::log("found inactive chunk\n");
@@ -80,8 +79,7 @@ static inline void renderNewChunk(signed short cx, signed short cz) {
 namespace Chunked {
 	void init() {
 		//initialize all the renderchunks
-		int i;
-		for (i=0; i<nRenderChunks; i++) {
+		for (int i=0; i<nRenderChunks; i++) {
 			renderchunk *rc = static_cast<renderchunk*>(malloc(sizeof(renderchunk)));
 			rc->active = false;
 			rc->update = false;
@@ -92,8 +90,7 @@ namespace Chunked {
 
 	void markchunkforupdate(unsigned short x, unsigned short z) {
 		//try to find an existing renderchunk with the coords
-		int i;
-		for (i=0; i<nRenderChunks; i++) {
+		for (int i=0; i<nRenderChunks; i++) {
 			renderchunk *rc = renderchunks[i];
 			if (rc->active && rc->x == x && rc->z == z) {
 				Netcat::log("marking active chunk for render update\n");
@@ -190,8 +187,7 @@ namespace Chunked {
 		//remove the old chunks that are now out of range
 		int nactive = 0;
 		int nremoved = 0;
-		int i;
-		for (i=0; i<nRenderChunks; i++) {
+		for (int i=0; i<nRenderChunks; i++) {
 			renderchunk *rc = renderchunks[i];
 			if (rc->active) {
 				if (chunked_isoob(rc, rcd, px, pz)) {
@@ -225,9 +221,8 @@ namespace Chunked {
 		guVector polygon;
 
 		DisplayList::start();
-		int i;
 		int nrendered = 0;
-		for (i=0; i<nRenderChunks; i++) {
+		for (int i=0; i<nRenderChunks; i++) {
 			renderchunk *rc = renderchunks[i];
 			if (rc->active && rc->list) {
 				bool allL, allR, allU, allD;
@@ -262,7 +257,7 @@ if (polygon.z > 0) vZ = true;
 		//sort the render order
 		cmp_player = thePlayer;
 		qsort(renderorder, nrendered, sizeof(int), chunk_cmp);
-		for (i=0; i<nrendered; i++) {
+		for (int i=0; i<nrendered; i++) {
 			renderchunk *rc = renderchunks[renderorder[i]];
 			rc->list->render();
 		}
@@ -270,7 +265,7 @@ if (polygon.z > 0) vZ = true;
 		GX_SetTevAlphaIn(GX_TEVSTAGE0,GX_CA_TEXA,GX_CA_RASA,GX_CA_TEXA,GX_CC_RASA);
 		GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
 		GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);*/
-		for (i=0; i<nrendered; i++) {
+		for (int i=0; i<nrendered; i++) {
 			renderchunk *rc = renderchunks[renderorder[i]];
 			rc->blendlist->render();
 		}

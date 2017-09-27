@@ -1,5 +1,6 @@
-#include <grrlib.h>
 #include <cstdarg>
+
+#include <grrlib.h>
 
 #include "Render.hpp"
 #include "Main.hpp"

@@ -1,5 +1,6 @@
 #pragma once
-#include <gccore.h>
+
+#include <gctypes.h>
 
 class DisplayList {
 	private:

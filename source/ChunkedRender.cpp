@@ -16,13 +16,6 @@
 static renderchunk* renderchunks[nRenderChunks];
 static int renderorder[nRenderChunks];
 
-static void deallocall() {
-	//dealloc all the renderchunks
-	for (int i=0; i<nRenderChunks; i++) {
-		renderchunks[i]->active = false;
-	}
-}
-
 static int getchunkfromchunkpos(unsigned short x, unsigned short z) {
 	//first try to find an existing renderchunk with the coords
 	for (int i=0; i<nRenderChunks; i++) {
@@ -84,7 +77,20 @@ namespace Chunked {
 			rc->active = false;
 			rc->update = false;
 			rc->list = NULL;
+			rc->blendlist = NULL;
 			renderchunks[i] = rc;
+		}
+	}
+
+	void deallocall() {
+		//dealloc all the renderchunks
+		for (int i=0; i<nRenderChunks; i++) {
+			renderchunk *rc = renderchunks[i];
+			delete rc->list;
+			rc->list = NULL;
+			delete rc->blendlist;
+			rc->blendlist = NULL;
+			free(rc);
 		}
 	}
 

@@ -550,6 +550,9 @@ int main() {
 	}
 	Netcat::log("ending...\n");
 	Netcat::close();
+	Chunked::deallocall();
+
+	delete theWorld;
 
 	GRRLIB_FreeTexture(tex_font);
 	GRRLIB_FreeTexture(tex_inventory);

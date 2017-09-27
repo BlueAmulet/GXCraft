@@ -14,6 +14,7 @@ typedef struct {
 
 namespace Chunked {
 	void init();
+	void deallocall();
 	void markchunkforupdate(unsigned short, unsigned short);
 	bool rerenderChunkUpdates(bool);
 	void rerenderChunk(signed short, signed short, bool);

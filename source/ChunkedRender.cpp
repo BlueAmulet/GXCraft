@@ -227,7 +227,7 @@ namespace Chunked {
 		int nrendered = 0;
 		for (i=0; i<nRenderChunks; i++) {
 			renderchunk *rc = renderchunks[i];
-			if (rc->active) {
+			if (rc->active && rc->list) {
 				bool allL, allR, allU, allD;
 				allL = allR = allU = allD = true;
 				bool vZ = false;
@@ -280,7 +280,7 @@ if (polygon.z > 0) vZ = true;
 
 		for (int i=0; i<nRenderChunks; i++) {
 			renderchunk *rc = renderchunks[i];
-			if (rc->active) {
+			if (rc->active && rc->list) {
 				_usage += rc->list->index-1;
 				_usage += rc->blendlist->index-1;
 				_total += rc->list->size;

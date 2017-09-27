@@ -148,7 +148,8 @@ namespace Chunked {
 						uint8_t blockID = theWorld->theWorld[y][x][z];
 						if (blockID != 0) {
 							blockEntry entry = blockRegistry[blockID];
-							entry.renderBlock(x, y, z, 0);
+							if (entry.renderBlock != NULL)
+								entry.renderBlock(x, y, z, 0);
 						}
 					}
 				}
@@ -164,7 +165,8 @@ namespace Chunked {
 						uint8_t blockID = theWorld->theWorld[y][x][z];
 						if (blockID != 0) {
 							blockEntry entry = blockRegistry[blockID];
-							entry.renderBlock(x, y, z, 1);
+							if (entry.renderBlock != NULL)
+								entry.renderBlock(x, y, z, 1);
 						}
 					}
 				}

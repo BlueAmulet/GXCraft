@@ -333,12 +333,14 @@ int main() {
 					theWorld->setBlock(selBlockX,selBlockY,selBlockZ,0);
 					thePlayer.timer = 18;
 				} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer <= 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
-					selBlockX+=faceBlockX;
-					selBlockY+=faceBlockY;
-					selBlockZ+=faceBlockZ;
+					if (faceBlockX != 0 || faceBlockY != 0 || faceBlockZ != 0) {
+						selBlockX+=faceBlockX;
+						selBlockY+=faceBlockY;
+						selBlockZ+=faceBlockZ;
 
-					theWorld->setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
-					thePlayer.timer = 18;
+						theWorld->setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
+						thePlayer.timer = 18;
+					}
 				}
 			}
 

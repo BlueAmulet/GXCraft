@@ -338,8 +338,13 @@ int main() {
 						selBlockY+=faceBlockY;
 						selBlockZ+=faceBlockZ;
 
+						uint8_t oldBlock = theWorld->getBlock(selBlockX,selBlockY,selBlockZ);
+						bool wasStuck = thePlayer.isStuck();
 						theWorld->setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
-						thePlayer.timer = 18;
+						if (!wasStuck && thePlayer.isStuck())
+							theWorld->setBlock(selBlockX,selBlockY,selBlockZ,oldBlock);
+						else
+							thePlayer.timer = 18;
 					}
 				}
 			}

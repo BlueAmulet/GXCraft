@@ -20,6 +20,7 @@ class Entity : public HitBox {
 		f32 lookY;
 		f32 lookZ;
 
+		bool isStuck();
 		void moveEntity(double);
 };
 

@@ -8,7 +8,7 @@
 static blockTexture *tex_glass;
 
 static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 0) return;
+	if (pass == 1) return;
 	Render::drawBlock(xPos, yPos, zPos, tex_glass);
 }
 

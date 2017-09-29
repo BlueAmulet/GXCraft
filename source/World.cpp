@@ -20,51 +20,111 @@ static void updateNeighbors(int x, int z) {
 	if (z % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
 }
 
+static FastNoise *createOctaveNoise(unsigned int seed, int octave) {
+	FastNoise *noise = new FastNoise(seed);
+	noise->SetFractalLacunarity(0.5);
+	noise->SetFractalGain(2.0);
+	noise->SetFractalOctaves(octave);
+	noise->SetFrequency(1.0);
+	return noise;
+}
+
+class CombinedNoise {
+	private:
+		FastNoise *noise1;
+		FastNoise *noise2;
+		FN_DECIMAL antiBound2;
+	public:
+		CombinedNoise(unsigned int seed1, unsigned int seed2, int octave1, int octave2) {
+			noise1 = createOctaveNoise(seed1, octave1);
+			noise2 = createOctaveNoise(seed2, octave2);
+			antiBound2 = pow(FN_DECIMAL(2), FN_DECIMAL(octave2))-FN_DECIMAL(1);
+		}
+
+		FN_DECIMAL GetPerlinFractal(FN_DECIMAL x, FN_DECIMAL y) {
+			FN_DECIMAL offset = noise2->GetPerlinFractal(x, y) * antiBound2;
+			return noise1->GetPerlinFractal(x + offset, y);
+		}
+};
+
+static unsigned int _seed = 0xAB08E51C;
+
+static unsigned int xorrand() {
+	_seed ^= _seed << 13;
+	_seed ^= _seed >> 17;
+	_seed ^= _seed << 5;
+	return _seed;
+}
+
 World::World(unsigned int seed) {
-	FastNoise worldNoise(seed);
-	worldNoise.SetFrequency(1.0/256.0);
-	worldNoise.SetFractalOctaves(5);
+	_seed = (seed == 0 ? 0xAB08E51C : seed);
+	CombinedNoise noise1(xorrand(), xorrand(), 8, 8); // Low Terrain
+	CombinedNoise noise2(xorrand(), xorrand(), 8, 8); // High Terrain
+	FastNoise noise3 = *createOctaveNoise(xorrand(), 6); // Low/High select
+	FastNoise noise4 = *createOctaveNoise(xorrand(), 8); // Dirt Height
+	FastNoise noise5 = *createOctaveNoise(xorrand(), 8); // Dirt/Gravel select
+	FastNoise noise6 = *createOctaveNoise(xorrand(), 8); // Sand/Grass select (White: Trees, Simplex: Flowers)
 
 	flowingLiquid.reserve(32);
 	memset(theWorld, 255, sizeof theWorld);
 
-	short x,y,z;
-	for (x = 0; x < worldX; x++) {
-		for (z = 0; z < worldZ; z++) {
-			int terrainPiece = (worldNoise.GetSimplexFractal(x, z) / 2.0 + 0.5) * worldY;
-			if (terrainPiece < 15)
-				lighting[x][z] = 15;
-			else
-				lighting[x][z] = terrainPiece;
-			for (y = 0; y < worldY; y++) {
+	int waterLevel = worldY / 2;
+
+	for (int x = 0; x < worldX; x++) {
+		for (int z = 0; z < worldZ; z++) {
+			FN_DECIMAL hLow = noise1.GetPerlinFractal(x * 1.3f, z * 1.3f) * 255 / 6 - 4;
+			FN_DECIMAL height = hLow;
+
+			if (noise3.GetPerlinFractal(x, z) <= 0) {
+				FN_DECIMAL hHigh = noise2.GetPerlinFractal(x * 1.3f, z * 1.3f) * 255 / 5 + 6;
+				height = std::max(hLow, hHigh);
+			}
+
+			height *= 0.5f;
+			if (height < 0)
+				height *= 0.8f;
+
+			int dirtHeight = height + waterLevel;
+			int dirtThickness = noise4.GetPerlinFractal(x, z) * 255 / 24 - 4;
+			int stoneHeight = std::min(dirtHeight + dirtThickness, dirtHeight - 1);
+
+			for (int y = 0; y < worldY; y++) {
 				if (y == 0)
 					theWorld[y][x][z] = 7;
-				else if (y < terrainPiece - 2)
+				else if (y <= stoneHeight)
 					theWorld[y][x][z] = 1;
-				else if (y < terrainPiece && y >= terrainPiece - 2)
+				else if (y < dirtHeight)
 					theWorld[y][x][z] = 3;
-				else if (y == terrainPiece) {
-					if (terrainPiece < 15)
-						theWorld[y][x][z] = 3;
+				else if (y == dirtHeight) {
+					if (dirtHeight < (waterLevel - 1))
+						theWorld[y][x][z] = ((noise5.GetPerlinFractal(x, z) * 255) > 12) ? 13 : 3;
 					else
-						theWorld[y][x][z] = 2;
-				} else if (y == terrainPiece + 1 && terrainPiece >= 16) {
-					int type = rand() % 1000;
-					if (type == 1)
-						placeTree(x,y,z);
-					else
-						theWorld[y][x][z] = 0;
-				} else if (theWorld[y][x][z] == 255) {
-					if (y < 16)
+						theWorld[y][x][z] = (y <= waterLevel && (noise6.GetPerlinFractal(x, z) * 255) > 8) ? 12 : 2;
+				} else if (y == dirtHeight + 1 && dirtHeight >= 32) {
+					int place = floor((noise6.GetWhiteNoise(x, z) / 2 + 0.5) * 512);
+					if (place == 0)
+						placeTree(x, y, z);
+					if (place < 128) {
+						FN_DECIMAL redPlace = noise6.GetSimplex(x/FN_DECIMAL(64), z/FN_DECIMAL(64));
+						if (redPlace > 0.8)
+							theWorld[y][x][z] = 37;
+						else if (redPlace < -0.8)
+							theWorld[y][x][z] = 38;
+					}
+				}
+				if (theWorld[y][x][z] == 255) {
+					if (y < waterLevel)
 						theWorld[y][x][z] = 8;
 					else
 						theWorld[y][x][z] = 0;
 				}
+
+				if (theWorld[y][x][z] != 0 && theWorld[y][x][z] != 6 && theWorld[y][x][z] != 18 && theWorld[y][x][z] != 20 && theWorld[y][x][z] != 37 && theWorld[y][x][z] != 38 && theWorld[y][x][z] != 39 && theWorld[y][x][z] != 40) {
+					lighting[x][z] = y;
+				}
 			}
 		}
 	}
-
-	// TODO: Add Flower pockets	
 }
 
 // Safe block retrieval

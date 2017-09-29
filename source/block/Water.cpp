@@ -27,12 +27,16 @@ bool testWaterFace(unsigned char face) {
 	return face == 0 || face == 6 || face == 18 || face == 20 || face == 37 || face == 38 || face == 39 || face == 40;
 }
 
+bool testWaterFaceTop(unsigned char face) {
+	return face != 8 && face != 9;
+}
+
 inline void drawWaterBlock(int xPos, int yPos, int zPos) {
 	bool drawBack  = zPos >= worldZ-1 || testWaterFace(theWorld->theWorld[yPos][xPos][zPos + 1]);
 	bool drawFront = zPos <= 0        || testWaterFace(theWorld->theWorld[yPos][xPos][zPos - 1]);
 	bool drawRight = xPos >= worldX-1 || testWaterFace(theWorld->theWorld[yPos][xPos + 1][zPos]);
 	bool drawLeft  = xPos <= 0        || testWaterFace(theWorld->theWorld[yPos][xPos - 1][zPos]);
-	bool drawTop   = yPos >= worldY-1 || testWaterFace(theWorld->theWorld[yPos + 1][xPos][zPos]);
+	bool drawTop   = yPos >= worldY-1 || testWaterFaceTop(theWorld->theWorld[yPos + 1][xPos][zPos]);
 	bool drawBott  = yPos > 0         && testWaterFace(theWorld->theWorld[yPos - 1][xPos][zPos]);
 
 	if (!drawBack && !drawFront && !drawRight && !drawLeft && !drawTop && !drawBott) return;

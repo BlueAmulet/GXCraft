@@ -272,7 +272,7 @@ if (polygon.z > 0) vZ = true;
 		GX_SetTevColorOp(GX_TEVSTAGE0,GX_TEV_ADD,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);
 		GX_SetTevAlphaOp(GX_TEVSTAGE0,GX_TEV_COMP_A8_GT,GX_TB_ZERO,GX_CS_SCALE_1,GX_TRUE,GX_TEVPREV);*/
 
-		// Only water exists in the blend list, lets shift it down
+		// Liquids are in the blend pass, shift down by 1.5 texels
 		GRRLIB_ObjectViewBegin();
 		GRRLIB_ObjectViewTrans(-thePlayer.posX, -thePlayer.posY - 1.625f - (1.5/16.0), -thePlayer.posZ);
 		GRRLIB_ObjectViewRotate(0, thePlayer.lookX, 0);

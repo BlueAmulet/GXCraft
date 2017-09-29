@@ -222,6 +222,7 @@ int main() {
 				status = NUNCHUK;
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_HOME) {
+				shutdown = false;
 				exitloop = true;
 				break;
 			}

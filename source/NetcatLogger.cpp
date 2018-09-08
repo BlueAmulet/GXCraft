@@ -36,7 +36,7 @@ namespace Netcat {
 			server.sin_family = AF_INET;
 			server.sin_port = htons(1337);
 			server.sin_addr.s_addr = INADDR_ANY;
-			net_bind(sock, (struct sockaddr*) &server, sizeof(server));
+			net_bind(sock, reinterpret_cast<struct sockaddr*>(&server), sizeof(server));
 
 			net_listen(sock, 5);
 
@@ -46,14 +46,14 @@ namespace Netcat {
 
 	void accept() {
 		if (!init) return;
-		csock = net_accept(sock, (struct sockaddr*) &client, &clientlen);
+		csock = net_accept(sock, reinterpret_cast<struct sockaddr*>(&client), &clientlen);
 
 		if (csock < 0) {
-			printf("Error connecting socket %d!\n", csock);
+			printf("Error connecting socket %ld!\n", csock);
 			while(1);
 		}
 
-		printf("Connecting port %d from %s\n", client.sin_port, inet_ntoa(client.sin_addr));
+		printf("Connecting port %u from %s\n", client.sin_port, inet_ntoa(client.sin_addr));
 		log("Hi there.\n");
 	}
 

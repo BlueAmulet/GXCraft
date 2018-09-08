@@ -181,8 +181,8 @@ const FN_DECIMAL CELL_3D_Z[] =
 	FN_DECIMAL(0.615630723), FN_DECIMAL(0.3430367014), FN_DECIMAL(0.8193658136), FN_DECIMAL(-0.5829600957), FN_DECIMAL(0.07911697781), FN_DECIMAL(0.7854296063), FN_DECIMAL(-0.4107442306), FN_DECIMAL(0.4766964066), FN_DECIMAL(-0.9045999527), FN_DECIMAL(-0.1673856787), FN_DECIMAL(0.2828077348), FN_DECIMAL(-0.5902737632), FN_DECIMAL(-0.321506229), FN_DECIMAL(-0.5224513133), FN_DECIMAL(-0.4090169985), FN_DECIMAL(-0.3599685311),
 };
 
-static int FastFloor(FN_DECIMAL f) { return (f >= 0 ? (int)f : (int)f - 1); }
-static int FastRound(FN_DECIMAL f) { return (f >= 0) ? (int)(f + FN_DECIMAL(0.5)) : (int)(f - FN_DECIMAL(0.5)); }
+static int FastFloor(FN_DECIMAL f) { return (f >= 0 ? static_cast<int>(f) : static_cast<int>(f) - 1); }
+static int FastRound(FN_DECIMAL f) { return (f >= 0) ? static_cast<int>(f + FN_DECIMAL(0.5)) : static_cast<int>(f - FN_DECIMAL(0.5)); }
 static int FastAbs(int i) { return abs(i); }
 static FN_DECIMAL FastAbs(FN_DECIMAL f) { return fabs(f); }
 static FN_DECIMAL Lerp(FN_DECIMAL a, FN_DECIMAL b, FN_DECIMAL t) { return a + t * (b - a); }
@@ -613,19 +613,19 @@ FN_DECIMAL FastNoise::SingleValue(unsigned char offset, FN_DECIMAL x, FN_DECIMAL
 	switch (m_interp)
 	{
 	case Linear:
-		xs = x - (FN_DECIMAL)x0;
-		ys = y - (FN_DECIMAL)y0;
-		zs = z - (FN_DECIMAL)z0;
+		xs = x - static_cast<FN_DECIMAL>(x0);
+		ys = y - static_cast<FN_DECIMAL>(y0);
+		zs = z - static_cast<FN_DECIMAL>(z0);
 		break;
 	case Hermite:
-		xs = InterpHermiteFunc(x - (FN_DECIMAL)x0);
-		ys = InterpHermiteFunc(y - (FN_DECIMAL)y0);
-		zs = InterpHermiteFunc(z - (FN_DECIMAL)z0);
+		xs = InterpHermiteFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpHermiteFunc(y - static_cast<FN_DECIMAL>(y0));
+		zs = InterpHermiteFunc(z - static_cast<FN_DECIMAL>(z0));
 		break;
 	case Quintic:
-		xs = InterpQuinticFunc(x - (FN_DECIMAL)x0);
-		ys = InterpQuinticFunc(y - (FN_DECIMAL)y0);
-		zs = InterpQuinticFunc(z - (FN_DECIMAL)z0);
+		xs = InterpQuinticFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpQuinticFunc(y - static_cast<FN_DECIMAL>(y0));
+		zs = InterpQuinticFunc(z - static_cast<FN_DECIMAL>(z0));
 		break;
 	}
 
@@ -727,16 +727,16 @@ FN_DECIMAL FastNoise::SingleValue(unsigned char offset, FN_DECIMAL x, FN_DECIMAL
 	switch (m_interp)
 	{
 	case Linear:
-		xs = x - (FN_DECIMAL)x0;
-		ys = y - (FN_DECIMAL)y0;
+		xs = x - static_cast<FN_DECIMAL>(x0);
+		ys = y - static_cast<FN_DECIMAL>(y0);
 		break;
 	case Hermite:
-		xs = InterpHermiteFunc(x - (FN_DECIMAL)x0);
-		ys = InterpHermiteFunc(y - (FN_DECIMAL)y0);
+		xs = InterpHermiteFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpHermiteFunc(y - static_cast<FN_DECIMAL>(y0));
 		break;
 	case Quintic:
-		xs = InterpQuinticFunc(x - (FN_DECIMAL)x0);
-		ys = InterpQuinticFunc(y - (FN_DECIMAL)y0);
+		xs = InterpQuinticFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpQuinticFunc(y - static_cast<FN_DECIMAL>(y0));
 		break;
 	}
 
@@ -841,25 +841,25 @@ FN_DECIMAL FastNoise::SinglePerlin(unsigned char offset, FN_DECIMAL x, FN_DECIMA
 	switch (m_interp)
 	{
 	case Linear:
-		xs = x - (FN_DECIMAL)x0;
-		ys = y - (FN_DECIMAL)y0;
-		zs = z - (FN_DECIMAL)z0;
+		xs = x - static_cast<FN_DECIMAL>(x0);
+		ys = y - static_cast<FN_DECIMAL>(y0);
+		zs = z - static_cast<FN_DECIMAL>(z0);
 		break;
 	case Hermite:
-		xs = InterpHermiteFunc(x - (FN_DECIMAL)x0);
-		ys = InterpHermiteFunc(y - (FN_DECIMAL)y0);
-		zs = InterpHermiteFunc(z - (FN_DECIMAL)z0);
+		xs = InterpHermiteFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpHermiteFunc(y - static_cast<FN_DECIMAL>(y0));
+		zs = InterpHermiteFunc(z - static_cast<FN_DECIMAL>(z0));
 		break;
 	case Quintic:
-		xs = InterpQuinticFunc(x - (FN_DECIMAL)x0);
-		ys = InterpQuinticFunc(y - (FN_DECIMAL)y0);
-		zs = InterpQuinticFunc(z - (FN_DECIMAL)z0);
+		xs = InterpQuinticFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpQuinticFunc(y - static_cast<FN_DECIMAL>(y0));
+		zs = InterpQuinticFunc(z - static_cast<FN_DECIMAL>(z0));
 		break;
 	}
 
-	FN_DECIMAL xd0 = x - (FN_DECIMAL)x0;
-	FN_DECIMAL yd0 = y - (FN_DECIMAL)y0;
-	FN_DECIMAL zd0 = z - (FN_DECIMAL)z0;
+	FN_DECIMAL xd0 = x - static_cast<FN_DECIMAL>(x0);
+	FN_DECIMAL yd0 = y - static_cast<FN_DECIMAL>(y0);
+	FN_DECIMAL zd0 = z - static_cast<FN_DECIMAL>(z0);
 	FN_DECIMAL xd1 = xd0 - 1;
 	FN_DECIMAL yd1 = yd0 - 1;
 	FN_DECIMAL zd1 = zd0 - 1;
@@ -963,21 +963,21 @@ FN_DECIMAL FastNoise::SinglePerlin(unsigned char offset, FN_DECIMAL x, FN_DECIMA
 	switch (m_interp)
 	{
 	case Linear:
-		xs = x - (FN_DECIMAL)x0;
-		ys = y - (FN_DECIMAL)y0;
+		xs = x - static_cast<FN_DECIMAL>(x0);
+		ys = y - static_cast<FN_DECIMAL>(y0);
 		break;
 	case Hermite:
-		xs = InterpHermiteFunc(x - (FN_DECIMAL)x0);
-		ys = InterpHermiteFunc(y - (FN_DECIMAL)y0);
+		xs = InterpHermiteFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpHermiteFunc(y - static_cast<FN_DECIMAL>(y0));
 		break;
 	case Quintic:
-		xs = InterpQuinticFunc(x - (FN_DECIMAL)x0);
-		ys = InterpQuinticFunc(y - (FN_DECIMAL)y0);
+		xs = InterpQuinticFunc(x - static_cast<FN_DECIMAL>(x0));
+		ys = InterpQuinticFunc(y - static_cast<FN_DECIMAL>(y0));
 		break;
 	}
 
-	FN_DECIMAL xd0 = x - (FN_DECIMAL)x0;
-	FN_DECIMAL yd0 = y - (FN_DECIMAL)y0;
+	FN_DECIMAL xd0 = x - static_cast<FN_DECIMAL>(x0);
+	FN_DECIMAL yd0 = y - static_cast<FN_DECIMAL>(y0);
 	FN_DECIMAL xd1 = xd0 - 1;
 	FN_DECIMAL yd1 = yd0 - 1;
 
@@ -1295,8 +1295,8 @@ FN_DECIMAL FastNoise::SingleSimplex(unsigned char offset, FN_DECIMAL x, FN_DECIM
 		i1 = 0; j1 = 1;
 	}
 
-	FN_DECIMAL x1 = x0 - (FN_DECIMAL)i1 + G2;
-	FN_DECIMAL y1 = y0 - (FN_DECIMAL)j1 + G2;
+	FN_DECIMAL x1 = x0 - static_cast<FN_DECIMAL>(i1) + G2;
+	FN_DECIMAL y1 = y0 - static_cast<FN_DECIMAL>(j1) + G2;
 	FN_DECIMAL x2 = x0 - 1 + 2*G2;
 	FN_DECIMAL y2 = y0 - 1 + 2*G2;
 
@@ -1539,9 +1539,9 @@ FN_DECIMAL FastNoise::SingleCubic(unsigned char offset, FN_DECIMAL x, FN_DECIMAL
 	int y3 = y1 + 2;
 	int z3 = z1 + 2;
 
-	FN_DECIMAL xs = x - (FN_DECIMAL)x1;
-	FN_DECIMAL ys = y - (FN_DECIMAL)y1;
-	FN_DECIMAL zs = z - (FN_DECIMAL)z1;
+	FN_DECIMAL xs = x - static_cast<FN_DECIMAL>(x1);
+	FN_DECIMAL ys = y - static_cast<FN_DECIMAL>(y1);
+	FN_DECIMAL zs = z - static_cast<FN_DECIMAL>(z1);
 
 	return CubicLerp(
 		CubicLerp(
@@ -1666,8 +1666,8 @@ FN_DECIMAL FastNoise::SingleCubic(unsigned char offset, FN_DECIMAL x, FN_DECIMAL
 	int x3 = x1 + 2;
 	int y3 = y1 + 2;
 
-	FN_DECIMAL xs = x - (FN_DECIMAL)x1;
-	FN_DECIMAL ys = y - (FN_DECIMAL)y1;
+	FN_DECIMAL xs = x - static_cast<FN_DECIMAL>(x1);
+	FN_DECIMAL ys = y - static_cast<FN_DECIMAL>(y1);
 
 	return CubicLerp(
 		CubicLerp(ValCoord2DFast(offset, x0, y0), ValCoord2DFast(offset, x1, y0), ValCoord2DFast(offset, x2, y0), ValCoord2DFast(offset, x3, y0), xs),
@@ -2137,19 +2137,19 @@ void FastNoise::SingleGradientPerturb(unsigned char offset, FN_DECIMAL warpAmp, 
 	{
 	default:
 	case Linear:
-		xs = xf - (FN_DECIMAL)x0;
-		ys = yf - (FN_DECIMAL)y0;
-		zs = zf - (FN_DECIMAL)z0;
+		xs = xf - static_cast<FN_DECIMAL>(x0);
+		ys = yf - static_cast<FN_DECIMAL>(y0);
+		zs = zf - static_cast<FN_DECIMAL>(z0);
 		break;
 	case Hermite:
-		xs = InterpHermiteFunc(xf - (FN_DECIMAL)x0);
-		ys = InterpHermiteFunc(yf - (FN_DECIMAL)y0);
-		zs = InterpHermiteFunc(zf - (FN_DECIMAL)z0);
+		xs = InterpHermiteFunc(xf - static_cast<FN_DECIMAL>(x0));
+		ys = InterpHermiteFunc(yf - static_cast<FN_DECIMAL>(y0));
+		zs = InterpHermiteFunc(zf - static_cast<FN_DECIMAL>(z0));
 		break;
 	case Quintic:
-		xs = InterpQuinticFunc(xf - (FN_DECIMAL)x0);
-		ys = InterpQuinticFunc(yf - (FN_DECIMAL)y0);
-		zs = InterpQuinticFunc(zf - (FN_DECIMAL)z0);
+		xs = InterpQuinticFunc(xf - static_cast<FN_DECIMAL>(x0));
+		ys = InterpQuinticFunc(yf - static_cast<FN_DECIMAL>(y0));
+		zs = InterpQuinticFunc(zf - static_cast<FN_DECIMAL>(z0));
 		break;
 	}
 
@@ -2226,16 +2226,16 @@ void FastNoise::SingleGradientPerturb(unsigned char offset, FN_DECIMAL warpAmp, 
 	{
 	default:
 	case Linear:
-		xs = xf - (FN_DECIMAL)x0;
-		ys = yf - (FN_DECIMAL)y0;
+		xs = xf - static_cast<FN_DECIMAL>(x0);
+		ys = yf - static_cast<FN_DECIMAL>(y0);
 		break;
 	case Hermite:
-		xs = InterpHermiteFunc(xf - (FN_DECIMAL)x0);
-		ys = InterpHermiteFunc(yf - (FN_DECIMAL)y0);
+		xs = InterpHermiteFunc(xf - static_cast<FN_DECIMAL>(x0));
+		ys = InterpHermiteFunc(yf - static_cast<FN_DECIMAL>(y0));
 		break;
 	case Quintic:
-		xs = InterpQuinticFunc(xf - (FN_DECIMAL)x0);
-		ys = InterpQuinticFunc(yf - (FN_DECIMAL)y0);
+		xs = InterpQuinticFunc(xf - static_cast<FN_DECIMAL>(x0));
+		ys = InterpQuinticFunc(yf - static_cast<FN_DECIMAL>(y0));
 		break;
 	}
 

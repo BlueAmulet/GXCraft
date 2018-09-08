@@ -9,7 +9,7 @@
 #include "ChunkedRender.hpp"
 
 static int randnum(int x, int y) {
-	double uni = ((double)rand())/((double)RAND_MAX);
+	double uni = static_cast<double>(rand())/static_cast<double>(RAND_MAX);
 	return floor(uni * (y - x + 1)) + x;
 }
 

@@ -32,7 +32,7 @@ extern "C" {
 #include "block/BlockIncludes.hpp"
 #include "textures/inv_blocks/BlockIcons.hpp"
 
-#define ticks_to_secsf(ticks) (((f64)(ticks)/(f64)(TB_TIMER_CLOCK*1000)))
+#define ticks_to_secsf(ticks) (static_cast<f64>(ticks)/static_cast<f64>(TB_TIMER_CLOCK*1000))
 
 unsigned int seed = 0; // 0 = Generate Seed
 GRRLIB_texImg *tex_blockicons[256];
@@ -189,7 +189,7 @@ int main() {
 			theWorld = new World(seed);
 			int y;
 			for (y = worldY - 1; y >= 0; y--) {
-				if (theWorld->getBlock((int)thePlayer.posX, y, (int)thePlayer.posZ) != 0) {
+				if (theWorld->getBlock(static_cast<int>(thePlayer.posX), y, static_cast<int>(thePlayer.posZ)) != 0) {
 					thePlayer.posY = y + 1;
 					break;
 				}
@@ -210,7 +210,7 @@ int main() {
 			thePlayer.motionZ = 0;
 
 			if (thePlayer.timer > 0) {
-				thePlayer.timer -= 60.0/(double)FPS;
+				thePlayer.timer -= 60.0/static_cast<double>(FPS);
 			}
 
 			// Handle Controller Input
@@ -414,8 +414,8 @@ int main() {
 
 				// Draw selection box (52x52)
 				signed short sx, sy, sb;
-				sx = ((short)(IR_0.sx) - 52) / 48 - 1;
-				sy = ((short)(IR_0.sy) - 58) / 48 - 1;
+				sx = (static_cast<short>(IR_0.sx) - 52) / 48 - 1;
+				sy = (static_cast<short>(IR_0.sy) - 58) / 48 - 1;
 				sb = sy * 9 + sx;
 				if (sx >= 0 && sx < 9 && sy >= 0 && sb < 42)
 					GRRLIB_Rectangle(sx * 48 + 98, sy * 48 + 104, 52, 52, 0xFFFFFF7F, true);

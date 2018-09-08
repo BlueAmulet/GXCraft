@@ -47,7 +47,7 @@ namespace Utils {
 		int stepY = signum(dy);
 		int stepZ = signum(dz);
 		double maxX = intbound(x, dx), maxY = intbound(y, dy), maxZ = intbound(z, dz);
-		double deltaX = (double)stepX / dx, deltaY = (double)stepY / dy, deltaZ = (double)stepZ / dz;
+		double deltaX = static_cast<double>(stepX) / dx, deltaY = static_cast<double>(stepY) / dy, deltaZ = static_cast<double>(stepZ) / dz;
 		int faceX = 0;
 		int faceY = 0;
 		int faceZ = 0;

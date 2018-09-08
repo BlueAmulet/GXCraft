@@ -36,8 +36,8 @@ void DisplayList::add(s16 x, s16 y, s16 z, u16 c, f32 u, f32 v) {
 
 	this->color[idx] = c;
 
-	this->texcoord[idx*2+0] = (s8)(u*256);
-	this->texcoord[idx*2+1] = (s8)(v*256);
+	this->texcoord[idx*2+0] = static_cast<s8>(u*256);
+	this->texcoord[idx*2+1] = static_cast<s8>(v*256);
 
 	this->index++;
 

@@ -39,7 +39,7 @@ s8 WPAD_StickX(u8 chan, u8 right) {
 	else if (mag < 0.1f && mag > -0.1f) mag = 0;
 	double val = mag * sin(M_PI * ang/180.0f);
 
-	return (s8)(val * 128.0f);
+	return static_cast<s8>(val * 128.0f);
 }
 
 s8 WPAD_StickY(u8 chan, u8 right) {
@@ -78,6 +78,6 @@ s8 WPAD_StickY(u8 chan, u8 right) {
 	else if (mag < 0.1f && mag > -0.1f) mag = 0;
 	double val = mag * cos(M_PI * ang/180.0f);
 
-	return (s8)(val * 128.0f);
+	return static_cast<s8>(val * 128.0f);
 }
 

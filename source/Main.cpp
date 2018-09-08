@@ -57,7 +57,7 @@ typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate
 static bool exitloop = false;
 static bool shutdown = false;
 
-static void ResetCallback() {
+static void ResetCallback(u32 irq, void *ctx) {
 	shutdown = false;
 	exitloop = true;
 }

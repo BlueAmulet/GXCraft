@@ -114,8 +114,8 @@ static void renderCube(int xPos, int yPos, int zPos, bool drawBack, bool drawFro
 	}
 
 	if (drawBott) {
-		u0 = texTop->u0, v0 = texTop->v0;
-		u1 = texTop->u1, v1 = texTop->v1;
+		u0 = texBott->u0, v0 = texBott->v0;
+		u1 = texBott->u1, v1 = texBott->v1;
 
 		dlist->add( 1+xPos,yPos,zPos,
 		0x555F,

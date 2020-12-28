@@ -49,7 +49,7 @@ namespace Netcat {
 		csock = net_accept(sock, reinterpret_cast<struct sockaddr*>(&client), &clientlen);
 
 		if (csock < 0) {
-			printf("Error connecting socket %ld!\n", csock);
+			printf("Error connecting socket %d!\n", csock);
 			while(1);
 		}
 

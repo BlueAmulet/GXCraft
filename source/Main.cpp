@@ -87,7 +87,7 @@ int main() {
 	u8 FPS = 0;
 
 	bool rerenderDisplayList = false;
-	short scr_scanY = 0;
+	unsigned int scr_scanY = 0;
 	int dluse = 0;
 	int dlsize = 0;
 
@@ -484,7 +484,7 @@ int main() {
 			if (data->exp.type == WPAD_EXP_NUNCHUK)
 				status = INGAME;
 
-			GRRLIB_3dMode(0.1, 1000, 45, 1, 0);
+			GRRLIB_3dMode(0.1, 1000, 45, true, false);
 
 			if (theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
 				GXColor c = {0x05, 0x05, 0x33};
@@ -531,7 +531,7 @@ int main() {
 			memset(c85, 0, sizeof c85);
 			u32 lastcol = 0x00000000;
 			int times = 1;
-			int x;
+			unsigned int x;
 			for (x = 0; x < tex_tmpscreen->w; x++) {
 				u32 pixel = GRRLIB_GetPixelFromtexImg(x, scr_scanY, tex_tmpscreen);
 				if (lastcol == 0x00000000) {

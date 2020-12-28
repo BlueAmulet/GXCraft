@@ -70,8 +70,17 @@ static void PowerCallback() {
 	exitloop = true;
 }
 
-int main() {
-	//Netcat::console(); // Comment this to disable netcat logger
+int main(int argc, char *argv[]) {
+	bool netcat = false;
+	for (int i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "netcat")) {
+			netcat = true;
+			break;
+		}
+	}
+	if (netcat) {
+		Netcat::console();
+	}
 
 	if (seed == 0) {
 		srand(time(NULL));

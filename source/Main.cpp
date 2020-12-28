@@ -34,6 +34,9 @@ extern "C" {
 
 #define ticks_to_secsf(ticks) (static_cast<f64>(ticks)/static_cast<f64>(TB_TIMER_CLOCK*1000))
 
+// GRRLIB_Render does not call GX_Flush, resulting in garbage/old frames
+#define GRRLIB_Render() do { GRRLIB_Render(); GX_Flush(); } while (0)
+
 unsigned int seed = 0; // 0 = Generate Seed
 GRRLIB_texImg *tex_blockicons[256];
 
@@ -172,7 +175,6 @@ int main() {
 			status = REGISTER;
 			break;
 		case REGISTER: // Register blocks
-			// TODO: Why does this not display?
 			GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
 			GRRLIB_Render();

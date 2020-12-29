@@ -23,7 +23,9 @@ static void updateNeighbors(int x, int z) {
 static FastNoiseLite *createOctaveNoise(unsigned int seed, int octave, FastNoiseLite::NoiseType noiseType) {
 	FastNoiseLite *noise = new FastNoiseLite(seed);
 	noise->SetNoiseType(noiseType);
-	noise->SetFractalType(FastNoiseLite::FractalType_FBm);
+	if (octave > 1) {
+		noise->SetFractalType(FastNoiseLite::FractalType_FBm);
+	}
 	noise->SetFractalLacunarity(0.5f);
 	noise->SetFractalGain(2.0f);
 	noise->SetFractalOctaves(octave);

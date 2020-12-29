@@ -2,7 +2,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "FastNoise.hpp"
+#include "FastNoiseLite.hpp"
 
 #include "Main.hpp"
 #include "World.hpp"
@@ -20,30 +20,32 @@ static void updateNeighbors(int x, int z) {
 	if (z % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
 }
 
-static FastNoise *createOctaveNoise(unsigned int seed, int octave) {
-	FastNoise *noise = new FastNoise(seed);
-	noise->SetFractalLacunarity(0.5);
-	noise->SetFractalGain(2.0);
+static FastNoiseLite *createOctaveNoise(unsigned int seed, int octave, FastNoiseLite::NoiseType noiseType) {
+	FastNoiseLite *noise = new FastNoiseLite(seed);
+	noise->SetNoiseType(noiseType);
+	noise->SetFractalType(FastNoiseLite::FractalType_FBm);
+	noise->SetFractalLacunarity(0.5f);
+	noise->SetFractalGain(2.0f);
 	noise->SetFractalOctaves(octave);
-	noise->SetFrequency(1.0);
+	noise->SetFrequency(1.0f);
 	return noise;
 }
 
 class CombinedNoise {
 	private:
-		FastNoise *noise1;
-		FastNoise *noise2;
-		FN_DECIMAL antiBound2;
+		FastNoiseLite *noise1;
+		FastNoiseLite *noise2;
+		float antiBound2;
 	public:
-		CombinedNoise(unsigned int seed1, unsigned int seed2, int octave1, int octave2) {
-			noise1 = createOctaveNoise(seed1, octave1);
-			noise2 = createOctaveNoise(seed2, octave2);
-			antiBound2 = pow(FN_DECIMAL(2), FN_DECIMAL(octave2))-FN_DECIMAL(1);
+		CombinedNoise(unsigned int seed1, unsigned int seed2, int octave1, int octave2, FastNoiseLite::NoiseType noiseType) {
+			noise1 = createOctaveNoise(seed1, octave1, noiseType);
+			noise2 = createOctaveNoise(seed2, octave2, noiseType);
+			antiBound2 = pow(2.0f, static_cast<float>(octave2))-1.0f;
 		}
 
-		FN_DECIMAL GetPerlinFractal(FN_DECIMAL x, FN_DECIMAL y) {
-			FN_DECIMAL offset = noise2->GetPerlinFractal(x, y) * antiBound2;
-			return noise1->GetPerlinFractal(x + offset, y);
+		float GetNoise(float x, float y) {
+			float offset = noise2->GetNoise(x, y) * antiBound2;
+			return noise1->GetNoise(x + offset, y);
 		}
 };
 
@@ -58,12 +60,14 @@ static unsigned int xorrand() {
 
 World::World(unsigned int seed) {
 	_seed = (seed == 0 ? 0xAB08E51C : seed);
-	CombinedNoise noise1(xorrand(), xorrand(), 8, 8); // Low Terrain
-	CombinedNoise noise2(xorrand(), xorrand(), 8, 8); // High Terrain
-	FastNoise noise3 = *createOctaveNoise(xorrand(), 6); // Low/High select
-	FastNoise noise4 = *createOctaveNoise(xorrand(), 8); // Dirt Height
-	FastNoise noise5 = *createOctaveNoise(xorrand(), 8); // Dirt/Gravel select
-	FastNoise noise6 = *createOctaveNoise(xorrand(), 8); // Sand/Grass select (White: Trees, Simplex: Flowers)
+	CombinedNoise noise1(xorrand(), xorrand(), 8, 8, FastNoiseLite::NoiseType_Perlin); // Low Terrain
+	CombinedNoise noise2(xorrand(), xorrand(), 8, 8, FastNoiseLite::NoiseType_Perlin); // High Terrain
+	FastNoiseLite noise3 = *createOctaveNoise(xorrand(), 6, FastNoiseLite::NoiseType_Perlin); // Low/High select
+	FastNoiseLite noise4 = *createOctaveNoise(xorrand(), 8, FastNoiseLite::NoiseType_Perlin); // Dirt Height
+	FastNoiseLite noise5 = *createOctaveNoise(xorrand(), 8, FastNoiseLite::NoiseType_Perlin); // Dirt/Gravel select
+	FastNoiseLite noise6 = *createOctaveNoise(xorrand(), 8, FastNoiseLite::NoiseType_Perlin); // Sand/Grass select
+	FastNoiseLite noise7 = *createOctaveNoise(xorrand(), 1, FastNoiseLite::NoiseType_Value); // Trees
+	FastNoiseLite noise8 = *createOctaveNoise(xorrand(), 8, FastNoiseLite::NoiseType_OpenSimplex2); // Flowers
 
 	flowingLiquid.reserve(32);
 	memset(theWorld, 255, sizeof theWorld);
@@ -72,11 +76,11 @@ World::World(unsigned int seed) {
 
 	for (int x = 0; x < worldX; x++) {
 		for (int z = 0; z < worldZ; z++) {
-			FN_DECIMAL hLow = noise1.GetPerlinFractal(x * 1.3f, z * 1.3f) * 255 / 6 - 4;
-			FN_DECIMAL height = hLow;
+			float hLow = noise1.GetNoise(x * 1.3f, z * 1.3f) * 255 / 6 - 4;
+			float height = hLow;
 
-			if (noise3.GetPerlinFractal(x, z) <= 0) {
-				FN_DECIMAL hHigh = noise2.GetPerlinFractal(x * 1.3f, z * 1.3f) * 255 / 5 + 6;
+			if (noise3.GetNoise(static_cast<float>(x), static_cast<float>(z)) <= 0) {
+				float hHigh = noise2.GetNoise(x * 1.3f, z * 1.3f) * 255 / 5 + 6;
 				height = std::max(hLow, hHigh);
 			}
 
@@ -85,7 +89,7 @@ World::World(unsigned int seed) {
 				height *= 0.8f;
 
 			int dirtHeight = height + waterLevel;
-			int dirtThickness = noise4.GetPerlinFractal(x, z) * 255 / 24 - 4;
+			int dirtThickness = noise4.GetNoise(static_cast<float>(x), static_cast<float>(z)) * 255 / 24 - 4;
 			int stoneHeight = std::min(dirtHeight + dirtThickness, dirtHeight - 1);
 
 			for (int y = 0; y < worldY; y++) {
@@ -97,15 +101,15 @@ World::World(unsigned int seed) {
 					theWorld[y][x][z] = 3;
 				else if (y == dirtHeight) {
 					if (dirtHeight < (waterLevel - 1))
-						theWorld[y][x][z] = ((noise5.GetPerlinFractal(x, z) * 255) > 12) ? 13 : 3;
+						theWorld[y][x][z] = ((noise5.GetNoise(static_cast<float>(x), static_cast<float>(z)) * 255) > 12) ? 13 : 3;
 					else
-						theWorld[y][x][z] = (y <= waterLevel && (noise6.GetPerlinFractal(x, z) * 255) > 8) ? 12 : 2;
+						theWorld[y][x][z] = (y <= waterLevel && (noise6.GetNoise(static_cast<float>(x), static_cast<float>(z)) * 255) > 8) ? 12 : 2;
 				} else if (y == dirtHeight + 1 && dirtHeight >= 32) {
-					int place = floor((noise6.GetWhiteNoise(x, z) / 2 + 0.5) * 512);
+					int place = floor((noise7.GetNoise(static_cast<float>(x), static_cast<float>(z)) / 2 + 0.5) * 512);
 					if (place == 0)
 						placeTree(x, y, z);
 					if (place < 128) {
-						FN_DECIMAL redPlace = noise6.GetSimplex(x/FN_DECIMAL(64), z/FN_DECIMAL(64));
+						float redPlace = noise8.GetNoise(x/64.0f, z/64.0f);
 						if (redPlace > 0.8)
 							theWorld[y][x][z] = 37;
 						else if (redPlace < -0.8)

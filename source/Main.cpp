@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
 	WPAD_Init();
 	Chunked::init();
 	initTextures();
-	Fail3D::init(575);
+	Fail3D::init(416);
 
 	WPADData *data;
 	ir_t IR_0;
@@ -302,7 +302,7 @@ int main(int argc, char *argv[]) {
 			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
 
 			//Netcat::log("switching 3d\n");
-			GRRLIB_3dMode(0.1, 1000, 45, true, false);
+			GRRLIB_3dMode(0.1f, 1000.f, 60.f, true, false);
 			GX_SetZCompLoc(GX_FALSE);
 
 			if (theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
@@ -495,7 +495,7 @@ int main(int argc, char *argv[]) {
 			if (data->exp.type == WPAD_EXP_NUNCHUK)
 				status = INGAME;
 
-			GRRLIB_3dMode(0.1, 1000, 45, true, false);
+			GRRLIB_3dMode(0.1f, 1000.f, 60.f, true, false);
 
 			if (theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
 				GXColor c = {0x05, 0x05, 0x33};

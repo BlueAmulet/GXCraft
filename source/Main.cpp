@@ -10,12 +10,12 @@
 #include <ogc/lwp_watchdog.h>
 
 extern "C" {
-#include "textures/font.h"
-#include "textures/inventory.h"
-#include "textures/inv_select.h"
-#include "textures/terrain_blocks.h"
-#include "textures/cursor.h"
-#include "textures/clouds.h"
+#include "font_png.h"
+#include "inventory_png.h"
+#include "inv_select_png.h"
+#include "terrain_blocks_png.h"
+#include "cursor_png.h"
+#include "clouds_png.h"
 }
 
 #include "Main.hpp"
@@ -29,8 +29,8 @@ extern "C" {
 #include "NetcatLogger.hpp"
 #include "ChunkedRender.hpp"
 #include "BlockTextures.hpp"
+#include "BlockIcons.hpp"
 #include "block/BlockIncludes.hpp"
-#include "textures/inv_blocks/BlockIcons.hpp"
 
 #define ticks_to_secsf(ticks) (static_cast<f64>(ticks)/static_cast<f64>(TB_TIMER_CLOCK*1000))
 
@@ -134,12 +134,12 @@ int main(int argc, char *argv[]) {
 
 	GRRLIB_SetAntiAliasing(false);
 
-	GRRLIB_texImg *tex_font       = GRRLIB_LoadTexture(font);
-	GRRLIB_texImg *tex_inventory  = GRRLIB_LoadTexture(inventory);
-	GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select);
-	GRRLIB_texImg *tex_terrain    = GRRLIB_LoadTexture(terrain_blocks);
-	GRRLIB_texImg *tex_cursor     = GRRLIB_LoadTexture(cursor);
-	GRRLIB_texImg *tex_clouds     = GRRLIB_LoadTexture(clouds);
+	GRRLIB_texImg *tex_font       = GRRLIB_LoadTexture(font_png);
+	GRRLIB_texImg *tex_inventory  = GRRLIB_LoadTexture(inventory_png);
+	GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select_png);
+	GRRLIB_texImg *tex_terrain    = GRRLIB_LoadTexture(terrain_blocks_png);
+	GRRLIB_texImg *tex_cursor     = GRRLIB_LoadTexture(cursor_png);
+	GRRLIB_texImg *tex_clouds     = GRRLIB_LoadTexture(clouds_png);
 	GRRLIB_texImg *tex_tmpscreen  = GRRLIB_CreateEmptyTexture(rmode->fbWidth, rmode->efbHeight);
 
 	//GRRLIB_texImg *tex_blockicons[256];

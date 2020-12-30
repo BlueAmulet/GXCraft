@@ -12,20 +12,20 @@
 #define chunkSize 16
 
 class World {
-	public:
-		uint8_t theWorld[worldY][worldX][worldZ];
-		uint8_t lighting[worldX][worldZ];
-		std::vector<guVector> flowingLiquid;
+public:
+	uint8_t theWorld[worldY][worldX][worldZ];
+	uint8_t lighting[worldX][worldZ];
+	std::vector<guVector> flowingLiquid;
 
-		World(unsigned int);
-		uint8_t getBlock(int, int, int);
-		void setBlockRaw(int, int, int, uint8_t);
-		void setBlock(int, int, int, uint8_t);
-		void setIfAir(int, int, int, uint8_t);
-		int getLiquidsSize();
-		int getLiquidsCapacity();
+	World(unsigned int);
+	uint8_t getBlock(int, int, int);
+	void setBlockRaw(int, int, int, uint8_t);
+	void setBlock(int, int, int, uint8_t);
+	void setIfAir(int, int, int, uint8_t);
+	size_t getLiquidsSize();
+	size_t getLiquidsCapacity();
 
-		void updateWorld(int);
+	void updateWorld(int);
 
-		void placeTree(int, int, int);
+	void placeTree(int, int, int);
 };

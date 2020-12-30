@@ -1,0 +1,15 @@
+---
+BasedOnStyle: Microsoft
+AccessModifierOffset: -4
+AlignEscapedNewlines: DontAlign
+AlignTrailingComments: false
+BreakBeforeBraces: Attach
+BreakStringLiterals: false
+ColumnLimit: 9999
+DeriveLineEnding: false
+FixNamespaceComments: false
+NamespaceIndentation: All
+ReflowComments: false
+SortIncludes: false
+UseTab: ForIndentation
+...

@@ -4,9 +4,9 @@
 
 #include "Fail3D.hpp"
 
-static double focalLength;
-static double vanishingPointX;
-static double vanishingPointY;
+static float focalLength;
+static float vanishingPointX;
+static float vanishingPointY;
 
 static void rotateCoords(double *a, double *b, double angle) {
 	double cosV = cos(angle);
@@ -18,10 +18,10 @@ static void rotateCoords(double *a, double *b, double angle) {
 }
 
 namespace Fail3D {
-	void init(double fl) {
+	void init(float fl) {
 		focalLength = fl;
-		vanishingPointX = rmode->fbWidth/2;
-		vanishingPointY = rmode->efbHeight/2;
+		vanishingPointX = rmode->fbWidth / 2.0f;
+		vanishingPointY = rmode->efbHeight / 2.0f;
 	}
 
 	void translatePoint(guVector *polygon, guVector *center) {
@@ -44,7 +44,7 @@ namespace Fail3D {
 	}
 
 	void calculatePointPosition(guVector *polygon) {
-		double scale = fabs(focalLength/polygon->z);
+		float scale = fabs(focalLength / polygon->z);
 		polygon->x = vanishingPointX + polygon->x * scale;
 		polygon->y = vanishingPointY + polygon->y * scale;
 	}

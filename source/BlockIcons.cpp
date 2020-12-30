@@ -51,7 +51,7 @@ extern "C" {
 #include "bi_48_png.h"
 #include "bi_49_png.h"
 }
-
+// clang-format off
 void load_bi() {
 	tex_blockicons[ 1] = GRRLIB_LoadTexture(bi_1_png);
 	tex_blockicons[ 2] = GRRLIB_LoadTexture(bi_2_png);
@@ -100,3 +100,4 @@ void load_bi() {
 	tex_blockicons[48] = GRRLIB_LoadTexture(bi_48_png);
 	tex_blockicons[49] = GRRLIB_LoadTexture(bi_49_png);
 }
+// clang-format on

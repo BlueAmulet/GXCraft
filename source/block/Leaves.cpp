@@ -11,8 +11,9 @@ static blockTexture *tex_leaves;
 
 inline void drawLeavesBlock(int xPos, int yPos, int zPos);
 
-static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 1) return;
+static void render(s16 xPos, s16 yPos, s16 zPos, unsigned char pass) {
+	if (pass == 1)
+		return;
 	Render::drawBlock(xPos, yPos, zPos, tex_leaves);
 }
 

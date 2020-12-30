@@ -32,10 +32,14 @@ extern "C" {
 #include "BlockIcons.hpp"
 #include "block/BlockIncludes.hpp"
 
-#define ticks_to_secsf(ticks) (static_cast<f64>(ticks)/static_cast<f64>(TB_TIMER_CLOCK*1000))
+#define ticks_to_secsf(ticks) (static_cast<f64>(ticks) / static_cast<f64>(TB_TIMER_CLOCK * 1000))
 
 // GRRLIB_Render does not call GX_Flush, resulting in garbage/old frames
-#define GRRLIB_Render() do { GRRLIB_Render(); GX_Flush(); } while (0)
+#define GRRLIB_Render() \
+	do { \
+		GRRLIB_Render(); \
+		GX_Flush(); \
+	} while (0)
 
 unsigned int seed = 0; // 0 = Generate Seed
 GRRLIB_texImg *tex_blockicons[256];
@@ -44,18 +48,18 @@ Player thePlayer;
 World *theWorld;
 
 inline double to_degrees(double radians) {
-	return radians*(180.0f/M_PI);
+	return radians * (180.0 / M_PI);
 }
 
 inline double to_radians(double degrees) {
-	return (degrees*M_PI)/180.0f;
+	return (degrees * M_PI) / 180.0;
 }
 
 static void initializeBlocks();
 static u8 CalculateFrameRate();
 static void color85(char *buf, u32 color);
 
-typedef enum {NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT} gamestate;
+typedef enum { NETCAT, REGISTER, GENERATE, INGAME, NUNCHUK, SCREENSHOT } gamestate;
 
 static bool exitloop = false;
 static bool shutdown = false;
@@ -100,19 +104,19 @@ int main(int argc, char *argv[]) {
 
 	bool rerenderDisplayList = false;
 	unsigned int scr_scanY = 0;
-	int dluse = 0;
-	int dlsize = 0;
+	size_t dluse = 0;
+	size_t dlsize = 0;
 
 	// Initialize the player
-	thePlayer.posX = floorf(worldX/2.0)+0.5;
-	thePlayer.posZ = floorf(worldZ/2.0)+0.5;
+	thePlayer.posX = floorf(worldX / 2.0f) + 0.5f;
+	thePlayer.posZ = floorf(worldZ / 2.0f) + 0.5f;
 	thePlayer.motionX = 0;
 	thePlayer.motionY = 0;
 	thePlayer.motionZ = 0;
 	thePlayer.lookX = 0;
 	thePlayer.lookY = 0;
 	thePlayer.lookZ = 0;
-	unsigned char startinv[10] = { 1, 4,45, 3, 5,17,18,20,43,0};
+	unsigned char startinv[10] = {1, 4, 45, 3, 5, 17, 18, 20, 43, 0};
 	memcpy(thePlayer.inventory, startinv, sizeof(thePlayer.inventory));
 	thePlayer.flying = true;
 	thePlayer.select = false;
@@ -134,6 +138,7 @@ int main(int argc, char *argv[]) {
 
 	GRRLIB_SetAntiAliasing(false);
 
+	// clang-format off
 	GRRLIB_texImg *tex_font       = GRRLIB_LoadTexture(font_png);
 	GRRLIB_texImg *tex_inventory  = GRRLIB_LoadTexture(inventory_png);
 	GRRLIB_texImg *tex_inv_select = GRRLIB_LoadTexture(inv_select_png);
@@ -141,6 +146,7 @@ int main(int argc, char *argv[]) {
 	GRRLIB_texImg *tex_cursor     = GRRLIB_LoadTexture(cursor_png);
 	GRRLIB_texImg *tex_clouds     = GRRLIB_LoadTexture(clouds_png);
 	GRRLIB_texImg *tex_tmpscreen  = GRRLIB_CreateEmptyTexture(rmode->fbWidth, rmode->efbHeight);
+	// clang-format on
 
 	//GRRLIB_texImg *tex_blockicons[256];
 
@@ -155,18 +161,20 @@ int main(int argc, char *argv[]) {
 	SYS_SetResetCallback(ResetCallback);
 	SYS_SetPowerCallback(PowerCallback);
 
+	// clang-format off
 	u8 inv_blocks[42] = {
 	 1,  4, 45,  3,  5, 17, 18, 20, 43,
 	48,  6, 37, 38, 39, 40, 12, 13, 19,
 	21, 22, 23, 24, 25, 26, 27, 28, 29,
 	30, 31, 32, 33, 34, 35, 36, 16, 15,
 	14, 42, 41, 47, 46, 49 };
+	// clang-format on
 
 	f64 lastTime = ticks_to_secsf(gettime());
 
-	double cloudPos = 0;
+	float cloudPos = 0;
 
-	int memusage;
+	size_t memusage;
 	double xLook, yLook, zLook;
 	struct mallinfo meminfo;
 
@@ -175,15 +183,16 @@ int main(int argc, char *argv[]) {
 	while (!exitloop) {
 		f64 thisTime = ticks_to_secsf(gettime());
 		f64 deltaTime = (thisTime - lastTime);
-		switch(status) {
-		case NETCAT: // Listen for clients
+		switch (status) {
+		case NETCAT: { // Listen for clients
 			GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "WAITING FOR CLIENT...");
 			GRRLIB_Render();
 			Netcat::accept();
 			status = REGISTER;
 			break;
-		case REGISTER: // Register blocks
+		}
+		case REGISTER: { // Register blocks
 			GRRLIB_2dMode();
 			GRRLIB_Printf(152, 232, tex_font, 0xFFFFFFFF, 1, "REGISTERING BLOCKS...");
 			GRRLIB_Render();
@@ -192,7 +201,8 @@ int main(int argc, char *argv[]) {
 			load_bi();
 			status = GENERATE;
 			break;
-		case GENERATE: // Generate the world
+		}
+		case GENERATE: { // Generate the world
 			GRRLIB_2dMode();
 			GRRLIB_Printf(160, 232, tex_font, 0xFFFFFFFF, 1, "GENERATING WORLD ...");
 			GRRLIB_Render();
@@ -214,6 +224,7 @@ int main(int argc, char *argv[]) {
 			Chunked::getfifousage(&dluse, &dlsize);
 			status = INGAME;
 			break;
+		}
 		case INGAME: { // Main loop
 			// Reset Motion
 			thePlayer.motionX = 0;
@@ -221,7 +232,7 @@ int main(int argc, char *argv[]) {
 			thePlayer.motionZ = 0;
 
 			if (thePlayer.timer > 0) {
-				thePlayer.timer -= 60.0/static_cast<double>(FPS);
+				thePlayer.timer -= 60.0 / static_cast<double>(FPS);
 			}
 
 			// Handle Controller Input
@@ -262,8 +273,8 @@ int main(int argc, char *argv[]) {
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_NUNCHUK_BUTTON_Z) {
 				showDebug = !showDebug;
 			}
-			thePlayer.lookX += WPAD_StickX(WPAD_CHAN_0, 0) * deltaTime / 2.f;
-			thePlayer.lookY -= WPAD_StickY(WPAD_CHAN_0, 0) * deltaTime / 2.f;
+			thePlayer.lookX += WPAD_StickX(WPAD_CHAN_0, 0) * deltaTime / 2.0f;
+			thePlayer.lookY -= WPAD_StickY(WPAD_CHAN_0, 0) * deltaTime / 2.0f;
 
 			if (thePlayer.flying) {
 				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_PLUS)
@@ -276,7 +287,8 @@ int main(int argc, char *argv[]) {
 					thePlayer.inventory[9] %= 9;
 				}
 				if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_MINUS) {
-					if (thePlayer.inventory[9] == 0) thePlayer.inventory[9] = 9;
+					if (thePlayer.inventory[9] == 0)
+						thePlayer.inventory[9] = 9;
 					thePlayer.inventory[9] -= 1;
 				}
 			}
@@ -294,31 +306,37 @@ int main(int argc, char *argv[]) {
 			thePlayer.moveEntity(deltaTime);
 
 			// Keep values in bound
-			if (thePlayer.lookX > 180)       thePlayer.lookX -= 360;
-			else if (thePlayer.lookX < -180) thePlayer.lookX += 360;
-			if (thePlayer.lookY > 90)        thePlayer.lookY =  90;
-			else if (thePlayer.lookY < -90)  thePlayer.lookY = -90;
-			if (thePlayer.lookZ > 180)       thePlayer.lookZ -= 360;
-			else if (thePlayer.lookZ < -180) thePlayer.lookZ += 360;
+			if (thePlayer.lookX > 180)
+				thePlayer.lookX -= 360;
+			else if (thePlayer.lookX < -180)
+				thePlayer.lookX += 360;
+			if (thePlayer.lookY > 90)
+				thePlayer.lookY = 90;
+			else if (thePlayer.lookY < -90)
+				thePlayer.lookY = -90;
+			if (thePlayer.lookZ > 180)
+				thePlayer.lookZ -= 360;
+			else if (thePlayer.lookZ < -180)
+				thePlayer.lookZ += 360;
 
 			//Netcat::log("switching 3d\n");
-			GRRLIB_3dMode(0.1f, 1000.f, 60.f, true, false);
+			GRRLIB_3dMode(0.1f, 1000.0f, 60.0f, true, false);
 			GX_SetZCompLoc(GX_FALSE);
 
-			if (theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
+			if (theWorld->getBlock(floorf(thePlayer.posX), floorf(thePlayer.posY + 1.625f), floorf(thePlayer.posZ)) == 8) {
 				if (!wasUnder) {
 					GRRLIB_SetBackgroundColour(0x05, 0x05, 0x33, 0xFF);
 					wasUnder = true;
 				}
 				GXColor c = {0x05, 0x05, 0x33};
-				GX_SetFog(GX_FOG_LIN, 0, 32, 0.1, 1000, c);
+				GX_SetFog(GX_FOG_LIN, 0.0f, 32.0f, 0.1f, 1000.0f, c);
 			} else {
 				if (wasUnder) {
 					GRRLIB_SetBackgroundColour(0x9E, 0xCE, 0xFF, 0xFF);
 					wasUnder = false;
 				}
 				GXColor c = {0x9E, 0xCE, 0xFF};
-				GX_SetFog(GX_FOG_LIN, renderDistance - 32, renderDistance - chunkSize, 0.1, 1000, c);
+				GX_SetFog(GX_FOG_LIN, renderDistance - 32, renderDistance - chunkSize, 0.1f, 1000.0f, c);
 			}
 
 			GRRLIB_ObjectViewBegin();
@@ -332,29 +350,29 @@ int main(int argc, char *argv[]) {
 				rerenderDisplayList = true;
 			}
 
-			xLook =  sin(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
+			xLook = sin(to_radians(thePlayer.lookX)) * cos(to_radians(thePlayer.lookY));
 			yLook = -sin(to_radians(thePlayer.lookY));
-			zLook = -cos(to_radians(thePlayer.lookX))*cos(to_radians(thePlayer.lookY));
+			zLook = -cos(to_radians(thePlayer.lookX)) * cos(to_radians(thePlayer.lookY));
 
 			int selBlockX, selBlockY, selBlockZ, faceBlockX, faceBlockY, faceBlockZ;
-			if (Utils::voxelCollisionRay(thePlayer.posX, thePlayer.posY+1.625f, thePlayer.posZ, xLook*7.0, yLook*7.0, zLook*7.0, &selBlockX, &selBlockY, &selBlockZ, &faceBlockX, &faceBlockY, &faceBlockZ)) {
+			if (Utils::voxelCollisionRay(thePlayer.posX, thePlayer.posY + 1.625f, thePlayer.posZ, xLook * 7.0, yLook * 7.0, zLook * 7.0, &selBlockX, &selBlockY, &selBlockZ, &faceBlockX, &faceBlockY, &faceBlockZ)) {
 				GRRLIB_SetTexture(tex_inventory, false);
 				Render::drawSelectionBlock(selBlockX, selBlockY, selBlockZ);
 
-				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer <= 0 && theWorld->getBlock(selBlockX,selBlockY,selBlockZ) != 7) {
-					theWorld->setBlock(selBlockX,selBlockY,selBlockZ,0);
+				if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_B && !thePlayer.select && thePlayer.timer <= 0 && theWorld->getBlock(selBlockX, selBlockY, selBlockZ) != 7) {
+					theWorld->setBlock(selBlockX, selBlockY, selBlockZ, 0);
 					thePlayer.timer = 18;
 				} else if (WPAD_ButtonsHeld(WPAD_CHAN_0) & WPAD_BUTTON_A && !thePlayer.select && thePlayer.timer <= 0 && thePlayer.inventory[thePlayer.inventory[9]] != 0) {
 					if (faceBlockX != 0 || faceBlockY != 0 || faceBlockZ != 0) {
-						selBlockX+=faceBlockX;
-						selBlockY+=faceBlockY;
-						selBlockZ+=faceBlockZ;
+						selBlockX += faceBlockX;
+						selBlockY += faceBlockY;
+						selBlockZ += faceBlockZ;
 
-						uint8_t oldBlock = theWorld->getBlock(selBlockX,selBlockY,selBlockZ);
+						uint8_t oldBlock = theWorld->getBlock(selBlockX, selBlockY, selBlockZ);
 						bool wasStuck = thePlayer.isStuck();
-						theWorld->setBlock(selBlockX,selBlockY,selBlockZ,thePlayer.inventory[thePlayer.inventory[9]]);
+						theWorld->setBlock(selBlockX, selBlockY, selBlockZ, thePlayer.inventory[thePlayer.inventory[9]]);
 						if (!wasStuck && thePlayer.isStuck())
-							theWorld->setBlock(selBlockX,selBlockY,selBlockZ,oldBlock);
+							theWorld->setBlock(selBlockX, selBlockY, selBlockZ, oldBlock);
 						else
 							thePlayer.timer = 18;
 					}
@@ -368,23 +386,21 @@ int main(int argc, char *argv[]) {
 			GRRLIB_SetTexture(tex_clouds, true);
 
 			GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-
-			GX_Position3f32(-worldX,worldY+3,-worldZ);
+			GX_Position3f32(-worldX, worldY + 3, -worldZ);
 			GX_Color1u32(0xFFFFFFFF);
-			GX_TexCoord2f32(cloudPos,0);
-			GX_Position3f32(-worldX,worldY+3,worldZ*2);
+			GX_TexCoord2f32(cloudPos, 0.0f);
+			GX_Position3f32(-worldX, worldY + 3, worldZ * 2);
 			GX_Color1u32(0xFFFFFFFF);
-			GX_TexCoord2f32(cloudPos,1);
-			GX_Position3f32(worldX*2,worldY+3,worldZ*2);
+			GX_TexCoord2f32(cloudPos, 1.0f);
+			GX_Position3f32(worldX * 2, worldY + 3, worldZ * 2);
 			GX_Color1u32(0xFFFFFFFF);
-			GX_TexCoord2f32(cloudPos+1,1);
-			GX_Position3f32(worldX*2,worldY+3,-worldZ);
+			GX_TexCoord2f32(cloudPos + 1.0f, 1.0f);
+			GX_Position3f32(worldX * 2, worldY + 3, -worldZ);
 			GX_Color1u32(0xFFFFFFFF);
-			GX_TexCoord2f32(cloudPos+1,0);
-
+			GX_TexCoord2f32(cloudPos + 1.0f, 0.0f);
 			GX_End();
 
-			cloudPos = fmod(cloudPos + deltaTime/1000,1);
+			cloudPos = fmodf(cloudPos + deltaTime / 1000.0f, 1.0f);
 
 			if (rerenderDisplayList) {
 				Netcat::log("rerendering display list\n");
@@ -416,7 +432,7 @@ int main(int argc, char *argv[]) {
 				GRRLIB_DrawImg(b * 40 + 144, 442, tex_blockicons[thePlayer.inventory[b]], 0, 1, 1, 0xFFFFFFFF);
 			}
 
-			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, thePlayer.flying ? 0xBFBFBFFF: 0xFFFFFFFF);
+			GRRLIB_DrawImg(thePlayer.inventory[9] * 40 + 136, 434, tex_inv_select, 0, 2, 2, thePlayer.flying ? 0xBFBFBFFF : 0xFFFFFFFF);
 
 			if (thePlayer.select) {
 				GRRLIB_Rectangle(80, 60, 480, 300, 0x0000007F, true);
@@ -434,7 +450,7 @@ int main(int argc, char *argv[]) {
 				int x, y;
 				for (b = 0; b < 42; b++) {
 					x = b % 9;
-					y = floor(b/9);
+					y = floor(b / 9);
 					GRRLIB_DrawImg(x * 48 + 108, y * 48 + 114, tex_blockicons[inv_blocks[b]], 0, 1, 1, 0xFFFFFFFF);
 				}
 				GRRLIB_SetAntiAliasing(true);
@@ -454,22 +470,24 @@ int main(int argc, char *argv[]) {
 			if (memusage > 0xE800000) // Correct gap between MEM1 and MEM2
 				memusage -= 0xE800000;
 
-			int flsize = theWorld->getLiquidsSize();
-			int flcapacity = theWorld->getLiquidsCapacity();
+			size_t flsize = theWorld->getLiquidsSize();
+			size_t flcapacity = theWorld->getLiquidsCapacity();
 
 			// Draw debugging elements
 			if (showDebug) {
-				Render::drawText(10,  25, tex_font, "FPS: %d", FPS);
+				// clang-format off
+				Render::drawText(10,  25, tex_font, "FPS: %u", FPS);
 				Render::drawText(10,  40, tex_font, "PX:% 7.2f", thePlayer.posX);
 				Render::drawText(10,  55, tex_font, "PY:% 7.2f", thePlayer.posY);
 				Render::drawText(10,  70, tex_font, "PZ:% 7.2f", thePlayer.posZ);
 				Render::drawText(10,  85, tex_font, "LX:% 7.2f", thePlayer.lookX);
 				Render::drawText(10, 100, tex_font, "LY:% 7.2f", thePlayer.lookY);
 				Render::drawText(10, 115, tex_font, "LZ:% 7.2f", thePlayer.lookZ);
-				Render::drawText(10, 130, tex_font, "DLSize: %d/%d (%d%%)", dluse, dlsize, dluse*100/dlsize);
-				Render::drawText(10, 145, tex_font, "MemUsage: %d (%.1fMiB)", memusage, memusage/1024.0/1024.0);
-				Render::drawText(10, 160, tex_font, "AFB: %d/%d (%d%%)", flsize, flcapacity, flsize*100/flcapacity);
+				Render::drawText(10, 130, tex_font, "DLSize: %u/%u (%u%%)", dluse, dlsize, dluse * 100 / dlsize);
+				Render::drawText(10, 145, tex_font, "MemUsage: %u (%.1fMiB)", memusage, memusage / 1024.0 / 1024.0);
+				Render::drawText(10, 160, tex_font, "AFB: %u/%u (%u%%)", flsize, flcapacity, flsize * 100 / flcapacity);
 				Render::drawText(406, 25, tex_font, "Seed: %08X", seed);
+				// clang-format on
 			}
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) {
@@ -487,22 +505,23 @@ int main(int argc, char *argv[]) {
 
 			GRRLIB_Render();
 			FPS = CalculateFrameRate();
-			break; }
-		case NUNCHUK:
+			break;
+		}
+		case NUNCHUK: {
 			WPAD_ScanPads();
 
 			data = WPAD_Data(WPAD_CHAN_0);
 			if (data->exp.type == WPAD_EXP_NUNCHUK)
 				status = INGAME;
 
-			GRRLIB_3dMode(0.1f, 1000.f, 60.f, true, false);
+			GRRLIB_3dMode(0.1f, 1000.0f, 60.0f, true, false);
 
-			if (theWorld->getBlock(floor(thePlayer.posX),floor(thePlayer.posY+1.625f),floor(thePlayer.posZ)) == 8) {
+			if (theWorld->getBlock(floorf(thePlayer.posX), floorf(thePlayer.posY + 1.625f), floorf(thePlayer.posZ)) == 8) {
 				GXColor c = {0x05, 0x05, 0x33};
-				GX_SetFog(GX_FOG_LIN, 0, 32, 0.1, 1000, c);
+				GX_SetFog(GX_FOG_LIN, 0.0, 32.0f, 0.1f, 1000.0f, c);
 			} else {
 				GXColor c = {0x9E, 0xCE, 0xFF};
-				GX_SetFog(GX_FOG_LIN, renderDistance - 32, renderDistance - chunkSize, 0.1, 1000, c);
+				GX_SetFog(GX_FOG_LIN, static_cast<float>(renderDistance - 32), static_cast<float>(renderDistance - chunkSize), 0.1f, 1000.0f, c);
 			}
 
 			GRRLIB_ObjectViewBegin();
@@ -511,7 +530,7 @@ int main(int argc, char *argv[]) {
 			GRRLIB_ObjectViewRotate(thePlayer.lookY, 0, 0);
 			GRRLIB_ObjectViewEnd();
 
-			//GRRLIB clears the vertex formats on mode switch
+			// GRRLIB clears the vertex formats on mode switch
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA4, 0);
 			GX_SetVtxAttrFmt(GX_VTXFMT1, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
@@ -519,7 +538,7 @@ int main(int argc, char *argv[]) {
 			GRRLIB_SetTexture(tex_terrain, false);
 			Chunked::render();
 
-			//Complain to user
+			// Complain to user
 			GRRLIB_2dMode();
 			GRRLIB_Rectangle(0, 0, 640, 480, 0x0000007F, true);
 			if (data->data_present == 0)
@@ -528,7 +547,8 @@ int main(int argc, char *argv[]) {
 				Render::drawText(144, 232, tex_font, "PLEASE CONNECT NUNCHUK");
 			GRRLIB_Render();
 			break;
-		case SCREENSHOT:
+		}
+		case SCREENSHOT: {
 			WPAD_ScanPads();
 
 			if (WPAD_ButtonsDown(WPAD_CHAN_0) & WPAD_BUTTON_2) { // Cancel screenshot
@@ -549,10 +569,10 @@ int main(int argc, char *argv[]) {
 					lastcol = pixel;
 					times = 1;
 				} else if (pixel != lastcol) {
-					color85(c85,lastcol);
+					color85(c85, lastcol);
 					Netcat::log(c85);
 					if (times > 1) {
-						Netcat::logf("~%03d",times);
+						Netcat::logf("~%03d", times);
 					}
 					lastcol = pixel;
 					times = 1;
@@ -561,10 +581,10 @@ int main(int argc, char *argv[]) {
 				}
 			}
 			// Dump whats left
-			color85(c85,lastcol);
+			color85(c85, lastcol);
 			Netcat::log(c85);
 			if (times > 1) {
-				Netcat::logf("~%03d",times);
+				Netcat::logf("~%03d", times);
 			}
 			Netcat::log("\n");
 			scr_scanY++;
@@ -580,6 +600,7 @@ int main(int argc, char *argv[]) {
 			GRRLIB_Render();
 			break;
 		}
+		} // switch (status)
 		lastTime = thisTime;
 	}
 	Netcat::log("ending...\n");
@@ -669,7 +690,7 @@ static u8 CalculateFrameRate() {
 	u32 currentTime = ticks_to_millisecs(gettime());
 
 	frameCount++;
-	if(currentTime - lastTime > 1000) {
+	if (currentTime - lastTime > 1000) {
 		lastTime = currentTime;
 		FPS = frameCount;
 		frameCount = 0;

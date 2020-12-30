@@ -5,20 +5,20 @@
 #define nRenderChunks 256
 
 struct RenderChunk {
-	bool active;
-	bool update;
-	unsigned short x, z;
+	short x, z;
 	DisplayList *list;
 	DisplayList *blendlist;
+	bool active;
+	bool update;
 };
 
 namespace Chunked {
 	void init();
 	void deallocall();
-	void markchunkforupdate(unsigned short, unsigned short);
+	void markchunkforupdate(short, short);
 	bool rerenderChunkUpdates(bool);
-	void rerenderChunk(signed short, signed short, bool);
+	void rerenderChunk(short, short, bool);
 	void refresh(int);
 	void render();
-	void getfifousage(int*, int*);
-};
+	void getfifousage(size_t*, size_t*);
+}

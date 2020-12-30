@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include <gccore.h>
+
 typedef struct blockEntry_s {
-	void (*renderBlock)(int xPos, int yPos, int zPos, unsigned char pass);
+	void (*renderBlock)(s16 xPos, s16 yPos, s16 zPos, unsigned char pass);
 } blockEntry;
 
 extern blockEntry blockRegistry[256];

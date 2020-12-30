@@ -11,9 +11,9 @@ namespace Render {
 
 	void drawText(f32, f32, GRRLIB_texImg*, const char*, ...);
 
-	void drawBlock(int, int, int, blockTexture*);
-	void drawBlockCrossed(int, int, int, blockTexture*);
-	void drawMultiTexBlock(int, int, int, blockTexture*, blockTexture*, blockTexture*);
-	void drawLiquidBlock(int, int, int, blockTexture*);
-	void drawSelectionBlock(int, int, int);
-};
+	void drawBlock(s16, s16, s16, blockTexture*);
+	void drawBlockCrossed(s16, s16, s16, blockTexture*);
+	void drawMultiTexBlock(s16, s16, s16, blockTexture*, blockTexture*, blockTexture*);
+	void drawLiquidBlock(s16, s16, s16, blockTexture*);
+	void drawSelectionBlock(f32, f32, f32);
+}

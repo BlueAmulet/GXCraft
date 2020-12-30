@@ -5,6 +5,6 @@ namespace Netcat {
 	void console();
 	void accept();
 	void close();
-	void log(const char* data);
-	void logf(const char* format, ...);
-};
+	void log(const char *data);
+	void logf(const char *format, ...);
+}

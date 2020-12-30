@@ -9,8 +9,9 @@ static blockTexture *tex_grass_side;
 static blockTexture *tex_grass_top;
 static blockTexture *tex_dirt;
 
-static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 1) return;
+static void render(s16 xPos, s16 yPos, s16 zPos, unsigned char pass) {
+	if (pass == 1)
+		return;
 	Render::drawMultiTexBlock(xPos, yPos, zPos, tex_grass_top, tex_grass_side, tex_dirt);
 }
 
@@ -22,4 +23,3 @@ void grass_init() {
 	tex_grass_top = getTexture(0, 0);
 	tex_dirt = getTexture(2, 0);
 }
-

@@ -8,8 +8,9 @@
 static blockTexture *tex_shelf;
 static blockTexture *tex_wood;
 
-static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 1) return;
+static void render(s16 xPos, s16 yPos, s16 zPos, unsigned char pass) {
+	if (pass == 1)
+		return;
 	Render::drawMultiTexBlock(xPos, yPos, zPos, tex_wood, tex_shelf, tex_wood);
 }
 

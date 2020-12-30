@@ -8,8 +8,9 @@
 static blockTexture *tex_log_top;
 static blockTexture *tex_log_side;
 
-static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 1) return;
+static void render(s16 xPos, s16 yPos, s16 zPos, unsigned char pass) {
+	if (pass == 1)
+		return;
 	Render::drawMultiTexBlock(xPos, yPos, zPos, tex_log_top, tex_log_side, tex_log_top);
 }
 

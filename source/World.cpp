@@ -9,15 +9,19 @@
 #include "ChunkedRender.hpp"
 
 static int randnum(int x, int y) {
-	double uni = static_cast<double>(rand())/static_cast<double>(RAND_MAX);
+	double uni = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
 	return floor(uni * (y - x + 1)) + x;
 }
 
 static void updateNeighbors(int x, int z) {
-	if (x % chunkSize == chunkSize-1) Chunked::markchunkforupdate(floor(x/chunkSize)+1,floor(z/chunkSize));
-	if (x % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize)-1,floor(z/chunkSize));
-	if (z % chunkSize == chunkSize-1) Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)+1);
-	if (z % chunkSize == 0)           Chunked::markchunkforupdate(floor(x/chunkSize),floor(z/chunkSize)-1);
+	if (x % chunkSize == chunkSize - 1)
+		Chunked::markchunkforupdate((x / chunkSize) + 1, z / chunkSize);
+	if (x % chunkSize == 0)
+		Chunked::markchunkforupdate((x / chunkSize) - 1, z / chunkSize);
+	if (z % chunkSize == chunkSize - 1)
+		Chunked::markchunkforupdate(x / chunkSize, (z / chunkSize) + 1);
+	if (z % chunkSize == 0)
+		Chunked::markchunkforupdate(x / chunkSize, (z / chunkSize) - 1);
 }
 
 static FastNoiseLite *createOctaveNoise(unsigned int seed, int octave, FastNoiseLite::NoiseType noiseType) {
@@ -34,21 +38,22 @@ static FastNoiseLite *createOctaveNoise(unsigned int seed, int octave, FastNoise
 }
 
 class CombinedNoise {
-	private:
-		FastNoiseLite *noise1;
-		FastNoiseLite *noise2;
-		float antiBound2;
-	public:
-		CombinedNoise(unsigned int seed1, unsigned int seed2, int octave1, int octave2, FastNoiseLite::NoiseType noiseType) {
-			noise1 = createOctaveNoise(seed1, octave1, noiseType);
-			noise2 = createOctaveNoise(seed2, octave2, noiseType);
-			antiBound2 = pow(2.0f, static_cast<float>(octave2))-1.0f;
-		}
+private:
+	FastNoiseLite *noise1;
+	FastNoiseLite *noise2;
+	float antiBound2;
 
-		float GetNoise(float x, float y) {
-			float offset = noise2->GetNoise(x, y) * antiBound2;
-			return noise1->GetNoise(x + offset, y);
-		}
+public:
+	CombinedNoise(unsigned int seed1, unsigned int seed2, int octave1, int octave2, FastNoiseLite::NoiseType noiseType) {
+		noise1 = createOctaveNoise(seed1, octave1, noiseType);
+		noise2 = createOctaveNoise(seed2, octave2, noiseType);
+		antiBound2 = powf(2.0f, static_cast<float>(octave2)) - 1.0f;
+	}
+
+	float GetNoise(float x, float y) {
+		float offset = noise2->GetNoise(x, y) * antiBound2;
+		return noise1->GetNoise(x + offset, y);
+	}
 };
 
 static unsigned int _seed = 0xAB08E51C;
@@ -111,10 +116,10 @@ World::World(unsigned int seed) {
 					if (place == 0)
 						placeTree(x, y, z);
 					if (place < 128) {
-						float redPlace = noise8.GetNoise(x/64.0f, z/64.0f);
-						if (redPlace > 0.8)
+						float redPlace = noise8.GetNoise(x / 64.0f, z / 64.0f);
+						if (redPlace > 0.8f)
 							theWorld[y][x][z] = 37;
-						else if (redPlace < -0.8)
+						else if (redPlace < -0.8f)
 							theWorld[y][x][z] = 38;
 					}
 				}
@@ -140,15 +145,14 @@ uint8_t World::getBlock(int x, int y, int z) {
 	return 0;
 }
 
-
 #define tryAddLiquidBlock(xpos, ypos, zpos) \
-blockID = getBlock(xpos, ypos, zpos);\
-if (blockID == 8 || blockID == 10) {\
-	toAdd.x = xpos;\
-	toAdd.y = ypos;\
-	toAdd.z = zpos;\
-	flowingLiquid.push_back(toAdd);\
-}
+	blockID = getBlock(xpos, ypos, zpos); \
+	if (blockID == 8 || blockID == 10) { \
+		toAdd.x = xpos; \
+		toAdd.y = ypos; \
+		toAdd.z = zpos; \
+		flowingLiquid.push_back(toAdd); \
+	}
 
 // Safe block placement
 void World::setBlockRaw(int x, int y, int z, uint8_t blockID) {
@@ -170,64 +174,64 @@ void World::setBlockRaw(int x, int y, int z, uint8_t blockID) {
 					}
 				}
 			}
-			tryAddLiquidBlock(x-1, y, z);
-			tryAddLiquidBlock(x+1, y, z);
-			tryAddLiquidBlock(x, y, z-1);
-			tryAddLiquidBlock(x, y, z+1);
+			tryAddLiquidBlock(x - 1, y, z);
+			tryAddLiquidBlock(x + 1, y, z);
+			tryAddLiquidBlock(x, y, z - 1);
+			tryAddLiquidBlock(x, y, z + 1);
 		}
-		tryAddLiquidBlock(x, y+1, z);
+		tryAddLiquidBlock(x, y + 1, z);
 	}
 }
 
 void World::setBlock(int x, int y, int z, uint8_t blockID) {
 	this->setBlockRaw(x, y, z, blockID);
-	Chunked::markchunkforupdate(floor(x/chunkSize), floor(z/chunkSize));
+	Chunked::markchunkforupdate(x / chunkSize, z / chunkSize);
 	updateNeighbors(x, z);
 }
 
 void World::setIfAir(int x, int y, int z, uint8_t blockID) {
-	u8 tBlockID = this->getBlock(x,y,z);
+	u8 tBlockID = this->getBlock(x, y, z);
 	if (tBlockID == 0 || tBlockID == 255)
-		this->setBlockRaw(x,y,z,blockID);
+		this->setBlockRaw(x, y, z, blockID);
 }
 
 #undef tryAddLiquidBlock
 
-int World::getLiquidsSize() {
+size_t World::getLiquidsSize() {
 	return flowingLiquid.size();
 }
 
-int World::getLiquidsCapacity() {
+size_t World::getLiquidsCapacity() {
 	return flowingLiquid.capacity();
 }
 
-#define trySetLiquidBlock(xpos,ypos,zpos) \
-if (this->getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) {\
-	this->setBlock(liquid.xpos, liquid.ypos, liquid.zpos, liquidType);\
-	newLiquid.x = liquid.xpos;\
-	newLiquid.y = liquid.ypos;\
-	newLiquid.z = liquid.zpos;\
-	flowingLiquid.push_back(newLiquid);\
-}
+#define trySetLiquidBlock(xpos, ypos, zpos) \
+	if (this->getBlock(liquid.xpos, liquid.ypos, liquid.zpos) == 0) { \
+		this->setBlock(liquid.xpos, liquid.ypos, liquid.zpos, liquidType); \
+		newLiquid.x = liquid.xpos; \
+		newLiquid.y = liquid.ypos; \
+		newLiquid.z = liquid.zpos; \
+		flowingLiquid.push_back(newLiquid); \
+	}
 
 void World::updateWorld(int renderDistance) {
 	// Random Block Update!
-	for (int i = 0; i < pow(renderDistance/16,2)*48; i++) {
+	for (int i = 0; i < pow(renderDistance / 16, 2) * 48; i++) {
 		signed int rx = randnum(thePlayer.posX - renderDistance, thePlayer.posX + renderDistance);
 		signed int ry = randnum(0, worldY - 1);
 		signed int rz = randnum(thePlayer.posZ - renderDistance, thePlayer.posZ + renderDistance);
-		u8 blockID = this->getBlock(rx,ry,rz);
+		u8 blockID = this->getBlock(rx, ry, rz);
 		if (blockID == 3 && this->lighting[rx][rz] <= ry) {
-			this->setBlock(rx,ry,rz,2);
+			this->setBlock(rx, ry, rz, 2);
 		} else if (blockID == 2 && this->lighting[rx][rz] > ry) {
-			this->setBlock(rx,ry,rz,3);
+			this->setBlock(rx, ry, rz, 3);
 		} else if (blockID == 6) {
-			if (this->lighting[rx][rz] > ry) { //not working?
-				this->setBlock(rx,ry,rz,0);
+			if (this->lighting[rx][rz] > ry) { // not working?
+				this->setBlock(rx, ry, rz, 0);
 			} else {
-				placeTree(rx,ry,rz);
+				placeTree(rx, ry, rz);
 				// this wont update chunks properly. duplicated because we need special chunk care here.
-				Chunked::markchunkforupdate(floor(rx/chunkSize), floor(rz/chunkSize));
+				Chunked::markchunkforupdate(floor(rx / chunkSize), floor(rz / chunkSize));
 				updateNeighbors(rx, rz);
 			}
 		}
@@ -235,24 +239,24 @@ void World::updateWorld(int renderDistance) {
 
 	// Fluid Updates
 	if (flowingLiquid.size() > 0) {
-		int fls = flowingLiquid.size();
-		for (int i = 0; i < std::min(fls, 10); i++) {
+		size_t fls = flowingLiquid.size();
+		for (size_t i = 0; i < std::min(fls, 10u); i++) {
 			guVector liquid = flowingLiquid[0];
 			flowingLiquid.erase(flowingLiquid.begin());
 			guVector newLiquid;
 			uint8_t liquidType = this->getBlock(liquid.x, liquid.y, liquid.z);
-			uint8_t bottomBlock = this->getBlock(liquid.x, liquid.y-1, liquid.z);
+			uint8_t bottomBlock = this->getBlock(liquid.x, liquid.y - 1, liquid.z);
 			if (bottomBlock == 0 && liquidType != 0) {
-				this->setBlock(liquid.x, liquid.y-1, liquid.z, liquidType);
+				this->setBlock(liquid.x, liquid.y - 1, liquid.z, liquidType);
 				newLiquid.x = liquid.x;
-				newLiquid.y = liquid.y-1;
+				newLiquid.y = liquid.y - 1;
 				newLiquid.z = liquid.z;
 				flowingLiquid.push_back(newLiquid);
 			} else if (bottomBlock != liquidType) {
-				trySetLiquidBlock(x-1,y,z);
-				trySetLiquidBlock(x+1,y,z);
-				trySetLiquidBlock(x,y,z-1);
-				trySetLiquidBlock(x,y,z+1);
+				trySetLiquidBlock(x - 1, y, z);
+				trySetLiquidBlock(x + 1, y, z);
+				trySetLiquidBlock(x, y, z - 1);
+				trySetLiquidBlock(x, y, z + 1);
 			}
 		}
 	}
@@ -261,26 +265,26 @@ void World::updateWorld(int renderDistance) {
 #undef trySetLiquidBlock
 
 void World::placeTree(int x, int y, int z) {
-	if (this->getBlock(x,y-1,z) == 2)
-		this->setBlockRaw(x,y-1,z,3);
-	int lx,ly,lz;
+	if (this->getBlock(x, y - 1, z) == 2)
+		this->setBlockRaw(x, y - 1, z, 3);
+	int lx, ly, lz;
 	for (ly = y + 3; ly <= y + 4; ly++) {
 		for (lx = x - 2; lx <= x + 2; lx++) {
 			for (lz = z - 2; lz <= z + 2; lz++) {
-				setIfAir(lx,ly,lz,18);
+				setIfAir(lx, ly, lz, 18);
 			}
 		}
 	}
 	for (lx = x - 1; lx <= x + 1; lx++) {
 		for (lz = z - 1; lz <= z + 1; lz++) {
-			setIfAir(lx,y+5,lz,18);
+			setIfAir(lx, y + 5, lz, 18);
 		}
 	}
-	setIfAir(x,y+6,z,18);
-	setIfAir(x-1,y+6,z,18);
-	setIfAir(x+1,y+6,z,18);
-	setIfAir(x,y+6,z-1,18);
-	setIfAir(x,y+6,z+1,18);
+	setIfAir(x, y + 6, z, 18);
+	setIfAir(x - 1, y + 6, z, 18);
+	setIfAir(x + 1, y + 6, z, 18);
+	setIfAir(x, y + 6, z - 1, 18);
+	setIfAir(x, y + 6, z + 1, 18);
 	for (ly = y; ly < y + 6; ly++)
-		this->setBlockRaw(x,ly,z,17);
+		this->setBlockRaw(x, ly, z, 17);
 }

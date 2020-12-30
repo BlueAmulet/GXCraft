@@ -9,8 +9,9 @@ static blockTexture *tex_iron_top;
 static blockTexture *tex_iron_bott;
 static blockTexture *tex_iron_side;
 
-static void render(int xPos, int yPos, int zPos, unsigned char pass) {
-	if (pass == 1) return;
+static void render(s16 xPos, s16 yPos, s16 zPos, unsigned char pass) {
+	if (pass == 1)
+		return;
 	Render::drawMultiTexBlock(xPos, yPos, zPos, tex_iron_top, tex_iron_side, tex_iron_bott);
 }
 

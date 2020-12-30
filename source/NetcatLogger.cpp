@@ -45,12 +45,14 @@ namespace Netcat {
 	}
 
 	void accept() {
-		if (!init) return;
+		if (!init)
+			return;
 		csock = net_accept(sock, reinterpret_cast<struct sockaddr*>(&client), &clientlen);
 
 		if (csock < 0) {
 			printf("Error connecting socket %d!\n", csock);
-			while(1);
+			while (true) {
+			}
 		}
 
 		printf("Connecting port %u from %s\n", client.sin_port, inet_ntoa(client.sin_addr));
@@ -58,17 +60,20 @@ namespace Netcat {
 	}
 
 	void close() {
-		if (!init) return;
+		if (!init)
+			return;
 		net_close(csock);
 	}
 
-	void log(const char* data) {
-		if (!init) return;
+	void log(const char *data) {
+		if (!init)
+			return;
 		net_send(csock, data, strlen(data), 0);
 	}
 
-	void logf(const char* format, ...) {
-		if (!init) return;
+	void logf(const char *format, ...) {
+		if (!init)
+			return;
 		va_list argptr;
 		va_start(argptr, format);
 		vsnprintf(dest, 1024, format, argptr);
